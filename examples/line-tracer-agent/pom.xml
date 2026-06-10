@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>line-tracer-agent</artifactId>
+    <version>0.0.1</version>
+    <name>line-tracer-agent</name>
+    <description>
+        Java agent that instruments target classes at every source line,
+        reporting (traceId, spanId, class, method, lineNo) events to a Python
+        receiver so that statement-level execution paths can be captured.
+    </description>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- ASM: bytecode manipulation used by the class-file transformer -->
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>9.7</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                Shade plugin: produce a single fat JAR and relocate the bundled
+                ASM classes to avoid conflicts with any ASM already on the
+                application classpath.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.objectweb.asm</pattern>
+                                    <shadedPattern>com.example.tracer.shaded.asm</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <!-- Agent entry point -->
+                                        <Premain-Class>com.example.tracer.LineTracerAgent</Premain-Class>
+                                        <!-- Needed so we can add ourselves to the bootstrap CL -->
+                                        <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                                        <Can-Redefine-Classes>false</Can-Redefine-Classes>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                            <!-- Suppress the reduced-POM warning -->
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

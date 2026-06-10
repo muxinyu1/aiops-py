@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-class Type(Enum, str):
+class Type(str, Enum):
     RESTFUL = "RESTFUL"
     RPC = "RPC"
 
