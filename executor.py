@@ -19,7 +19,11 @@ from trace import Trace, TraceNode
 
 @dataclass
 class Executor():
+    # executor无状态
+    
+
     def execute(self, param: Parameter) -> Trace:
+        # 
         return NotImplemented
 
 

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Parameter(ABC):
-    pass
+    scene: str
 
 
 @dataclass
