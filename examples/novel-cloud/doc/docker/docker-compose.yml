@@ -1,0 +1,386 @@
+version: '3.9'
+
+services:
+  novel-mysql:
+    container_name: novel-mysql
+    image: mysql:${MYSQL_VERSION}
+    restart: always
+    hostname: novel-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - "/data/docker/mysql/data:/var/lib/mysql"
+      - "/data/docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql"
+    command: mysqld --max_allowed_packet=100M
+    ports:
+      - "3306:3306"
+    networks:
+      - novelnet
+
+  novel-redis:
+    container_name: novel-redis
+    image: redis:${REDIS_VERSION}
+    restart: always
+    hostname: novel-redis
+    command: redis-server --save 60 1 --loglevel warning --requirepass "${REDIS_PASSWORD}"
+    ports:
+      - "6379:6379"
+    networks:
+      - novelnet
+
+  novel-rabbitmq:
+    container_name: novel-rabbitmq
+    image: rabbitmq:${RABBITMQ_VERSION}
+    restart: always
+    hostname: novel-rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST}
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - novelnet
+
+  novel-elasticsearch-setup:
+    container_name: novel-elasticsearch-setup
+    image: elasticsearch:${ELASTIC_VERSION}
+    hostname: novel-elasticsearch-setup
+    user: "0"
+    command: >
+      bash -c '
+        echo "Waiting for Elasticsearch availability";
+        until curl -s http://novel-elasticsearch:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "Setting kibana_system password";
+        until curl -s -X POST -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" http://novel-elasticsearch:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "All done!";
+      '
+    networks:
+      - novelnet
+
+  novel-elasticsearch:
+    container_name: novel-elasticsearch
+    image: elasticsearch:${ELASTIC_VERSION}
+    restart: always
+    hostname: novel-elasticsearch
+    environment:
+      - "ES_JAVA_OPTS=-Xms125m -Xmx512m"
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+      - xpack.security.http.ssl.enabled=false
+    ports:
+      - "9200:9200"
+    depends_on:
+      - novel-elasticsearch-setup
+    networks:
+      - novelnet
+
+  novel-kibana:
+    container_name: novel-kibana
+    image: kibana:${KIBANA_VERSION}
+    restart: always
+    hostname: novel-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://novel-elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+    #      - ELASTICSEARCH_SSL_VERIFICATIONMODE=none
+    ports:
+      - "5601:5601"
+    depends_on:
+      - novel-elasticsearch
+    networks:
+      - novelnet
+
+  novel-xxl-job-admin:
+    container_name: novel-xxl-job-admin
+    image: xuxueli/xxl-job-admin:${XXLJOB_VERSION}
+    restart: always
+    hostname: novel-xxl-job-admin
+    environment:
+      - PARAMS=--spring.datasource.url=jdbc:mysql://novel-mysql:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai --spring.datasource.username=root --spring.datasource.password=${MYSQL_ROOT_PASSWORD} --xxl.job.accessToken=${XXLJOB_ACCESSTOKEN}
+      - JAVA_OPTS=-Xmx512m
+    volumes:
+      - /data/docker/xxl-job-admin/data/applogs:/data/applogs
+    ports:
+      - "8080:8080"
+    depends_on:
+      - novel-mysql
+    networks:
+      - novelnet
+
+  novel-nacos-server:
+    container_name: novel-nacos-server
+    image: nacos/nacos-server:${NACOS_VERSION}
+    restart: always
+    hostname: novel-nacos-server
+    environment:
+      - PREFER_HOST_MODE=hostname
+      - MODE=standalone
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=novel-mysql
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+      - NACOS_AUTH_IDENTITY_KEY=xxyopen
+      - NACOS_AUTH_IDENTITY_VALUE=xxyopen
+      - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789
+      - JVM_XMS=125M
+      - JVM_XMX=125M
+      - JVM_XMN=50M
+      - JVM_MS=50M
+      - JVM_MMS=50M
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    depends_on:
+      - novel-mysql
+    networks:
+      - novelnet
+    healthcheck:
+      test:
+        [
+            "CMD-SHELL",
+            "curl -s -I http://localhost:8848 | grep -q 'HTTP/1.1 404'",
+        ]
+      interval: 30s
+      timeout: 2s
+      retries: 120
+
+  novel-gateway:
+    build: ./novel-gateway
+    image: novel-gateway:${NOVEL_CLOUD_VERSION}
+    container_name: novel-gateway
+    restart: "always"
+    environment:
+      - JAR_VERSION=${NOVEL_CLOUD_VERSION}
+      - NACOS_ADDR=novel-nacos-server:8848
+    ports:
+      - "8888:8888"
+    depends_on:
+      novel-nacos-server:
+        condition: service_healthy
+    networks:
+      - novelnet
+    healthcheck:
+      test:
+        [
+            "CMD-SHELL",
+            "curl -s -I http://localhost:8888 | grep -q 'HTTP/1.1 404 Not Found'",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 120
+
+  novel-home-service:
+    build: ./novel-home-service
+    image: novel-home-service:${NOVEL_CLOUD_VERSION}
+    container_name: novel-home-service
+    restart: "always"
+    environment:
+      - JAR_VERSION=${NOVEL_CLOUD_VERSION}
+      - NACOS_ADDR=novel-nacos-server:8848
+    ports:
+      - "9001:9001"
+    depends_on:
+      novel-nacos-server:
+        condition: service_healthy
+    networks:
+      - novelnet
+    healthcheck:
+      test:
+        [
+            "CMD-SHELL",
+            "curl -s -I http://localhost:9001 | grep -q 'HTTP/1.1 404 Not Found'",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 120
+  
+  novel-news-service:
+    build: ./novel-news-service
+    image: novel-news-service:${NOVEL_CLOUD_VERSION}
+    container_name: novel-news-service
+    restart: "always"
+    environment:
+      - JAR_VERSION=${NOVEL_CLOUD_VERSION}
+      - NACOS_ADDR=novel-nacos-server:8848
+    ports:
+      - "9030:9030"
+    depends_on:
+      novel-nacos-server:
+        condition: service_healthy
+    networks:
+      - novelnet
+    healthcheck:
+      test:
+        [
+            "CMD-SHELL",
+            "curl -s -I http://localhost:9030 | grep -q 'HTTP/1.1 404 Not Found'",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 120
+
+  novel-book-service:
+    build: ./novel-book-service
+    image: novel-book-service:${NOVEL_CLOUD_VERSION}
+    container_name: novel-book-service
+    restart: "always"
+    environment:
+      - JAR_VERSION=${NOVEL_CLOUD_VERSION}
+      - NACOS_ADDR=novel-nacos-server:8848
+    ports:
+      - "9020:9020"
+    depends_on:
+      novel-nacos-server:
+        condition: service_healthy
+    networks:
+      - novelnet
+    healthcheck:
+      test:
+        [
+            "CMD-SHELL",
+            "curl -s -I http://localhost:9020 | grep -q 'HTTP/1.1 404 Not Found'",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 120
+  
+  novel-user-service:
+    build: ./novel-user-service
+    image: novel-user-service:${NOVEL_CLOUD_VERSION}
+    container_name: novel-user-service
+    restart: "always"
+    environment:
+      - JAR_VERSION=${NOVEL_CLOUD_VERSION}
+      - NACOS_ADDR=novel-nacos-server:8848
+    ports:
+      - "9060:9060"
+    depends_on:
+      novel-nacos-server:
+        condition: service_healthy
+    networks:
+      - novelnet
+    healthcheck:
+      test:
+        [
+            "CMD-SHELL",
+            "curl -s -I http://localhost:9060 | grep -q 'HTTP/1.1 404 Not Found'",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 120
+  
+  novel-search-service:
+    build: ./novel-search-service
+    image: novel-search-service:${NOVEL_CLOUD_VERSION}
+    container_name: novel-search-service
+    restart: "always"
+    environment:
+      - JAR_VERSION=${NOVEL_CLOUD_VERSION}
+      - NACOS_ADDR=novel-nacos-server:8848
+    ports:
+      - "9050:9050"
+    depends_on:
+      novel-nacos-server:
+        condition: service_healthy
+    networks:
+      - novelnet
+    healthcheck:
+      test:
+        [
+            "CMD-SHELL",
+            "curl -s -I http://localhost:9050 | grep -q 'HTTP/1.1 404 Not Found'",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 120
+  
+  novel-resource-service:
+    build: ./novel-resource-service
+    image: novel-resource-service:${NOVEL_CLOUD_VERSION}
+    container_name: novel-resource-service
+    restart: "always"
+    environment:
+      - JAR_VERSION=${NOVEL_CLOUD_VERSION}
+      - NACOS_ADDR=novel-nacos-server:8848
+    ports:
+      - "9040:9040"
+    depends_on:
+      novel-nacos-server:
+        condition: service_healthy
+    networks:
+      - novelnet
+    healthcheck:
+      test:
+        [
+            "CMD-SHELL",
+            "curl -s -I http://localhost:9040 | grep -q 'HTTP/1.1 404 Not Found'",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 120
+  
+  novel-author-service:
+    build: ./novel-author-service
+    image: novel-author-service:${NOVEL_CLOUD_VERSION}
+    container_name: novel-author-service
+    restart: "always"
+    environment:
+      - JAR_VERSION=${NOVEL_CLOUD_VERSION}
+      - NACOS_ADDR=novel-nacos-server:8848
+    ports:
+      - "9010:9010"
+    depends_on:
+      novel-nacos-server:
+        condition: service_healthy
+    networks:
+      - novelnet
+    healthcheck:
+      test:
+        [
+            "CMD-SHELL",
+            "curl -s -I http://localhost:9010 | grep -q 'HTTP/1.1 404 Not Found'",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 120
+  
+  novel-monitor:
+    build: ./novel-monitor
+    image: novel-monitor:${NOVEL_CLOUD_VERSION}
+    container_name: novel-monitor
+    restart: "always"
+    environment:
+      - JAR_VERSION=${NOVEL_CLOUD_VERSION}
+      - NACOS_ADDR=novel-nacos-server:8848
+    ports:
+      - "8898:8898"
+    depends_on:
+      novel-gateway:
+        condition: service_healthy
+      novel-home-service:
+        condition: service_healthy
+      novel-author-service:
+        condition: service_healthy
+      novel-book-service:
+        condition: service_healthy
+      novel-search-service:
+        condition: service_healthy
+      novel-user-service:
+        condition: service_healthy
+      novel-resource-service:
+        condition: service_healthy
+      novel-news-service:
+        condition: service_healthy
+    networks:
+      - novelnet
+
+networks:
+  novelnet:
+    driver: bridge

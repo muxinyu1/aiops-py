@@ -13,10 +13,12 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +41,13 @@ import java.util.stream.Collectors;
 public class TracingAspect {
 
     private static final Logger log = LoggerFactory.getLogger(TracingAspect.class);
+
+    /** All-zeros IDs indicate that the OTel SDK is a no-op (no agent). */
+    private static final String ZERO_32 = "0".repeat(32);
+    private static final String ZERO_16 = "0".repeat(16);
+
+    @Autowired
+    private TraceStore traceStore;
 
     @Around("execution(* com.example.microservice.controller..*(..)) || " +
             "execution(* com.example.microservice.service..*(..))")
@@ -67,6 +76,9 @@ public class TracingAspect {
         Tracer tracer = GlobalOpenTelemetry.getTracer(
                 "com.example.microservice.tracing", "0.0.1");
 
+        // Capture parent span ID *before* we create our own span
+        String parentSpanId = Span.current().getSpanContext().getSpanId();
+
         Span span = tracer.spanBuilder(spanName)
                 .setSpanKind(SpanKind.INTERNAL)
                 .setParent(Context.current())
@@ -82,14 +94,73 @@ public class TracingAspect {
 
         log.debug("TRACE → {}.{}  ({}:{})", simpleName, methodName, sourceFile, lineNo);
 
+        // Wall-clock start for SpanRecord (epoch + nanoTime offset)
+        long startNs    = System.nanoTime();
+        long epochNs    = System.currentTimeMillis() * 1_000_000L;
+
+        boolean isError  = false;
+        String  errorMsg = null;
+
         try (Scope ignored = span.makeCurrent()) {
             return pjp.proceed();
         } catch (Throwable ex) {
+            isError  = true;
+            errorMsg = ex.getMessage();
             span.setStatus(StatusCode.ERROR, ex.getMessage());
             span.recordException(ex);
             throw ex;
         } finally {
+            long durationNs = System.nanoTime() - startNs;
             span.end();
+
+            // ── write SpanRecord to TraceStore ────────────────────────────
+            String traceId = resolveTraceId(span);
+            if (traceId != null) {
+                String spanId = span.getSpanContext().getSpanId();
+                // Fall back to random IDs when OTel SDK is a no-op
+                if (ZERO_16.equals(spanId)) {
+                    spanId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+                }
+                if (ZERO_16.equals(parentSpanId)) {
+                    parentSpanId = "";
+                }
+
+                SpanRecord record       = new SpanRecord();
+                record.span_id          = spanId;
+                record.parent_span_id   = parentSpanId;
+                record.trace_id         = traceId;
+                record.content          = spanName;
+                record.function         = methodName;
+                record.method_signature = signature;
+                record.class_namespace  = namespace;
+                record.src_file         = sourceFile;
+                record.line_number      = lineNo;
+                record.start_ns         = epochNs;
+                record.duration_ns      = durationNs;
+                record.is_error         = isError;
+                record.error_message    = errorMsg;
+
+                traceStore.add(traceId, record);
+            }
         }
+    }
+
+    /**
+     * Determine the trace-id to use for {@link TraceStore} indexing.
+     *
+     * <ol>
+     *   <li>Prefer the thread-local set by {@link TraceFilter} — works with
+     *       and without the OTel Java agent.</li>
+     *   <li>Fall back to the OTel span context trace-id when the agent is
+     *       present but no {@code X-Return-Trace} header was sent (e.g. external
+     *       monitoring via Jaeger/Zipkin).</li>
+     * </ol>
+     */
+    private String resolveTraceId(Span span) {
+        String fromHolder = TraceContextHolder.get();
+        if (fromHolder != null) return fromHolder;
+
+        String fromOtel = span.getSpanContext().getTraceId();
+        return (fromOtel != null && !ZERO_32.equals(fromOtel)) ? fromOtel : null;
     }
 }

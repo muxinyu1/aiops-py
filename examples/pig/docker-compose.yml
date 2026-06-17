@@ -1,0 +1,100 @@
+# 使用说明 4.0 - 微服务架构版本
+# 1. 使用docker-compose  宿主机不需要配置host来发现
+# 2. 无需修改源码，根目录  docker-compose up 即可
+# 3. 静静等待服务启动
+services:
+  pig-mysql:
+    build:
+      context: ./db
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: root
+    restart: always
+    container_name: pig-mysql
+    image: pig-mysql
+    command: --lower_case_table_names=1
+    networks:
+      - spring_cloud_default
+
+  pig-redis:
+    container_name: pig-redis
+    image: registry.cn-hangzhou.aliyuncs.com/dockerhub_mirror/redis
+    restart: always
+    networks:
+      - spring_cloud_default
+
+  pig-register:
+    build:
+      context: ./pig-register
+    restart: always
+    container_name: pig-register
+    image: pig-register
+    ports:
+      - 8848:8848
+      - 9848:9848
+      - 18080:18080
+    networks:
+      - spring_cloud_default
+
+  pig-gateway:
+    build:
+      context: ./pig-gateway
+    restart: always
+    container_name: pig-gateway
+    image: pig-gateway
+    ports:
+      - 9999:9999
+    networks:
+      - spring_cloud_default
+
+  pig-auth:
+    build:
+      context: ./pig-auth
+    restart: always
+    container_name: pig-auth
+    image: pig-auth
+    networks:
+      - spring_cloud_default
+
+  pig-upms:
+    build:
+      context: ./pig-upms/pig-upms-biz
+    restart: always
+    container_name: pig-upms
+    image: pig-upms
+    networks:
+      - spring_cloud_default
+
+  pig-monitor:
+    build:
+      context: ./pig-visual/pig-monitor
+    restart: always
+    image: pig-monitor
+    container_name: pig-monitor
+    ports:
+      - 5001:5001
+    networks:
+      - spring_cloud_default
+
+  pig-quartz:
+    build:
+      context: ./pig-visual/pig-quartz
+    restart: always
+    image: pig-quartz
+    container_name: pig-quartz
+    networks:
+      - spring_cloud_default
+
+  pig-codegen:
+    build:
+      context: ./pig-visual/pig-codegen
+    restart: always
+    image: pig-codegen
+    container_name: pig-codegen
+    networks:
+      - spring_cloud_default
+
+networks:
+  spring_cloud_default:
+    name: spring_cloud_default
+    driver: bridge

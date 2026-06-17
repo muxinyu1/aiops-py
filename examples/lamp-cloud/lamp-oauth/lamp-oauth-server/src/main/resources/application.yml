@@ -1,0 +1,60 @@
+lamp:
+  swagger:
+    version: '@project.version@'
+  nacos:
+    ip: ${NACOS_IP:@nacos.ip@}
+    port: ${NACOS_PORT:@nacos.port@}
+    namespace: ${NACOS_NAMESPACE:@nacos.namespace@}
+    username: ${NACOS_USERNAME:@nacos.username@}
+    password: ${NACOS_PASSWORD:@nacos.password@}
+    group: DEFAULT_GROUP
+  seata:
+    ip: ${SEATA_IP:@seata.ip@}
+    port: ${SEATA_PORT:@seata.port@}
+    namespace: ${SEATA_NAMESPACE:@seata.namespace@}
+  sentinel:
+    dashboard: ${SENTINEL_DASHBOARD:@sentinel.dashboard@}
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: '@project.artifactId@'
+    # lamp自定义配置，用于lamp-scan-starter扫描接口时，拼接uri前缀。 需要和网关配置的前缀一致
+    path: /oauth
+  profiles:
+    active: '@profile.active@'
+  config:
+    import:
+      - nacos:common.yml?group=${lamp.nacos.group}&refresh=true
+      - nacos:redis.yml?group=${lamp.nacos.group}&refresh=true
+      - nacos:@database.type@?group=${lamp.nacos.group}&refresh=true
+      - nacos:rabbitmq.yml?group=${lamp.nacos.group}&refresh=true
+      - nacos:${spring.application.name}.yml?refresh=true
+  cloud:
+    sentinel:
+      enabled: true
+      filter:
+        enabled: true
+      eager: true  # 取消Sentinel控制台懒加载
+      transport:
+        dashboard: ${lamp.sentinel.dashboard}
+    nacos:
+      server-addr: ${lamp.nacos.ip}:${lamp.nacos.port}
+      username: ${lamp.nacos.username}
+      password: ${lamp.nacos.password}
+      config:
+        file-extension: yml
+        namespace: ${lamp.nacos.namespace}
+        enabled: true
+      discovery:
+        namespace: ${lamp.nacos.namespace}
+        metadata: # 元数据，用于权限服务实时获取各个服务的所有接口
+          management.context-path: ${server.servlet.context-path:}${spring.mvc.servlet.path:}${management.endpoints.web.base-path:}
+          gray_version: zuihou
+
+# 用于/actuator/info
+info:
+  name: '@project.name@'
+  description: '@project.description@'
+  version: '@project.version@'

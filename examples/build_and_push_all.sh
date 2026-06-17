@@ -6,7 +6,7 @@ set -e  # 遇到错误立即停止
 
 # 阿里云镜像仓库配置
 REGISTRY="crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com"
-NAMESPACE="aiops-examples"
+NAMESPACE="${NAMESPACE:-llmfuzz}"
 TAG="${TAG:-latest}"
 
 # 日志颜色
@@ -32,13 +32,14 @@ build_service() {
     local project=$1
     local module=$2
     local dockerfile=$3
-    local image_name="${REGISTRY}/${NAMESPACE}/${project}-${module}:${TAG}"
+    local image_name="${REGISTRY}/${NAMESPACE}/$(echo "${project}-${module}" | tr '[:upper:]' '[:lower:]'):${TAG}"
     
     log_info "Building $project/$module -> $image_name"
     
-    # 构建镜像
-    cd "$project"
-    if docker build -f "$dockerfile" -t "$image_name" .; then
+    # 构建镜像：以 Dockerfile 所在目录为 build context
+    local dockerfile_dir
+    dockerfile_dir="$project/$(dirname "$dockerfile")"
+    if docker build -f "$project/$dockerfile" -t "$image_name" "$dockerfile_dir"; then
         log_info "✅ Built $image_name"
         
         # 推送到阿里云
@@ -54,22 +55,20 @@ build_service() {
         log_error "❌ Failed to build $image_name"
         return 1
     fi
-    cd ..
 }
 
 # 构建 Maven 项目
 build_maven_project() {
     local project=$1
+    local project_dir
+    project_dir="$(pwd)/$project"
     log_info "Maven building $project ..."
     
-    cd "$project"
-    if mvn clean package -DskipTests -T 4 2>&1 | tee "../${project}_maven.log" | grep -E "BUILD SUCCESS|BUILD FAILURE"; then
+    if (cd "$project_dir" && mvn clean package -DskipTests -T 4 2>&1 | tee "${project_dir}/../${project}_maven.log" | grep -E "BUILD SUCCESS|BUILD FAILURE"); then
         log_info "✅ Maven build completed for $project"
-        cd ..
         return 0
     else
         log_error "❌ Maven build failed for $project"
-        cd ..
         return 1
     fi
 }
