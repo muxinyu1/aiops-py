@@ -44,7 +44,7 @@ public class TraceStore {
      */
     public List<SpanRecord> getAndRemove(String traceId) {
         Entry entry = store.remove(traceId);
-        if (entry == null) return List.of();
+        if (entry == null) return Collections.emptyList();
         return new ArrayList<>(entry.spans());
     }
 

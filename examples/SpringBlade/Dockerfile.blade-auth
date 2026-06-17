@@ -1,0 +1,14 @@
+FROM eclipse-temurin:17-jdk-jammy AS builder
+WORKDIR /build
+RUN apt-get update && apt-get install -y --no-install-recommends maven && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /root/.m2 && echo '<settings><mirrors><mirror><id>aliyun</id><mirrorOf>*</mirrorOf><url>https://maven.aliyun.com/repository/public</url></mirror></mirrors></settings>' > /root/.m2/settings.xml
+COPY . .
+RUN mvn clean package -DskipTests -Dmaven.gitcommitid.skip=true -pl blade-auth -am && cp $(find blade-auth/target -maxdepth 1 -name "*.jar" ! -name "*-sources*" ! -name "*-javadoc*" ! -name "original-*" | head -1) /build/app.jar
+
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+COPY opentelemetry-javaagent.jar /app/opentelemetry-javaagent.jar
+COPY --from=builder /build/app.jar app.jar
+EXPOSE 8080
+ENV OTEL_SERVICE_NAME=microservice OTEL_TRACES_EXPORTER=none OTEL_METRICS_EXPORTER=none OTEL_LOGS_EXPORTER=none JAVA_OPTS=""
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -javaagent:/app/opentelemetry-javaagent.jar -jar /app/app.jar"]

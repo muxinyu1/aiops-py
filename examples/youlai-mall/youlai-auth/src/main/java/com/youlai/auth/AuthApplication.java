@@ -2,12 +2,14 @@ package com.youlai.auth;
 
 import com.youlai.system.api.UserFeignClient;
 import com.youlai.mall.ums.api.MemberFeignClient;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @EnableFeignClients(basePackageClasses = {UserFeignClient.class, MemberFeignClient.class})
+@EnableScheduling
 @SpringBootApplication
 @EnableDiscoveryClient
 public class AuthApplication {

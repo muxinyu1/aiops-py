@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.system;
 
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -12,6 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *
  * @author 芋道源码
  */
+@EnableScheduling
 @SpringBootApplication
 public class SystemServerApplication {
 
