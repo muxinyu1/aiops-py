@@ -1,0 +1,147 @@
+# Shared real dependency services for examples-yml/*/compose.real.yaml.
+# Linux-only: services use host networking so legacy configs that point at
+# 127.0.0.1 can connect to the sidecars without rebuilding application images.
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: trace-real-mysql
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: test
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --explicit_defaults_for_timestamp=true
+      - --lower_case_table_names=1
+      - --sql-mode=NO_ENGINE_SUBSTITUTION
+      - --skip-log-bin
+    tmpfs:
+      - /var/lib/mysql
+    volumes:
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples-yml/_shared/mysql-init/00-create-databases.sql:/docker-entrypoint-initdb.d/00-create-databases.sql:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples-yml/_shared/mysql-init/01-import-real-stack-sql.sh:/docker-entrypoint-initdb.d/01-import-real-stack-sql.sh:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples-yml/_shared/mysql-init/02-import-ruoyi-plus-nacos-config.sh:/docker-entrypoint-initdb.d/02-import-ruoyi-plus-nacos-config.sh:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/zlt-microservices-platform/zlt-register/nacos/conf:/trace-sql/nacos:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/RuoYi-Cloud-Plus/script/sql:/trace-sql/ruoyi-plus:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/RuoYi-Cloud-Plus/script/config/nacos:/trace-config/ruoyi-plus/nacos:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/zlt-microservices-platform/zlt-doc/sql:/trace-sql/zlt:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/Apollo/scripts/sql/profiles/mysql-default:/trace-sql/apollo:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/novel-cloud/doc/sql:/trace-sql/novel:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/yudao-cloud/sql/mysql:/trace-sql/yudao:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/MoGuBlog/doc/数据库脚本:/trace-sql/mogublog:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/Cloud-Platform/ace-modules/ace-admin/db:/trace-sql/cloud-platform:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/lamp-cloud/A极其重要/01-docs/sql/mysql:/trace-sql/lamp-cloud:ro
+      - ${AIOPS_ROOT:-/home/mxy/Documents/aiops-py}/examples/youlai-mall/docs/sql/mysql8:/trace-sql/youlai:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: trace-real-redis
+    network_mode: host
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--requirepass", "password"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-a", "password", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: trace-real-rabbitmq
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+
+  mongo:
+    image: mongo:4.4
+    container_name: trace-real-mongo
+    network_mode: host
+    restart: unless-stopped
+    tmpfs:
+      - /data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongo --quiet --eval 'db.runCommand({ ping: 1 }).ok' 127.0.0.1:27017/test | grep 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+
+  nacos:
+    image: nacos/nacos-server:v2.2.3
+    container_name: trace-real-nacos
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      MODE: standalone
+      PREFER_HOST_MODE: ip
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: 127.0.0.1
+      MYSQL_SERVICE_PORT: "3306"
+      MYSQL_SERVICE_DB_NAME: nacos_config
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: "123456"
+      MYSQL_SERVICE_DB_PARAM: characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+      NACOS_AUTH_ENABLE: "false"
+      JVM_XMS: 128m
+      JVM_XMX: 256m
+      JVM_XMN: 64m
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8848/nacos/v1/console/health/readiness >/dev/null || wget -q -O - http://127.0.0.1:8848/nacos/v1/console/health/readiness >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  piggymetrics-config:
+    image: sqshq/piggymetrics-config
+    container_name: trace-real-piggymetrics-config
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      CONFIG_SERVICE_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8888/actuator/health >/dev/null || wget -q -O - http://127.0.0.1:8888/actuator/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  piggymetrics-registry:
+    image: sqshq/piggymetrics-registry
+    container_name: trace-real-piggymetrics-registry
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      CONFIG_SERVICE_PASSWORD: password
+      SPRING_CLOUD_CONFIG_URI: http://127.0.0.1:8888
+    depends_on:
+      piggymetrics-config:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8761/actuator/health >/dev/null || wget -q -O - http://127.0.0.1:8761/actuator/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s

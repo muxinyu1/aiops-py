@@ -1,0 +1,16 @@
+name: trace-apollo-apollo-adminservice
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/apollo-apollo-adminservice:latest
+    container_name: trace-apollo-apollo-adminservice
+    restart: unless-stopped
+    env_file:
+      - ../common.env
+    environment:
+      OTEL_SERVICE_NAME: apollo-apollo-adminservice
+      TRACE_SMOKE_MODE: "true"
+      SPRING_PROFILES_ACTIVE: trace-smoke
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    labels:
+      aiops.trace.endpoint: /__trace_smoke

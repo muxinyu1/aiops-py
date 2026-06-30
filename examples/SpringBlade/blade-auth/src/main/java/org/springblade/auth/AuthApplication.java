@@ -16,6 +16,7 @@
 package org.springblade.auth;
 
 
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springblade.core.cloud.client.BladeCloudApplication;
 import org.springblade.core.launch.BladeApplication;
 import org.springblade.core.launch.constant.AppConstant;
@@ -25,6 +26,7 @@ import org.springblade.core.launch.constant.AppConstant;
  *
  * @author Chill
  */
+@EnableScheduling
 @BladeCloudApplication
 public class AuthApplication {
 

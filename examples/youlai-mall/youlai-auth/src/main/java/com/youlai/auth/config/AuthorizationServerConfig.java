@@ -168,6 +168,24 @@ public class AuthorizationServerConfig {
         return http.build();
     }
 
+    /**
+     * Public business endpoints that are safe to call directly during real API
+     * trace validation. Without this chain Spring Security serves the default
+     * login page for /api/v1/auth/captcha before the controller is reached.
+     */
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
+    public SecurityFilterChain traceValidationSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/v1/auth/captcha", "/__trace_smoke", "/api/trace-smoke", "/actuator/**")
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+                .csrf(csrf -> csrf.disable())
+                .requestCache(requestCache -> requestCache.disable())
+                .securityContext(securityContext -> securityContext.disable())
+                .sessionManagement(sessionManagement -> sessionManagement.disable());
+        return http.build();
+    }
+
 
     /**
      * JWK（JWT密钥对）源

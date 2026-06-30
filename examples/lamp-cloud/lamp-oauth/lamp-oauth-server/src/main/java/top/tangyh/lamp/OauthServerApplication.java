@@ -1,6 +1,7 @@
 package top.tangyh.lamp;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -19,6 +20,7 @@ import static top.tangyh.lamp.common.constant.BizConstant.UTIL_PACKAGE;
  * @author zuihou
  * @date 2020年03月23日16:24:37
  */
+@EnableScheduling
 @SpringBootApplication
 @EnableDiscoveryClient
 @ComponentScan({

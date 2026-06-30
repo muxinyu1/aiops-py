@@ -19,7 +19,20 @@ public class TracingAspect {
     @Autowired
     private TraceStore traceStore;
 
-    @Around("execution(* com.pig4cloud.pig.auth..*(..))")
+    @Around("(" +
+            "execution(* com.pig4cloud.pig.auth..controller..*(..)) || " +
+            "execution(* com.pig4cloud.pig.auth..controllers..*(..)) || " +
+            "execution(* com.pig4cloud.pig.auth..rest..*(..)) || " +
+            "execution(* com.pig4cloud.pig.auth..restapi..*(..)) || " +
+            "execution(* com.pig4cloud.pig.auth..endpoint..*(..)) || " +
+            "execution(* com.pig4cloud.pig.auth..service..*(..)) || " +
+            "execution(* com.pig4cloud.pig.auth..biz..*(..)) || " +
+            "execution(* com.pig4cloud.pig.auth..manager..*(..)) || " +
+            "execution(* com.pig4cloud.pig.auth.tracesmoke.TraceSmokeService.*(..))" +
+            ") && " +
+            "!within(com.pig4cloud.pig.auth.tracing..*) && " +
+            "!within(com.pig4cloud.pig.auth.tracesmoke.TraceSmokeFilter) && " +
+            "!within(com.pig4cloud.pig.auth.tracesmoke.TraceSmokeController)")
     public Object traceMethod(ProceedingJoinPoint pjp) throws Throwable {
 
         String traceId = TraceContextHolder.get();

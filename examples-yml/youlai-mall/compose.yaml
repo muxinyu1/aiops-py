@@ -1,0 +1,21 @@
+name: trace-youlai-mall-youlai-auth
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/youlai-mall-youlai-auth:latest
+    container_name: trace-youlai-mall-youlai-auth
+    restart: unless-stopped
+    env_file:
+      - ../common.env
+    environment:
+      OTEL_SERVICE_NAME: youlai-mall-youlai-auth
+      TRACE_SMOKE_MODE: "true"
+      SPRING_PROFILES_ACTIVE: trace-smoke
+      JAVA_OPTS: --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED
+      SPRING_SECURITY_OAUTH2_AUTHORIZATIONSERVER_TOKEN_URI: http://127.0.0.1:8080/oauth2/token
+      SPRINGDOC_INFO_TITLE: trace-validation
+      SPRINGDOC_INFO_VERSION: trace-validation
+      SPRINGDOC_INFO_DESCRIPTION: trace-validation
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    labels:
+      aiops.trace.endpoint: /__trace_smoke

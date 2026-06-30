@@ -1,0 +1,73 @@
+name: trace-real-yudao-cloud-yudao-module-system-server
+include:
+  - ../_shared/real-deps.compose.yaml
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/yudao-cloud-yudao-module-system-server:latest
+    container_name: trace-real-yudao-cloud-yudao-module-system-server
+    network_mode: host
+    restart: unless-stopped
+    env_file:
+      - ../common-real.env
+    environment:
+      OTEL_SERVICE_NAME: yudao-cloud-yudao-module-system-server
+      TRACE_SMOKE_MODE: "false"
+      SPRING_PROFILES_ACTIVE: trace-validation,local,dev
+      YUDAO_INFO_BASE_PACKAGE: cn.iocoder.yudao
+      YUDAO_INFO_VERSION: trace-validation
+    command:
+      - --spring.config.location=optional:file:/tmp/trace-validation.yml
+      - --spring.cloud.bootstrap.enabled=false
+      - --spring.cloud.nacos.config.enabled=false
+      - --spring.cloud.nacos.discovery.enabled=false
+      - --spring.cloud.nacos.config.import-check.enabled=false
+      - --spring.cloud.config.enabled=false
+      - --spring.cloud.config.import-check.enabled=false
+      - --spring.cloud.discovery.enabled=false
+      - --spring.cloud.service-registry.auto-registration.enabled=false
+      - --eureka.client.enabled=false
+      - --seata.enabled=false
+      - --spring.main.allow-bean-definition-overriding=true
+      - --spring.main.allow-circular-references=true
+      - --spring.autoconfigure.exclude=com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
+      - --springdoc.api-docs.enabled=false
+      - --springdoc.swagger-ui.enabled=false
+      - --knife4j.enable=false
+      - --spring.profiles.active=trace-validation,local,dev
+      - --server.port=8080
+      - --spring.application.name=yudao-module-system-server
+      - --yudao.info.base-package=cn.iocoder.yudao
+      - --yudao.info.version=trace-validation
+      - --yudao.web.admin-ui.url=http://127.0.0.1:8080
+      - --yudao.api-encrypt.enable=false
+      - --yudao.api-encrypt.algorithm=AES
+      - --yudao.api-encrypt.request-key=52549111389893486934626385991395
+      - --yudao.api-encrypt.response-key=96103715984234343991809655248883
+      - --yudao.sms-code.expire-times=10m
+      - --yudao.sms-code.send-frequency=1m
+      - --yudao.sms-code.send-maximum-quantity-per-day=10
+      - --yudao.sms-code.begin-code=9999
+      - --yudao.sms-code.end-code=9999
+      - --spring.datasource.dynamic.primary=master
+      - --spring.datasource.dynamic.datasource.master.url=jdbc:mysql://127.0.0.1:3306/ruoyi-vue-pro?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true
+      - --spring.datasource.dynamic.datasource.master.username=root
+      - --spring.datasource.dynamic.datasource.master.password=123456
+      - --spring.datasource.dynamic.datasource.master.driver-class-name=com.mysql.cj.jdbc.Driver
+      - --spring.datasource.dynamic.datasource.slave.lazy=true
+      - --spring.datasource.dynamic.datasource.slave.url=jdbc:mysql://127.0.0.1:3306/ruoyi-vue-pro?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true
+      - --spring.datasource.dynamic.datasource.slave.username=root
+      - --spring.datasource.dynamic.datasource.slave.password=123456
+      - --spring.datasource.dynamic.datasource.slave.driver-class-name=com.mysql.cj.jdbc.Driver
+      - --spring.data.redis.host=127.0.0.1
+      - --spring.data.redis.port=6379
+      - --spring.redis.host=127.0.0.1
+      - --spring.redis.port=6379
+      - --rocketmq.name-server=127.0.0.1:9876
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      aiops.trace.endpoint: /admin-api/system/captcha/get
+      aiops.trace.mode: real

@@ -1,0 +1,15 @@
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/java-microservice:latest
+    container_name: trace-java-microservice
+    restart: unless-stopped
+    env_file:
+      - ../common.env
+    environment:
+      OTEL_SERVICE_NAME: java-microservice
+      SPRING_PROFILES_ACTIVE: local
+      TRACE_SMOKE_MODE: "false"
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    labels:
+      aiops.trace.endpoint: /api/health

@@ -19,7 +19,20 @@ public class TracingAspect {
     @Autowired
     private TraceStore traceStore;
 
-    @Around("execution(* com.youlai.auth..*(..))")
+    @Around("(" +
+            "execution(* com.youlai.auth..controller..*(..)) || " +
+            "execution(* com.youlai.auth..controllers..*(..)) || " +
+            "execution(* com.youlai.auth..rest..*(..)) || " +
+            "execution(* com.youlai.auth..restapi..*(..)) || " +
+            "execution(* com.youlai.auth..endpoint..*(..)) || " +
+            "execution(* com.youlai.auth..service..*(..)) || " +
+            "execution(* com.youlai.auth..biz..*(..)) || " +
+            "execution(* com.youlai.auth..manager..*(..)) || " +
+            "execution(* com.youlai.auth.tracesmoke.TraceSmokeService.*(..))" +
+            ") && " +
+            "!within(com.youlai.auth.tracing..*) && " +
+            "!within(com.youlai.auth.tracesmoke.TraceSmokeFilter) && " +
+            "!within(com.youlai.auth.tracesmoke.TraceSmokeController)")
     public Object traceMethod(ProceedingJoinPoint pjp) throws Throwable {
 
         String traceId = TraceContextHolder.get();

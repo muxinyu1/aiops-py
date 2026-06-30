@@ -19,7 +19,20 @@ public class TracingAspect {
     @Autowired
     private TraceStore traceStore;
 
-    @Around("execution(* com.central..*(..))")
+    @Around("(" +
+            "execution(* com.central..controller..*(..)) || " +
+            "execution(* com.central..controllers..*(..)) || " +
+            "execution(* com.central..rest..*(..)) || " +
+            "execution(* com.central..restapi..*(..)) || " +
+            "execution(* com.central..endpoint..*(..)) || " +
+            "execution(* com.central..service..*(..)) || " +
+            "execution(* com.central..biz..*(..)) || " +
+            "execution(* com.central..manager..*(..)) || " +
+            "execution(* com.central.tracesmoke.TraceSmokeService.*(..))" +
+            ") && " +
+            "!within(com.central.tracing..*) && " +
+            "!within(com.central.tracesmoke.TraceSmokeFilter) && " +
+            "!within(com.central.tracesmoke.TraceSmokeController)")
     public Object traceMethod(ProceedingJoinPoint pjp) throws Throwable {
 
         String traceId = TraceContextHolder.get();

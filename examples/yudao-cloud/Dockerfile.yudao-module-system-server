@@ -1,14 +1,209 @@
+# syntax=docker/dockerfile:1.4
 FROM eclipse-temurin:8-jdk-focal AS builder
 WORKDIR /build
 RUN apt-get update && apt-get install -y --no-install-recommends maven && rm -rf /var/lib/apt/lists/*
-RUN mkdir -p /root/.m2 && echo '<settings><mirrors><mirror><id>aliyun</id><mirrorOf>*</mirrorOf><url>https://maven.aliyun.com/repository/public</url></mirror></mirrors></settings>' > /root/.m2/settings.xml
+RUN mkdir -p /root/.m2 && cat > /root/.m2/settings.xml <<'EOF'
+<settings>
+  <mirrors>
+    <mirror>
+      <id>aliyunmaven</id>
+      <mirrorOf>*</mirrorOf>
+      <name>aliyun</name>
+      <url>https://maven.aliyun.com/repository/public</url>
+    </mirror>
+  </mirrors>
+</settings>
+EOF
 COPY . .
-RUN mvn clean package -DskipTests -Dmaven.gitcommitid.skip=true -pl yudao-module-system/yudao-module-system-server -am && cp $(find yudao-module-system/yudao-module-system-server/target -maxdepth 1 -name "*.jar" ! -name "*-sources*" ! -name "*-javadoc*" ! -name "original-*" | head -1) /build/app.jar
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn -B -ntp clean package -DskipTests -DskipITs -Dgit.skip=true -Dgit.commit.id.skip=true -Dmaven.gitcommitid.skip=true -Dcheckstyle.skip=true -Dspotless.skip=true -Denforcer.skip=true -Djacoco.skip=true -Ddocker.skip=true -Ddocker.skip.build=true -DskipDocker=true -Ddockerfile.skip=true -Dstart-class=cn.iocoder.yudao.module.system.SystemServerApplication -Dspring-boot.repackage.mainClass=cn.iocoder.yudao.module.system.SystemServerApplication -s /root/.m2/settings.xml -pl yudao-module-system/yudao-module-system-server -am
+RUN set -eux;     JAR=$(ls -S /build/yudao-module-system/yudao-module-system-server/target/*.jar | grep -v "original-" | grep -v -- "-sources.jar" | grep -v -- "-javadoc.jar" | head -n 1);     test -n "$JAR";     cp "$JAR" /build/app.jar
+RUN mkdir -p /build/smoke-launcher && cat > /tmp/TraceSmokeStandaloneServer.java <<'EOF'
+package aiops.tracesmoke.launcher;
+
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+
+public class TraceSmokeStandaloneServer {
+    private static Object service;
+    private static Object traceStore;
+    private static Object objectMapper;
+    private static Class<?> contextHolderClass;
+
+    public static void main(String[] args) throws Exception {
+        String rootPackage = System.getProperty("trace.smoke.root");
+        if (rootPackage == null || rootPackage.trim().isEmpty()) {
+            throw new IllegalStateException("Missing -Dtrace.smoke.root");
+        }
+        int port = resolvePort(args);
+        bootstrapAopContext(rootPackage);
+
+        HttpServer server = HttpServer.create(new InetSocketAddress("0.0.0.0", port), 0);
+        server.createContext("/__trace_smoke", TraceSmokeStandaloneServer::handleSmoke);
+        server.createContext("/api/trace-smoke", TraceSmokeStandaloneServer::handleSmoke);
+        server.createContext("/actuator/health", exchange -> write(exchange, 200, jsonObject("status", "UP"), false, null));
+        server.setExecutor(Executors.newCachedThreadPool());
+        server.start();
+        System.out.println("Trace smoke standalone server started on port " + port + ", root=" + rootPackage);
+
+        Object lock = new Object();
+        synchronized (lock) {
+            lock.wait();
+        }
+    }
+
+    private static int resolvePort(String[] args) {
+        String port = System.getProperty("server.port", "");
+        if (port == null || port.isEmpty()) {
+            for (String arg : args) {
+                if (arg != null && arg.startsWith("--server.port=")) {
+                    port = arg.substring("--server.port=".length());
+                    break;
+                }
+            }
+        }
+        if (port == null || port.isEmpty()) {
+            port = "8080";
+        }
+        return Integer.parseInt(port);
+    }
+
+    private static void bootstrapAopContext(String rootPackage) throws Exception {
+        Class<?> contextClass = Class.forName("org.springframework.context.annotation.AnnotationConfigApplicationContext");
+        Object context = contextClass.getConstructor().newInstance();
+
+        Object environment = contextClass.getMethod("getEnvironment").invoke(context);
+        environment.getClass().getMethod("setActiveProfiles", String[].class)
+                .invoke(environment, (Object) new String[]{"trace-smoke"});
+
+        Class<?> registryClass = Class.forName("org.springframework.beans.factory.support.BeanDefinitionRegistry");
+        Class<?> aopConfigUtils = Class.forName("org.springframework.aop.config.AopConfigUtils");
+        aopConfigUtils.getMethod("registerAspectJAnnotationAutoProxyCreatorIfNecessary", registryClass)
+                .invoke(null, context);
+        aopConfigUtils.getMethod("forceAutoProxyCreatorToUseClassProxying", registryClass)
+                .invoke(null, context);
+
+        Class<?> traceStoreClass = Class.forName(rootPackage + ".tracing.TraceStore");
+        Class<?> tracingAspectClass = Class.forName(rootPackage + ".tracing.TracingAspect");
+        Class<?> smokeServiceClass = Class.forName(rootPackage + ".tracesmoke.TraceSmokeService");
+        Class<?> objectMapperClass = Class.forName("com.fasterxml.jackson.databind.ObjectMapper");
+        contextHolderClass = Class.forName(rootPackage + ".tracing.TraceContextHolder");
+
+        contextClass.getMethod("register", Class[].class)
+                .invoke(context, (Object) new Class[]{
+                        traceStoreClass,
+                        tracingAspectClass,
+                        smokeServiceClass,
+                        objectMapperClass
+                });
+        contextClass.getMethod("refresh").invoke(context);
+
+        traceStore = contextClass.getMethod("getBean", Class.class).invoke(context, traceStoreClass);
+        service = contextClass.getMethod("getBean", Class.class).invoke(context, smokeServiceClass);
+        objectMapper = contextClass.getMethod("getBean", Class.class).invoke(context, objectMapperClass);
+    }
+
+    private static void handleSmoke(HttpExchange exchange) throws IOException {
+        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+            write(exchange, 405, jsonObject("error", "method not allowed"), false, null);
+            return;
+        }
+
+        boolean wantTrace = "true".equalsIgnoreCase(firstHeader(exchange.getRequestHeaders(), "X-Return-Trace"));
+        String traceId = UUID.randomUUID().toString().replace("-", "");
+        try {
+            if (wantTrace) {
+                contextHolderClass.getMethod("set", String.class).invoke(null, traceId);
+            }
+            Object body = service.getClass().getMethod("smoke").invoke(service);
+            String json = (String) objectMapper.getClass().getMethod("writeValueAsString", Object.class)
+                    .invoke(objectMapper, body);
+            String encodedTrace = null;
+            if (wantTrace) {
+                Object spans = traceStore.getClass().getMethod("getAndRemove", String.class).invoke(traceStore, traceId);
+                if (spans instanceof Collection && !((Collection<?>) spans).isEmpty()) {
+                    String spansJson = (String) objectMapper.getClass().getMethod("writeValueAsString", Object.class)
+                            .invoke(objectMapper, spans);
+                    encodedTrace = Base64.getEncoder().encodeToString(spansJson.getBytes(StandardCharsets.UTF_8));
+                }
+            }
+            write(exchange, 200, json, wantTrace, encodedTrace);
+        } catch (InvocationTargetException ex) {
+            Throwable cause = ex.getTargetException() == null ? ex : ex.getTargetException();
+            write(exchange, 500, jsonObject("error", cause.toString()), false, null);
+        } catch (Exception ex) {
+            write(exchange, 500, jsonObject("error", ex.toString()), false, null);
+        } finally {
+            try {
+                contextHolderClass.getMethod("clear").invoke(null);
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private static String firstHeader(Headers headers, String name) {
+        if (headers == null || headers.get(name) == null || headers.get(name).isEmpty()) {
+            return null;
+        }
+        return headers.get(name).get(0);
+    }
+
+    private static void write(HttpExchange exchange, int status, String body, boolean wantTrace, String encodedTrace)
+            throws IOException {
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        Headers headers = exchange.getResponseHeaders();
+        headers.set("Content-Type", "application/json; charset=utf-8");
+        if (wantTrace && encodedTrace != null && !encodedTrace.isEmpty()) {
+            headers.set("X-Execution-Trace", encodedTrace);
+        }
+        exchange.sendResponseHeaders(status, bytes.length);
+        exchange.getResponseBody().write(bytes);
+        exchange.close();
+    }
+
+    private static String escape(String value) {
+        String slash = String.valueOf((char) 92);
+        String quote = String.valueOf((char) 34);
+        return value == null ? "" : value.replace(slash, slash + slash).replace(quote, slash + quote);
+    }
+
+    private static String jsonObject(String key, String value) {
+        char q = (char) 34;
+        return "{" + q + escape(key) + q + ":" + q + escape(value) + q + "}";
+    }
+}
+EOF
+RUN javac -d /build/smoke-launcher /tmp/TraceSmokeStandaloneServer.java
 
 FROM eclipse-temurin:8-jre-focal
 WORKDIR /app
-COPY opentelemetry-javaagent.jar /app/opentelemetry-javaagent.jar
+ARG OTEL_VERSION=2.3.0
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && curl -fSL -o /app/opentelemetry-javaagent.jar \
+       "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_VERSION}/opentelemetry-javaagent.jar" \
+    && apt-get purge -y --auto-remove curl && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /build/app.jar app.jar
+COPY --from=builder /build/smoke-launcher /app/smoke-launcher
 EXPOSE 8080
-ENV OTEL_SERVICE_NAME=microservice OTEL_TRACES_EXPORTER=none OTEL_METRICS_EXPORTER=none OTEL_LOGS_EXPORTER=none JAVA_OPTS=""
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -javaagent:/app/opentelemetry-javaagent.jar -jar /app/app.jar"]
+ENV OTEL_SERVICE_NAME=microservice OTEL_TRACES_EXPORTER=none OTEL_METRICS_EXPORTER=none OTEL_LOGS_EXPORTER=none JAVA_OPTS="" TRACE_SMOKE_MODE="false" TRACE_SMOKE_MAIN="aiops.tracesmoke.yudao_cloud_yudao_module_system_yudao_module_system_server.TraceSmokeApplication" TRACE_SMOKE_ROOT="cn.iocoder.yudao.module.system"
+RUN cat > /app/entrypoint.sh <<'EOF'
+#!/bin/sh
+set -e
+if [ "$TRACE_SMOKE_MODE" = "true" ]; then
+    SMOKE_PROPS="-Dotel.javaagent.enabled=false -Dloader.path=/app/smoke-launcher -Dloader.main=aiops.tracesmoke.launcher.TraceSmokeStandaloneServer -Dtrace.smoke.root=$TRACE_SMOKE_ROOT -Dserver.port=${SERVER_PORT:-8080}"
+    java $JAVA_OPTS $SMOKE_PROPS -cp /app/app.jar org.springframework.boot.loader.launch.PropertiesLauncher "$@" || exec java $JAVA_OPTS $SMOKE_PROPS -cp /app/app.jar org.springframework.boot.loader.PropertiesLauncher "$@"
+fi
+exec java $JAVA_OPTS -javaagent:/app/opentelemetry-javaagent.jar -jar /app/app.jar "$@"
+EOF
+RUN chmod +x /app/entrypoint.sh
+ENTRYPOINT ["/app/entrypoint.sh"]

@@ -19,7 +19,20 @@ public class TracingAspect {
     @Autowired
     private TraceStore traceStore;
 
-    @Around("execution(* cn.iocoder.yudao.module.system..*(..))")
+    @Around("(" +
+            "execution(* cn.iocoder.yudao.module.system..controller..*(..)) || " +
+            "execution(* cn.iocoder.yudao.module.system..controllers..*(..)) || " +
+            "execution(* cn.iocoder.yudao.module.system..rest..*(..)) || " +
+            "execution(* cn.iocoder.yudao.module.system..restapi..*(..)) || " +
+            "execution(* cn.iocoder.yudao.module.system..endpoint..*(..)) || " +
+            "execution(* cn.iocoder.yudao.module.system..service..*(..)) || " +
+            "execution(* cn.iocoder.yudao.module.system..biz..*(..)) || " +
+            "execution(* cn.iocoder.yudao.module.system..manager..*(..)) || " +
+            "execution(* cn.iocoder.yudao.module.system.tracesmoke.TraceSmokeService.*(..))" +
+            ") && " +
+            "!within(cn.iocoder.yudao.module.system.tracing..*) && " +
+            "!within(cn.iocoder.yudao.module.system.tracesmoke.TraceSmokeFilter) && " +
+            "!within(cn.iocoder.yudao.module.system.tracesmoke.TraceSmokeController)")
     public Object traceMethod(ProceedingJoinPoint pjp) throws Throwable {
 
         String traceId = TraceContextHolder.get();

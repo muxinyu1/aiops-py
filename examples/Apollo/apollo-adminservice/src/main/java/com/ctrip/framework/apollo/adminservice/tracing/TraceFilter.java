@@ -20,7 +20,7 @@ import java.util.UUID;
 public class TraceFilter extends OncePerRequestFilter {
 
     @Autowired private TraceStore traceStore;
-    @Autowired private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

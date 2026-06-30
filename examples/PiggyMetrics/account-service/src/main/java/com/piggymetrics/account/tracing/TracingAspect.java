@@ -19,7 +19,20 @@ public class TracingAspect {
     @Autowired
     private TraceStore traceStore;
 
-    @Around("execution(* com.piggymetrics.account..*(..))")
+    @Around("(" +
+            "execution(* com.piggymetrics.account..controller..*(..)) || " +
+            "execution(* com.piggymetrics.account..controllers..*(..)) || " +
+            "execution(* com.piggymetrics.account..rest..*(..)) || " +
+            "execution(* com.piggymetrics.account..restapi..*(..)) || " +
+            "execution(* com.piggymetrics.account..endpoint..*(..)) || " +
+            "execution(* com.piggymetrics.account..service..*(..)) || " +
+            "execution(* com.piggymetrics.account..biz..*(..)) || " +
+            "execution(* com.piggymetrics.account..manager..*(..)) || " +
+            "execution(* com.piggymetrics.account.tracesmoke.TraceSmokeService.*(..))" +
+            ") && " +
+            "!within(com.piggymetrics.account.tracing..*) && " +
+            "!within(com.piggymetrics.account.tracesmoke.TraceSmokeFilter) && " +
+            "!within(com.piggymetrics.account.tracesmoke.TraceSmokeController)")
     public Object traceMethod(ProceedingJoinPoint pjp) throws Throwable {
 
         String traceId = TraceContextHolder.get();

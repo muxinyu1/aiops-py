@@ -1,0 +1,181 @@
+name: trace-real-ruoyi-cloud-plus-ruoyi-auth
+include:
+  - ../_shared/real-deps.compose.yaml
+services:
+  nacos:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/ruoyi-cloud-plus-ruoyi-nacos:latest
+    container_name: trace-real-ruoyi-cloud-plus-nacos
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: -Xms256m -Xmx512m -Ddb.password.0=123456
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8848/nacos/v1/console/health/readiness >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 45s
+
+  ruoyi-system:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/ruoyi-cloud-plus-ruoyi-system:latest
+    container_name: trace-real-ruoyi-cloud-plus-ruoyi-system
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: "9201"
+      TZ: Asia/Shanghai
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING: "true"
+      SPRING_CLOUD_NACOS_CONFIG_ENABLED: "true"
+      SPRING_CLOUD_NACOS_DISCOVERY_ENABLED: "true"
+      SPRING_CLOUD_DISCOVERY_ENABLED: "true"
+      SPRING_CLOUD_SERVICE_REGISTRY_AUTO_REGISTRATION_ENABLED: "true"
+      SPRING_CLOUD_NACOS_SERVER_ADDR: 127.0.0.1:8848
+      SPRING_CLOUD_NACOS_USERNAME: nacos
+      SPRING_CLOUD_NACOS_PASSWORD: nacos
+      DUBBO_APPLICATION_QOS_ENABLE: "false"
+      DUBBO_CONSUMER_CHECK: "false"
+      DUBBO_REGISTRY_CHECK: "false"
+      DUBBO_REFERENCE_CHECK: "false"
+      DATASOURCE_SYSTEM_MASTER_PASSWORD: "123456"
+      DATASOURCE_GEN_PASSWORD: "123456"
+      DATASOURCE_JOB_PASSWORD: "123456"
+      DATASOURCE_WORKFLOW_PASSWORD: "123456"
+      JAVA_OPTS: -Ddatasource.system-master.password=123456 -Ddatasource.gen.password=123456 -Ddatasource.job.password=123456 -Ddatasource.workflow.password=123456 -Dmybatis-plus.mapperPackage=org.dromara.**.mapper -Dmybatis-plus.mapperLocations=classpath*:mapper/**/*Mapper.xml -Dmybatis-plus.typeAliasesPackage=org.dromara.**.domain -Dmybatis-plus.enableLogicDelete=true
+      SPRING_DATA_REDIS_HOST: 127.0.0.1
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_PASSWORD: password
+      SPRING_REDIS_HOST: 127.0.0.1
+      SPRING_REDIS_PORT: "6379"
+      SPRING_REDIS_PASSWORD: password
+    command:
+      - --spring.profiles.active=dev
+      - --spring.cloud.nacos.config.enabled=true
+      - --spring.cloud.nacos.discovery.enabled=true
+      - --spring.cloud.discovery.enabled=true
+      - --spring.cloud.service-registry.auto-registration.enabled=true
+      - --spring.cloud.nacos.server-addr=127.0.0.1:8848
+      - --spring.cloud.nacos.username=nacos
+      - --spring.cloud.nacos.password=nacos
+      - --server.port=9201
+      - --dubbo.application.qos-enable=false
+      - --dubbo.consumer.check=false
+      - --dubbo.registry.check=false
+      - --dubbo.reference.check=false
+      - --spring.data.redis.host=127.0.0.1
+      - --spring.data.redis.port=6379
+      - --spring.data.redis.password=password
+      - --spring.redis.host=127.0.0.1
+      - --spring.redis.port=6379
+      - --spring.redis.password=password
+      - --datasource.system-master.url=jdbc:mysql://127.0.0.1:3306/ry-cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+      - --datasource.system-master.username=root
+      - --datasource.system-master.password=123456
+      - --datasource.gen.url=jdbc:mysql://127.0.0.1:3306/ry-cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+      - --datasource.gen.username=root
+      - --datasource.gen.password=123456
+      - --datasource.job.url=jdbc:mysql://127.0.0.1:3306/ry-job?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+      - --datasource.job.username=root
+      - --datasource.job.password=123456
+      - --datasource.workflow.url=jdbc:mysql://127.0.0.1:3306/ry-workflow?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
+      - --datasource.workflow.username=root
+      - --datasource.workflow.password=123456
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9201/actuator/health | grep -Eq '^(200|401|403)$'"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/ruoyi-cloud-plus-ruoyi-auth:latest
+    container_name: trace-real-ruoyi-cloud-plus-ruoyi-auth
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      OTEL_SERVICE_NAME: ruoyi-cloud-plus-ruoyi-auth
+      TZ: Asia/Shanghai
+      SERVER_PORT: "8080"
+      TRACE_SMOKE_MODE: "false"
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING: "true"
+      RuoYi_NAME: trace-validation
+      RuoYi_VERSION: trace-validation
+      SPRING_CLOUD_NACOS_CONFIG_ENABLED: "true"
+      SPRING_CLOUD_NACOS_DISCOVERY_ENABLED: "true"
+      SPRING_CLOUD_DISCOVERY_ENABLED: "true"
+      SPRING_CLOUD_SERVICE_REGISTRY_AUTO_REGISTRATION_ENABLED: "true"
+      SPRING_CLOUD_NACOS_SERVER_ADDR: 127.0.0.1:8848
+      SPRING_CLOUD_NACOS_USERNAME: nacos
+      SPRING_CLOUD_NACOS_PASSWORD: nacos
+      DUBBO_CONSUMER_CHECK: "false"
+      DUBBO_REGISTRY_CHECK: "false"
+      DUBBO_REFERENCE_CHECK: "false"
+      DUBBO_APPLICATION_QOS_ENABLE: "false"
+      SA_TOKEN_CHECK_SAME_TOKEN: "false"
+      SPRING_DATA_REDIS_HOST: 127.0.0.1
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_PASSWORD: password
+      SPRING_REDIS_HOST: 127.0.0.1
+      SPRING_REDIS_PORT: "6379"
+      SPRING_REDIS_PASSWORD: password
+      SEATA_ENABLED: "false"
+      SEATA_ENABLE_AUTO_DATA_SOURCE_PROXY: "false"
+      OTEL_SDK_DISABLED: "true"
+      OTEL_INSTRUMENTATION_COMMON_DEFAULT_ENABLED: "false"
+      OTEL_TRACES_EXPORTER: none
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
+    command:
+      - --spring.cloud.nacos.config.enabled=true
+      - --spring.cloud.nacos.discovery.enabled=true
+      - --spring.cloud.nacos.config.import-check.enabled=false
+      - --spring.cloud.discovery.enabled=true
+      - --spring.cloud.service-registry.auto-registration.enabled=true
+      - --spring.cloud.nacos.server-addr=127.0.0.1:8848
+      - --spring.cloud.nacos.username=nacos
+      - --spring.cloud.nacos.password=nacos
+      - --eureka.client.enabled=false
+      - --seata.enabled=false
+      - --spring.main.allow-bean-definition-overriding=true
+      - --spring.profiles.active=dev
+      - --server.port=8080
+      - --spring.application.name=ruoyi-auth
+      - --ruoyi.name=trace-validation
+      - --ruoyi.version=trace-validation
+      - --dubbo.consumer.check=false
+      - --dubbo.registry.check=false
+      - --dubbo.reference.check=false
+      - --dubbo.application.qos-enable=false
+      - --sa-token.check-same-token=false
+      - --spring.datasource.password=123456
+      - --spring.datasource.dynamic.datasource.master.password=123456
+      - --spring.data.redis.host=127.0.0.1
+      - --spring.data.redis.port=6379
+      - --spring.data.redis.password=password
+      - --spring.redis.host=127.0.0.1
+      - --spring.redis.port=6379
+      - --spring.redis.password=password
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      ruoyi-system:
+        condition: service_started
+    labels:
+      aiops.trace.endpoint: /code
+      aiops.trace.mode: real

@@ -1,0 +1,16 @@
+name: trace-piggymetrics-account-service
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/piggymetrics-account-service:latest
+    container_name: trace-piggymetrics-account-service
+    restart: unless-stopped
+    env_file:
+      - ../common.env
+    environment:
+      OTEL_SERVICE_NAME: piggymetrics-account-service
+      TRACE_SMOKE_MODE: "true"
+      SPRING_PROFILES_ACTIVE: trace-smoke
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    labels:
+      aiops.trace.endpoint: /__trace_smoke

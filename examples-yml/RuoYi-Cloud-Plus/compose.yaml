@@ -1,0 +1,22 @@
+name: trace-ruoyi-cloud-plus-ruoyi-auth
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/ruoyi-cloud-plus-ruoyi-auth:latest
+    container_name: trace-ruoyi-cloud-plus-ruoyi-auth
+    restart: unless-stopped
+    env_file:
+      - ../common.env
+    environment:
+      OTEL_SERVICE_NAME: ruoyi-cloud-plus-ruoyi-auth
+      TRACE_SMOKE_MODE: "true"
+      SPRING_PROFILES_ACTIVE: trace-smoke
+      RuoYi_NAME: trace-validation
+      RuoYi_VERSION: trace-validation
+      DUBBO_CONSUMER_CHECK: "false"
+      DUBBO_REGISTRY_CHECK: "false"
+      DUBBO_REFERENCE_CHECK: "false"
+      DUBBO_APPLICATION_QOS_ENABLE: "false"
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    labels:
+      aiops.trace.endpoint: /__trace_smoke

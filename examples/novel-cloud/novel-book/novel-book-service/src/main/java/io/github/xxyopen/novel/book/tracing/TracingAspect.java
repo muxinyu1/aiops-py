@@ -19,7 +19,20 @@ public class TracingAspect {
     @Autowired
     private TraceStore traceStore;
 
-    @Around("execution(* io.github.xxyopen.novel.book..*(..))")
+    @Around("(" +
+            "execution(* io.github.xxyopen.novel.book..controller..*(..)) || " +
+            "execution(* io.github.xxyopen.novel.book..controllers..*(..)) || " +
+            "execution(* io.github.xxyopen.novel.book..rest..*(..)) || " +
+            "execution(* io.github.xxyopen.novel.book..restapi..*(..)) || " +
+            "execution(* io.github.xxyopen.novel.book..endpoint..*(..)) || " +
+            "execution(* io.github.xxyopen.novel.book..service..*(..)) || " +
+            "execution(* io.github.xxyopen.novel.book..biz..*(..)) || " +
+            "execution(* io.github.xxyopen.novel.book..manager..*(..)) || " +
+            "execution(* io.github.xxyopen.novel.book.tracesmoke.TraceSmokeService.*(..))" +
+            ") && " +
+            "!within(io.github.xxyopen.novel.book.tracing..*) && " +
+            "!within(io.github.xxyopen.novel.book.tracesmoke.TraceSmokeFilter) && " +
+            "!within(io.github.xxyopen.novel.book.tracesmoke.TraceSmokeController)")
     public Object traceMethod(ProceedingJoinPoint pjp) throws Throwable {
 
         String traceId = TraceContextHolder.get();

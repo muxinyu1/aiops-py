@@ -19,7 +19,20 @@ public class TracingAspect {
     @Autowired
     private TraceStore traceStore;
 
-    @Around("execution(* com.ctrip.framework.apollo.adminservice..*(..))")
+    @Around("(" +
+            "execution(* com.ctrip.framework.apollo.adminservice..controller..*(..)) || " +
+            "execution(* com.ctrip.framework.apollo.adminservice..controllers..*(..)) || " +
+            "execution(* com.ctrip.framework.apollo.adminservice..rest..*(..)) || " +
+            "execution(* com.ctrip.framework.apollo.adminservice..restapi..*(..)) || " +
+            "execution(* com.ctrip.framework.apollo.adminservice..endpoint..*(..)) || " +
+            "execution(* com.ctrip.framework.apollo.adminservice..service..*(..)) || " +
+            "execution(* com.ctrip.framework.apollo.adminservice..biz..*(..)) || " +
+            "execution(* com.ctrip.framework.apollo.adminservice..manager..*(..)) || " +
+            "execution(* com.ctrip.framework.apollo.adminservice.tracesmoke.TraceSmokeService.*(..))" +
+            ") && " +
+            "!within(com.ctrip.framework.apollo.adminservice.tracing..*) && " +
+            "!within(com.ctrip.framework.apollo.adminservice.tracesmoke.TraceSmokeFilter) && " +
+            "!within(com.ctrip.framework.apollo.adminservice.tracesmoke.TraceSmokeController)")
     public Object traceMethod(ProceedingJoinPoint pjp) throws Throwable {
 
         String traceId = TraceContextHolder.get();

@@ -19,7 +19,20 @@ public class TracingAspect {
     @Autowired
     private TraceStore traceStore;
 
-    @Around("execution(* org.dromara.auth..*(..))")
+    @Around("(" +
+            "execution(* org.dromara.auth..controller..*(..)) || " +
+            "execution(* org.dromara.auth..controllers..*(..)) || " +
+            "execution(* org.dromara.auth..rest..*(..)) || " +
+            "execution(* org.dromara.auth..restapi..*(..)) || " +
+            "execution(* org.dromara.auth..endpoint..*(..)) || " +
+            "execution(* org.dromara.auth..service..*(..)) || " +
+            "execution(* org.dromara.auth..biz..*(..)) || " +
+            "execution(* org.dromara.auth..manager..*(..)) || " +
+            "execution(* org.dromara.auth.tracesmoke.TraceSmokeService.*(..))" +
+            ") && " +
+            "!within(org.dromara.auth.tracing..*) && " +
+            "!within(org.dromara.auth.tracesmoke.TraceSmokeFilter) && " +
+            "!within(org.dromara.auth.tracesmoke.TraceSmokeController)")
     public Object traceMethod(ProceedingJoinPoint pjp) throws Throwable {
 
         String traceId = TraceContextHolder.get();

@@ -1,0 +1,16 @@
+name: trace-mall4cloud-mall4cloud-auth
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/mall4cloud-mall4cloud-auth:latest
+    container_name: trace-mall4cloud-mall4cloud-auth
+    restart: unless-stopped
+    env_file:
+      - ../common.env
+    environment:
+      OTEL_SERVICE_NAME: mall4cloud-mall4cloud-auth
+      TRACE_SMOKE_MODE: "true"
+      SPRING_PROFILES_ACTIVE: trace-smoke
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    labels:
+      aiops.trace.endpoint: /__trace_smoke

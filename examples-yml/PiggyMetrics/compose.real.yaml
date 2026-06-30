@@ -1,0 +1,46 @@
+name: trace-real-piggymetrics-account-service
+include:
+  - ../_shared/real-deps.compose.yaml
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/piggymetrics-account-service:latest
+    container_name: trace-real-piggymetrics-account-service
+    network_mode: host
+    restart: unless-stopped
+    env_file:
+      - ../common-real.env
+    environment:
+      OTEL_SERVICE_NAME: piggymetrics-account-service
+      TRACE_SMOKE_MODE: "false"
+      SERVER_PORT: "8080"
+      SPRING_PROFILES_ACTIVE: trace-validation,local,dev
+      CONFIG_SERVICE_PASSWORD: password
+      ACCOUNT_SERVICE_PASSWORD: password
+      MONGODB_PASSWORD: password
+      SPRING_DATA_MONGODB_URI: mongodb://127.0.0.1:27017/test?serverSelectionTimeoutMS=1000&connectTimeoutMS=1000
+    command:
+      - --spring.config.location=optional:file:/tmp/trace-validation.yml
+      - --spring.cloud.bootstrap.enabled=false
+      - --spring.cloud.config.enabled=false
+      - --spring.cloud.config.fail-fast=false
+      - --spring.cloud.config.import-check.enabled=false
+      - --spring.cloud.discovery.enabled=false
+      - --spring.cloud.service-registry.auto-registration.enabled=false
+      - --eureka.client.enabled=false
+      - --eureka.client.register-with-eureka=false
+      - --eureka.client.fetch-registry=false
+      - --spring.main.allow-bean-definition-overriding=true
+      - --server.port=8080
+      - --spring.application.name=account-service
+      - --management.health.rabbit.enabled=false
+      - --management.health.eureka.enabled=false
+      - --security.oauth2.resource.user-info-uri=http://127.0.0.1:5000/uaa/users/current
+      - --security.oauth2.client.client-id=account-service
+      - --security.oauth2.client.client-secret=password
+      - --security.oauth2.client.access-token-uri=http://127.0.0.1:5000/uaa/oauth/token
+    depends_on:
+      redis:
+        condition: service_healthy
+    labels:
+      aiops.trace.endpoint: /demo
+      aiops.trace.mode: real

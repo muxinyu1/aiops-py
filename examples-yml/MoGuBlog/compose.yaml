@@ -1,0 +1,24 @@
+name: trace-mogublog-mogu-admin
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/mogublog-mogu_admin:latest
+    container_name: trace-mogublog-mogu-admin
+    restart: unless-stopped
+    env_file:
+      - ../common.env
+    environment:
+      OTEL_SERVICE_NAME: mogublog-mogu_admin
+      TRACE_SMOKE_MODE: "true"
+      SPRING_PROFILES_ACTIVE: trace-smoke
+      TOKEN_HEAD: "Bearer "
+      TOKEN_HEADER: Authorization
+      AUDIENCE_CLIENT_ID: trace-validation
+      AUDIENCE_BASE64_SECRET: dHJhY2UtdmFsaWRhdGlvbi1zZWNyZXQ=
+      AUDIENCE_NAME: trace-validation
+      AUDIENCE_EXPIRES_SECOND: "3600"
+      AUDIENCE_REFRESH_SECOND: "7200"
+      IS_REMEMBER_ME_EXPIRES_SECOND: "7200"
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    labels:
+      aiops.trace.endpoint: /__trace_smoke

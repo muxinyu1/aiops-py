@@ -2,6 +2,7 @@ package com.jackson0714.passjava.member;
 
 import com.jackson0714.passjava.common.config.WebMvcConfig;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Import;
 @EnableFeignClients(basePackages = "com.jackson0714.passjava.member.feign")
 @EnableDiscoveryClient
 @MapperScan("com.jackson0714.passjava.member.dao")
+@EnableScheduling
 @SpringBootApplication(scanBasePackages = "com.jackson0714.passjava")
 @Import({WebMvcConfig.class})
 public class PassjavaMemberApplication {

@@ -1,0 +1,19 @@
+name: trace-zlt-microservices-platform-zlt-uaa
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/zlt-microservices-platform-zlt-uaa:latest
+    container_name: trace-zlt-microservices-platform-zlt-uaa
+    restart: unless-stopped
+    env_file:
+      - ../common.env
+    environment:
+      OTEL_SERVICE_NAME: zlt-microservices-platform-zlt-uaa
+      TRACE_SMOKE_MODE: "true"
+      SPRING_PROFILES_ACTIVE: trace-smoke
+      ZLT_DATASOURCE_IP: 127.0.0.1
+      ZLT_DATASOURCE_USERNAME: root
+      ZLT_DATASOURCE_PASSWORD: ""
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    labels:
+      aiops.trace.endpoint: /__trace_smoke

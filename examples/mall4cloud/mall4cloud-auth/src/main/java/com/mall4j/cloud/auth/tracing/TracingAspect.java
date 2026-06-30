@@ -19,7 +19,20 @@ public class TracingAspect {
     @Autowired
     private TraceStore traceStore;
 
-    @Around("execution(* com.mall4j.cloud.auth..*(..))")
+    @Around("(" +
+            "execution(* com.mall4j.cloud.auth..controller..*(..)) || " +
+            "execution(* com.mall4j.cloud.auth..controllers..*(..)) || " +
+            "execution(* com.mall4j.cloud.auth..rest..*(..)) || " +
+            "execution(* com.mall4j.cloud.auth..restapi..*(..)) || " +
+            "execution(* com.mall4j.cloud.auth..endpoint..*(..)) || " +
+            "execution(* com.mall4j.cloud.auth..service..*(..)) || " +
+            "execution(* com.mall4j.cloud.auth..biz..*(..)) || " +
+            "execution(* com.mall4j.cloud.auth..manager..*(..)) || " +
+            "execution(* com.mall4j.cloud.auth.tracesmoke.TraceSmokeService.*(..))" +
+            ") && " +
+            "!within(com.mall4j.cloud.auth.tracing..*) && " +
+            "!within(com.mall4j.cloud.auth.tracesmoke.TraceSmokeFilter) && " +
+            "!within(com.mall4j.cloud.auth.tracesmoke.TraceSmokeController)")
     public Object traceMethod(ProceedingJoinPoint pjp) throws Throwable {
 
         String traceId = TraceContextHolder.get();
