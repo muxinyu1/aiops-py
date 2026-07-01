@@ -10,7 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.youlai"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.youlai -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=com.youlai.*"
       OTEL_SERVICE_NAME: youlai-mall-youlai-auth
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
@@ -88,6 +88,7 @@ services:
       - --spring.redis.password=password
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy

@@ -10,12 +10,13 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.pig4cloud.pig"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.pig4cloud.pig -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=com.pig4cloud.pig.*"
       OTEL_SERVICE_NAME: pig-pig-auth
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     command:
       - --spring.config.location=optional:file:/tmp/trace-validation.yml
       - --spring.cloud.bootstrap.enabled=false

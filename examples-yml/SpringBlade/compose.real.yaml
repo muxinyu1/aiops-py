@@ -10,12 +10,13 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=org.springblade"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=org.springblade -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=org.springblade.*"
       OTEL_SERVICE_NAME: springblade-blade-auth
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     command:
       - --spring.config.location=optional:file:/tmp/trace-validation.yml
       - --spring.cloud.bootstrap.enabled=false

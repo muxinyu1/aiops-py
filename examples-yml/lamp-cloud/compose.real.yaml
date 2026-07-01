@@ -10,7 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=top.tangyh.lamp"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=top.tangyh.lamp -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=top.tangyh.lamp.*"
       OTEL_SERVICE_NAME: lamp-cloud-lamp-oauth-server
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
@@ -51,6 +51,7 @@ services:
       - --knife4j.enabled=false
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy

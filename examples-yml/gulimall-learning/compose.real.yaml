@@ -10,12 +10,13 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=io.niceseason.gulimall"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=io.niceseason.gulimall -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=io.niceseason.gulimall.*"
       OTEL_SERVICE_NAME: gulimall-learning-gulimall-member
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     command:
       - --spring.config.location=optional:file:/tmp/trace-validation.yml
       - --spring.cloud.bootstrap.enabled=false

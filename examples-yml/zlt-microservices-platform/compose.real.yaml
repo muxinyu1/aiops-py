@@ -10,7 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.central"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.central -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=com.central.*"
       OTEL_SERVICE_NAME: zlt-microservices-platform-zlt-uaa
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
@@ -44,6 +44,7 @@ services:
       - --spring.redis.port=6379
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy

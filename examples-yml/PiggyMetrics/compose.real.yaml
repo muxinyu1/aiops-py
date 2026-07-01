@@ -10,7 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.piggymetrics"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.piggymetrics -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=com.piggymetrics.*"
       OTEL_SERVICE_NAME: piggymetrics-account-service
       TRACE_SMOKE_MODE: "false"
       SERVER_PORT: "8080"
@@ -41,6 +41,7 @@ services:
       - --security.oauth2.client.access-token-uri=http://127.0.0.1:5000/uaa/oauth/token
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     depends_on:
       redis:
         condition: service_healthy

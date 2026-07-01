@@ -8,11 +8,12 @@ services:
     network_mode: host
     restart: unless-stopped
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=org.dromara"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=org.dromara -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=org.dromara.*"
       TZ: Asia/Shanghai
       JAVA_OPTS: -Xms256m -Xmx512m -Ddb.password.0=123456
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy
@@ -89,6 +90,7 @@ services:
       - --datasource.workflow.password=123456
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy
@@ -174,6 +176,7 @@ services:
       - --spring.redis.password=password
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy
