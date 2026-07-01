@@ -49,7 +49,18 @@ public class TraceFilter extends OncePerRequestFilter {
                     String json    = objectMapper.writeValueAsString(spans);
                     String encoded = Base64.getEncoder()
                             .encodeToString(json.getBytes(StandardCharsets.UTF_8));
-                    wrappedResponse.setHeader("X-Execution-Trace", encoded);
+                    if (encoded.length() <= 4096) {
+                        wrappedResponse.setHeader("X-Execution-Trace", encoded);
+                    } else {
+                        wrappedResponse.setHeader("X-Execution-Trace", "IN_BODY");
+                        wrappedResponse.setHeader("X-Trace-Span-Count", String.valueOf(spans.size()));
+                        wrappedResponse.resetBuffer();
+                        wrappedResponse.setContentType("application/json");
+                        wrappedResponse.setCharacterEncoding("UTF-8");
+                        byte[] traceBytes = json.getBytes(StandardCharsets.UTF_8);
+                        wrappedResponse.setContentLength(traceBytes.length);
+                        wrappedResponse.getOutputStream().write(traceBytes);
+                    }
                 }
             } catch (Exception e) {
                 // ignore serialization errors

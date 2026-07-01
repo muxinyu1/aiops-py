@@ -25,7 +25,7 @@ public class TraceStore {
 
     private record Entry(long createdAt, List<SpanRecord> spans) {}
 
-    private final ConcurrentHashMap<String, Entry> store = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Entry> store = new ConcurrentHashMap<>();
 
     /**
      * Append a span record to the bucket for {@code traceId}.

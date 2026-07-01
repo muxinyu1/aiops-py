@@ -21,7 +21,7 @@ public class TraceStore {
         List<SpanRecord> spans() { return spans; }
     }
 
-    private final ConcurrentHashMap<String, Entry> store = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Entry> store = new ConcurrentHashMap<>();
 
     public void add(String traceId, SpanRecord record) {
         store.computeIfAbsent(traceId, k ->

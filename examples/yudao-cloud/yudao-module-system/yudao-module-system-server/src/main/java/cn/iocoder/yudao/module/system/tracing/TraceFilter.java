@@ -6,6 +6,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class TraceFilter extends OncePerRequestFilter {
 
     @Autowired private TraceStore traceStore;
@@ -49,7 +52,18 @@ public class TraceFilter extends OncePerRequestFilter {
                     String json    = objectMapper.writeValueAsString(spans);
                     String encoded = Base64.getEncoder()
                             .encodeToString(json.getBytes(StandardCharsets.UTF_8));
-                    wrappedResponse.setHeader("X-Execution-Trace", encoded);
+                    if (encoded.length() <= 4096) {
+                        wrappedResponse.setHeader("X-Execution-Trace", encoded);
+                    } else {
+                        wrappedResponse.setHeader("X-Execution-Trace", "IN_BODY");
+                        wrappedResponse.setHeader("X-Trace-Span-Count", String.valueOf(spans.size()));
+                        wrappedResponse.resetBuffer();
+                        wrappedResponse.setContentType("application/json");
+                        wrappedResponse.setCharacterEncoding("UTF-8");
+                        byte[] traceBytes = json.getBytes(StandardCharsets.UTF_8);
+                        wrappedResponse.setContentLength(traceBytes.length);
+                        wrappedResponse.getOutputStream().write(traceBytes);
+                    }
                 }
             } catch (Exception e) {
                 // ignore serialization errors
