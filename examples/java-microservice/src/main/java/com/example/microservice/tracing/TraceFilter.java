@@ -5,8 +5,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,46 +18,33 @@ import java.util.UUID;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
-/**
- * Servlet filter that enables <em>inline</em> execution-path tracing.
- *
- * <h3>Protocol</h3>
- * <p>If the incoming HTTP request carries the header
- * {@code X-Return-Trace: true}, the filter:
- * <ol>
- *   <li>Extracts (or generates) a trace-id and stores it in
- *       {@link TraceContextHolder} so that {@link TracingAspect} can
- *       correlate every method span with this request.</li>
- *   <li>Wraps the response with a {@link ContentCachingResponseWrapper} so
- *       that response headers can still be written after the controller
- *       finishes.</li>
- *   <li>After the controller returns, reads all {@link SpanRecord}s from
- *       {@link TraceStore}, serialises them to JSON, Base64-encodes the
- *       result, and attaches it as the response header
- *       {@code X-Execution-Trace}.</li>
- * </ol>
- *
- * <h3>Decoding on the client side</h3>
- * <pre>{@code
- * import base64, json
- * raw = response.headers["X-Execution-Trace"]
- * spans = json.loads(base64.b64decode(raw))
- * }</pre>
- *
- * <p>Requests that do <em>not</em> include {@code X-Return-Trace: true} pass
- * through completely unchanged — no overhead, no memory allocation.
- */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class TraceFilter extends OncePerRequestFilter {
 
-    private static final Logger log = LoggerFactory.getLogger(TraceFilter.class);
+    @Autowired private TraceStore traceStore;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private TraceStore traceStore;
+    /**
+     * JaCoCo agent handle obtained via reflection from org.jacoco.agent.rt.RT.
+     * Provides reset() and getExecutionData(boolean) for per-request coverage.
+     */
+    private static volatile Object jacocoAgent;
+    private static volatile java.lang.reflect.Method getExecDataMethod;
+    private static volatile java.lang.reflect.Method resetMethod;
+    private static volatile boolean jacocoAvailable = true;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    static {
+        try {
+            Class<?> rtClass = Class.forName("org.jacoco.agent.rt.RT");
+            java.lang.reflect.Method getAgent = rtClass.getMethod("getAgent");
+            jacocoAgent = getAgent.invoke(null);
+            getExecDataMethod = jacocoAgent.getClass().getMethod("getExecutionData", boolean.class);
+            resetMethod = jacocoAgent.getClass().getMethod("reset");
+        } catch (Exception e) {
+            jacocoAvailable = false;
+        }
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -68,71 +53,107 @@ public class TraceFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         boolean wantTrace = "true".equalsIgnoreCase(request.getHeader("X-Return-Trace"));
-
         if (!wantTrace) {
-            // Fast path: no tracing requested, zero overhead
             chain.doFilter(request, response);
             return;
         }
 
-        // Determine (or generate) trace-id
         String traceId = extractTraceId(request.getHeader("traceparent"));
-        if (traceId == null) {
-            traceId = UUID.randomUUID().toString().replace("-", "");
-        }
+        if (traceId == null) traceId = UUID.randomUUID().toString().replace("-", "");
         TraceContextHolder.set(traceId);
 
-        // Buffer the response so we can add headers after the controller runs
+        // Reset JaCoCo coverage before request processing
+        resetJacoco();
+
         ContentCachingResponseWrapper wrappedResponse =
                 new ContentCachingResponseWrapper(response);
-
         try {
             chain.doFilter(request, wrappedResponse);
         } finally {
-            // Collect spans — they are already in the store because TracingAspect
-            // runs synchronously and span.end() + store.add() happen before we
-            // return from chain.doFilter().
             try {
+                // --- Method-level trace (trace-agent) ---
                 List<SpanRecord> spans = traceStore.getAndRemove(traceId);
+                String traceJson = "";
                 if (!spans.isEmpty()) {
-                    String json = objectMapper.writeValueAsString(spans);
+                    traceJson = objectMapper.writeValueAsString(spans);
                     String encoded = Base64.getEncoder()
-                            .encodeToString(json.getBytes(StandardCharsets.UTF_8));
+                            .encodeToString(traceJson.getBytes(StandardCharsets.UTF_8));
                     if (encoded.length() <= 4096) {
                         wrappedResponse.setHeader("X-Execution-Trace", encoded);
                     } else {
                         wrappedResponse.setHeader("X-Execution-Trace", "IN_BODY");
                         wrappedResponse.setHeader("X-Trace-Span-Count", String.valueOf(spans.size()));
-                        wrappedResponse.resetBuffer();
-                        wrappedResponse.setContentType("application/json");
-                        wrappedResponse.setCharacterEncoding("UTF-8");
-                        byte[] traceBytes = json.getBytes(StandardCharsets.UTF_8);
-                        wrappedResponse.setContentLength(traceBytes.length);
-                        wrappedResponse.getOutputStream().write(traceBytes);
                     }
-                    log.debug("TraceFilter: returned {} spans for trace {}", spans.size(), traceId);
+                }
+
+                // --- Line-level coverage (JaCoCo) ---
+                byte[] execData = dumpJacoco();
+                if (execData != null && execData.length > 0) {
+                    String coverageEncoded = Base64.getEncoder().encodeToString(execData);
+                    if (coverageEncoded.length() <= 8192) {
+                        wrappedResponse.setHeader("X-Coverage-Data", coverageEncoded);
+                    } else {
+                        wrappedResponse.setHeader("X-Coverage-Data", "IN_BODY");
+                    }
+                }
+
+                // Handle body fallback when data is too large for headers
+                String traceHeader = wrappedResponse.getHeader("X-Execution-Trace");
+                String coverageHeader = wrappedResponse.getHeader("X-Coverage-Data");
+                boolean traceInBody = "IN_BODY".equals(traceHeader);
+                boolean coverageInBody = "IN_BODY".equals(coverageHeader);
+
+                if (traceInBody || coverageInBody) {
+                    wrappedResponse.resetBuffer();
+                    wrappedResponse.setContentType("application/json");
+                    wrappedResponse.setCharacterEncoding("UTF-8");
+
+                    StringBuilder body = new StringBuilder("{");
+                    if (traceInBody && !traceJson.isEmpty()) {
+                        body.append("\"trace\":").append(traceJson);
+                    }
+                    if (coverageInBody && execData != null) {
+                        if (body.length() > 1) body.append(",");
+                        body.append("\"coverageExec\":\"")
+                            .append(Base64.getEncoder().encodeToString(execData))
+                            .append("\"");
+                    }
+                    body.append("}");
+
+                    byte[] bodyBytes = body.toString().getBytes(StandardCharsets.UTF_8);
+                    wrappedResponse.setContentLength(bodyBytes.length);
+                    wrappedResponse.getOutputStream().write(bodyBytes);
                 }
             } catch (Exception e) {
-                log.warn("TraceFilter: failed to serialize trace: {}", e.getMessage());
+                // ignore serialization errors
             } finally {
                 TraceContextHolder.clear();
             }
-
-            // Flush the buffered response body to the real output stream
             wrappedResponse.copyBodyToResponse();
         }
     }
 
-    /**
-     * Extract trace-id from a W3C {@code traceparent} header.
-     * Format: {@code 00-<32-hex-trace-id>-<16-hex-parent-id>-<flags>}
-     */
+    /** Reset JaCoCo counters (discard accumulated data before this request). */
+    private void resetJacoco() {
+        if (!jacocoAvailable || jacocoAgent == null) return;
+        try {
+            resetMethod.invoke(jacocoAgent);
+        } catch (Exception ignored) {}
+    }
+
+    /** Dump JaCoCo exec data for current request and reset counters. */
+    private byte[] dumpJacoco() {
+        if (!jacocoAvailable || jacocoAgent == null) return null;
+        try {
+            return (byte[]) getExecDataMethod.invoke(jacocoAgent, true);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private static String extractTraceId(String traceparent) {
         if (traceparent == null) return null;
         String[] parts = traceparent.split("-", -1);
-        if (parts.length >= 4 && parts[1].length() == 32) {
-            return parts[1];
-        }
-        return null;
+        return (parts.length >= 4 && parts[1].length() == 32) ? parts[1] : null;
     }
 }
