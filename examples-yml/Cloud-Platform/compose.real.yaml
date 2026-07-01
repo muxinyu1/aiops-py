@@ -10,6 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.github.wxiaoqi"
       OTEL_SERVICE_NAME: cloud-platform-ace-admin
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
@@ -54,6 +55,8 @@ services:
       - --jwt.token-header=Authorization
       - --jwt.pri-key=trace-validation
       - --jwt.pub-key=trace-validation
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy

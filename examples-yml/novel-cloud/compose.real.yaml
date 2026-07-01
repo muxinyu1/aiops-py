@@ -10,6 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=io.github.xxyopen.novel"
       OTEL_SERVICE_NAME: novel-cloud-novel-book-service
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
@@ -42,6 +43,8 @@ services:
       - --spring.rabbitmq.port=5672
       - --spring.rabbitmq.username=guest
       - --spring.rabbitmq.password=guest
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy

@@ -8,8 +8,11 @@ services:
     network_mode: host
     restart: unless-stopped
     environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=org.dromara"
       TZ: Asia/Shanghai
       JAVA_OPTS: -Xms256m -Xmx512m -Ddb.password.0=123456
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy
@@ -84,6 +87,8 @@ services:
       - --datasource.workflow.url=jdbc:mysql://127.0.0.1:3306/ry-workflow?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
       - --datasource.workflow.username=root
       - --datasource.workflow.password=123456
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy
@@ -167,6 +172,8 @@ services:
       - --spring.redis.host=127.0.0.1
       - --spring.redis.port=6379
       - --spring.redis.password=password
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy

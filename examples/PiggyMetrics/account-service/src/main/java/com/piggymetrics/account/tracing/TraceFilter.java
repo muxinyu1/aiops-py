@@ -15,8 +15,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class TraceFilter extends OncePerRequestFilter {
 
     @Autowired private TraceStore traceStore;

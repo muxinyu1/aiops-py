@@ -10,6 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=cn.iocoder.yudao"
       OTEL_SERVICE_NAME: yudao-cloud-yudao-module-system-server
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
@@ -63,6 +64,8 @@ services:
       - --spring.redis.host=127.0.0.1
       - --spring.redis.port=6379
       - --rocketmq.name-server=127.0.0.1:9876
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy

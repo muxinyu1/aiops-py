@@ -17,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 /**
  * Servlet filter that enables <em>inline</em> execution-path tracing.
@@ -48,6 +50,7 @@ import java.util.UUID;
  * through completely unchanged — no overhead, no memory allocation.
  */
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class TraceFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(TraceFilter.class);
@@ -95,7 +98,18 @@ public class TraceFilter extends OncePerRequestFilter {
                     String json = objectMapper.writeValueAsString(spans);
                     String encoded = Base64.getEncoder()
                             .encodeToString(json.getBytes(StandardCharsets.UTF_8));
-                    wrappedResponse.setHeader("X-Execution-Trace", encoded);
+                    if (encoded.length() <= 4096) {
+                        wrappedResponse.setHeader("X-Execution-Trace", encoded);
+                    } else {
+                        wrappedResponse.setHeader("X-Execution-Trace", "IN_BODY");
+                        wrappedResponse.setHeader("X-Trace-Span-Count", String.valueOf(spans.size()));
+                        wrappedResponse.resetBuffer();
+                        wrappedResponse.setContentType("application/json");
+                        wrappedResponse.setCharacterEncoding("UTF-8");
+                        byte[] traceBytes = json.getBytes(StandardCharsets.UTF_8);
+                        wrappedResponse.setContentLength(traceBytes.length);
+                        wrappedResponse.getOutputStream().write(traceBytes);
+                    }
                     log.debug("TraceFilter: returned {} spans for trace {}", spans.size(), traceId);
                 }
             } catch (Exception e) {

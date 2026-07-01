@@ -10,6 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.moxi.mogublog"
       OTEL_SERVICE_NAME: mogublog-mogu_admin
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
@@ -69,6 +70,8 @@ services:
       - --audience.expiresSecond=3600
       - --audience.refreshSecond=7200
       - --isRememberMeExpiresSecond=7200
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy

@@ -10,6 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.ctrip.framework.apollo"
       OTEL_SERVICE_NAME: apollo-apollo-adminservice
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: github,mysql
@@ -34,6 +35,8 @@ services:
       - --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
       - --eureka.instance.hostname=127.0.0.1
       - --eureka.client.service-url.defaultZone=http://127.0.0.1:8761/eureka/
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
     depends_on:
       mysql:
         condition: service_healthy
