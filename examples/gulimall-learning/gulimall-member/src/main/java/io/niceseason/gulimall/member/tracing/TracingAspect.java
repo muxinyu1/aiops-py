@@ -53,6 +53,10 @@ public class TracingAspect {
         String spanName   = simpleName + "." + methodName;
 
         String spanId      = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        // Get parent before pushing self onto stack
+        String parentSpanId = TraceContextHolder.currentParentSpanId();
+        TraceContextHolder.pushSpan(spanId);
+
         long   epochNs     = System.currentTimeMillis() * 1_000_000L;
         long   startNs     = System.nanoTime();
         boolean isError    = false;
@@ -65,10 +69,11 @@ public class TracingAspect {
             errorMsg = ex.getMessage();
             throw ex;
         } finally {
+        TraceContextHolder.popSpan();
             long durationNs = System.nanoTime() - startNs;
             SpanRecord record       = new SpanRecord();
             record.span_id          = spanId;
-            record.parent_span_id   = "";
+            record.parent_span_id   = parentSpanId;
             record.trace_id         = traceId;
             record.content          = spanName;
             record.function         = methodName;

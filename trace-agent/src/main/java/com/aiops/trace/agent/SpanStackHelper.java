@@ -11,10 +11,14 @@ import java.util.Deque;
  * Accesses the existing TraceContextHolder and TraceStore via reflection.
  *
  * This class must have ZERO dependencies on any non-JDK classes.
+ *
+ * Span stack: Delegates to the application's TraceContextHolder.pushSpan/popSpan/currentParentSpanId
+ * if available, so that trace-agent and TracingAspect share the same span stack.
+ * Falls back to a local ThreadLocal stack if the app's TraceContextHolder doesn't have span stack methods.
  */
 public class SpanStackHelper {
 
-    /** ThreadLocal span stack - tracks nested method calls for parent-child relationships. */
+    /** Fallback ThreadLocal span stack - used only if app's TraceContextHolder lacks stack methods. */
     private static final ThreadLocal<Deque<String>> SPAN_STACK =
             ThreadLocal.withInitial(ArrayDeque::new);
 
@@ -25,6 +29,12 @@ public class SpanStackHelper {
     private static volatile Class<?> spanRecordClass;
     private static volatile boolean reflectionInitialized = false;
     private static volatile boolean reflectionFailed = false;
+
+    // Span stack delegation to TraceContextHolder (if available)
+    private static volatile Method holderPushSpan;
+    private static volatile Method holderPopSpan;
+    private static volatile Method holderCurrentParentSpanId;
+    private static volatile boolean spanStackDelegation = false;
 
     /**
      * Get current trace ID from the existing TraceContextHolder.
@@ -40,19 +50,38 @@ public class SpanStackHelper {
         }
     }
 
-    /** Push span ID onto the stack (entering a method). */
+    /** Push span ID onto the stack (entering a method). Syncs to TraceContextHolder if available. */
     public static void pushSpan(String spanId) {
         SPAN_STACK.get().push(spanId);
+        if (spanStackDelegation) {
+            try {
+                holderPushSpan.invoke(null, spanId);
+            } catch (Exception ignore) {}
+        }
     }
 
-    /** Pop span ID from the stack (exiting a method). Returns the popped span ID. */
+    /** Pop span ID from the stack (exiting a method). Returns the popped span ID. Syncs to TraceContextHolder if available. */
     public static String popSpan() {
+        if (spanStackDelegation) {
+            try {
+                holderPopSpan.invoke(null);
+            } catch (Exception ignore) {}
+        }
         Deque<String> stack = SPAN_STACK.get();
         return stack.isEmpty() ? null : stack.pop();
     }
 
-    /** Get the current parent span ID (top of stack without removing). */
+    /**
+     * Get the current parent span ID (top of stack without removing).
+     * Uses TraceContextHolder's stack if available (more complete, includes TracingAspect spans).
+     */
     public static String peekParentSpan() {
+        if (spanStackDelegation) {
+            try {
+                Object result = holderCurrentParentSpanId.invoke(null);
+                return result != null ? (String) result : "";
+            } catch (Exception ignore) {}
+        }
         Deque<String> stack = SPAN_STACK.get();
         return stack.isEmpty() ? "" : stack.peek();
     }
@@ -97,6 +126,19 @@ public class SpanStackHelper {
             // Find TraceContextHolder
             Class<?> holderClass = findClass(cl, "TraceContextHolder");
             traceContextHolderGet = holderClass.getMethod("get");
+
+            // Try to find span stack methods on TraceContextHolder (new API)
+            try {
+                holderPushSpan = holderClass.getMethod("pushSpan", String.class);
+                holderPopSpan = holderClass.getMethod("popSpan");
+                holderCurrentParentSpanId = holderClass.getMethod("currentParentSpanId");
+                spanStackDelegation = true;
+                System.out.println("[trace-agent] SpanStackHelper: span stack delegation ENABLED");
+            } catch (NoSuchMethodException e) {
+                // Old TraceContextHolder without span stack - use local fallback
+                spanStackDelegation = false;
+                System.out.println("[trace-agent] SpanStackHelper: span stack delegation disabled (old TraceContextHolder)");
+            }
 
             // Find SpanRecord
             spanRecordClass = findClass(cl, "SpanRecord");
