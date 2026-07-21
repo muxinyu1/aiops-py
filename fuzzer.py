@@ -57,15 +57,22 @@ _SYSTEM_PROMPT_TEMPLATE = """\
 
 ## 输出格式
 
-请以 JSON 格式输出你要发送的 HTTP 请求，格式如下：
-```json
+请严格按照以下格式输出，先在 <think> 标签中分析推理，再在 <json> 标签中输出请求：
+
+<think>
+在这里分析：
+1. 要到达 sink 需要满足什么条件
+2. 应该构造什么样的参数
+3. 为什么选择这些参数值
+</think>
+<json>
 {{
   "method": "GET 或 POST 等",
   "url": "完整 URL（包括路径参数的具体值）",
   "headers": {{"Header-Name": "value"}},
-  "body": null 或 JSON 字符串
+  "body": null 或 JSON 对象
 }}
-```
+</json>
 
 ## 重要提示
 
@@ -73,7 +80,7 @@ _SYSTEM_PROMPT_TEMPLATE = """\
 2. POST/PUT 请求需要提供 JSON body
 3. 目标是让代码执行到达 sink 点，触发目标日志语句
 4. 分析预期路径中每个方法的参数要求，构造能满足路径约束的输入
-5. 只输出一个 JSON 代码块，不要输出多余内容
+5. <json> 标签内只放纯 JSON，不要有其他内容
 """
 
 _USER_PROMPT_FIRST = """\
@@ -274,14 +281,14 @@ class Fuzzer:
         return s
 
     def _format_request_as_json(self, param: HttpParameter) -> str:
-        """将 HttpParameter 转为 JSON 字符串（模拟 LLM 之前的输出）."""
+        """将 HttpParameter 转为 <think>+<json> 格式（模拟 LLM 之前的输出）."""
         obj = {
             "method": param.method,
             "url": param.url,
             "headers": param.headers,
             "body": json.loads(param.body) if param.body else None,
         }
-        return f"```json\n{json.dumps(obj, indent=2, ensure_ascii=False)}\n```"
+        return f"<think>\n(之前的推理过程)\n</think>\n<json>\n{json.dumps(obj, indent=2, ensure_ascii=False)}\n</json>"
 
     def _format_divergence(self, div: Optional[PathDivergence]) -> str:
         """将 PathDivergence 格式化为可读的偏差描述."""
@@ -304,17 +311,26 @@ class Fuzzer:
 
     def _parse_response(self, response: str, api_entry: APIEntry) -> HttpParameter:
         """
-        解析 LLM 的回复，提取 JSON 格式的 HTTP 请求。
+        解析 LLM 的回复，提取 HTTP 请求 JSON。
 
-        支持从 markdown 代码块或纯 JSON 中提取。
+        支持以下格式（按优先级）：
+          1. <json>...</json> 标签
+          2. ```json ... ``` 代码块（兼容旧格式）
+          3. 纯 JSON 文本
+
+        <think>...</think> 部分会被忽略（仅用于推理过程）。
         """
-        # 尝试提取 ```json ... ``` 代码块
-        json_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', response, re.DOTALL)
+        # 优先: 提取 <json>...</json> 标签内容
+        json_match = re.search(r'<json>\s*(.*?)\s*</json>', response, re.DOTALL)
+        if not json_match:
+            # 兼容: 提取 ```json ... ``` 代码块
+            json_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', response, re.DOTALL)
         if json_match:
             json_str = json_match.group(1).strip()
         else:
-            # 尝试直接解析整个响应
-            json_str = response.strip()
+            # 最后尝试: 去掉 <think>...</think> 后直接解析
+            cleaned = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL).strip()
+            json_str = cleaned
 
         try:
             obj = json.loads(json_str)
