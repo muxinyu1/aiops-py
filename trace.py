@@ -49,6 +49,16 @@ class TraceNode:
     is_error: bool = False  # 该 span 是否以 ERROR 状态结束
     error_message: Optional[str] = None  # 异常消息, 仅 is_error=True 时非空
 
+    # ── 运行时变量快照 (仅在 snapshot 模式下填充) ─────────────────
+    args_snapshot: Optional[dict] = None
+    # 方法参数值快照, e.g. {"arg0": "hello", "arg1": 42}
+
+    return_snapshot: Optional[dict] = None
+    # 返回值快照, e.g. {"type": "String", "value": "ok"}
+
+    this_snapshot: Optional[dict] = None
+    # this 对象字段快照, e.g. {"_class": "UserService", "userDao": "..."}
+
     # ── statement-level coverage (从 JaCoCo 解析后回填) ────────────
     executed_lines: list[int] = field(default_factory=list)
     # 该方法内实际执行的源码行号列表
@@ -163,6 +173,9 @@ class Trace:
                 duration_ns=s.get("duration_ns", 0),
                 is_error=s.get("is_error", False),
                 error_message=s.get("error_message"),
+                args_snapshot=s.get("args_snapshot"),
+                return_snapshot=s.get("return_snapshot"),
+                this_snapshot=s.get("this_snapshot"),
             ))
         return nodes
 

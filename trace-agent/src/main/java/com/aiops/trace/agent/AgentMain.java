@@ -12,7 +12,7 @@ import net.bytebuddy.utility.JavaModule;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -53,21 +53,41 @@ public class AgentMain {
 
         System.out.println("[trace-agent] Starting with packages: " + TARGET_PACKAGES);
 
-        // Inject our SpanStackHelper class into the bootstrap classloader
-        // so it's visible from all app classloaders.
+        // Inject our helper classes into the bootstrap classloader
+        // so they're visible from all app classloaders.
         try {
-            ClassInjector.UsingInstrumentation.of(
-                    new java.io.File(AgentMain.class.getProtectionDomain()
-                            .getCodeSource().getLocation().toURI()),
-                    ClassInjector.UsingInstrumentation.Target.BOOTSTRAP,
-                    inst
-            ).inject(Collections.singletonMap(
+            Map<TypeDescription, byte[]> injections = new HashMap<>();
+            injections.put(
                     new TypeDescription.ForLoadedType(SpanStackHelper.class),
                     ClassFileLocator.ForClassLoader.read(SpanStackHelper.class)
-            ));
-            System.out.println("[trace-agent] SpanStackHelper injected into bootstrap classloader");
+            );
+            injections.put(
+                    new TypeDescription.ForLoadedType(SnapshotTargetRegistry.class),
+                    ClassFileLocator.ForClassLoader.read(SnapshotTargetRegistry.class)
+            );
+            injections.put(
+                    new TypeDescription.ForLoadedType(SnapshotSerializer.class),
+                    ClassFileLocator.ForClassLoader.read(SnapshotSerializer.class)
+            );
+
+            // Use a temp jar for bootstrap injection (avoids read-only mount issues)
+            java.io.File tempJar = java.io.File.createTempFile("trace-agent-bootstrap", ".jar");
+            tempJar.deleteOnExit();
+            // Create a minimal valid jar
+            try (java.util.jar.JarOutputStream jos = new java.util.jar.JarOutputStream(
+                    new java.io.FileOutputStream(tempJar))) {
+                // empty jar is enough as a target
+            }
+            inst.appendToBootstrapClassLoaderSearch(new java.util.jar.JarFile(tempJar));
+
+            ClassInjector.UsingInstrumentation.of(
+                    tempJar,
+                    ClassInjector.UsingInstrumentation.Target.BOOTSTRAP,
+                    inst
+            ).inject(injections);
+            System.out.println("[trace-agent] SpanStackHelper + SnapshotTargetRegistry + SnapshotSerializer injected into bootstrap classloader");
         } catch (Exception e) {
-            System.err.println("[trace-agent] WARNING: Could not inject helper: " + e.getMessage());
+            System.err.println("[trace-agent] WARNING: Could not inject helpers: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -83,7 +103,7 @@ public class AgentMain {
                                                             JavaModule module,
                                                             ProtectionDomain protectionDomain) {
                         return builder.visit(
-                                Advice.to(MethodTraceAdvice.class)
+                                Advice.to(MethodSnapshotAdvice.class)
                                         .on(ElementMatchers.isMethod()
                                                 .and(ElementMatchers.not(ElementMatchers.isConstructor()))
                                                 .and(ElementMatchers.not(ElementMatchers.isAbstract()))

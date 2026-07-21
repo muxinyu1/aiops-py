@@ -62,6 +62,12 @@ public class TraceFilter extends OncePerRequestFilter {
         if (traceId == null) traceId = UUID.randomUUID().toString().replace("-", "");
         TraceContextHolder.set(traceId);
 
+        // Configure snapshot targets (if any) — directly call our SnapshotTargetRegistry
+        String snapshotMethods = request.getHeader("X-Snapshot-Methods");
+        if (snapshotMethods != null && !snapshotMethods.isEmpty()) {
+            SnapshotTargetRegistry.setTargets(snapshotMethods);
+        }
+
         // Reset JaCoCo coverage before request processing
         resetJacoco();
 
@@ -128,6 +134,8 @@ public class TraceFilter extends OncePerRequestFilter {
                 // ignore serialization errors
             } finally {
                 TraceContextHolder.clear();
+                // Clear snapshot targets
+                SnapshotTargetRegistry.clear();
             }
             wrappedResponse.copyBodyToResponse();
         }

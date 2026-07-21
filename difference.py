@@ -12,6 +12,45 @@ from typing import Optional
 
 
 @dataclass
+class VariableSnapshot:
+    """
+    偏差发生时刻的运行时变量快照.
+
+    记录偏差所在方法被调用时的参数值、返回值和对象状态,
+    帮助理解为什么执行路径在此处发生了偏离.
+    """
+    # ── 方法参数 ─────────────────────────────────────────────────
+    args: Optional[dict] = None
+    # 方法参数值, e.g. {"userId": "123", "status": "ACTIVE"}
+
+    # ── 返回值 ───────────────────────────────────────────────────
+    return_value: Optional[dict] = None
+    # 方法返回值, e.g. {"type": "Boolean", "value": false}
+
+    # ── this 对象状态 ────────────────────────────────────────────
+    this_state: Optional[dict] = None
+    # this 对象的字段快照, e.g. {"_class": "UserService", "maxRetries": 3}
+
+    @property
+    def has_data(self) -> bool:
+        return any([self.args, self.return_value, self.this_state])
+
+    def summary(self, max_length: int = 300) -> str:
+        """生成快照的可读摘要, 用于反馈给 LLM."""
+        parts = []
+        if self.args:
+            parts.append(f"args={self.args}")
+        if self.return_value:
+            parts.append(f"return={self.return_value}")
+        if self.this_state:
+            parts.append(f"this={self.this_state}")
+        text = ", ".join(parts)
+        if len(text) > max_length:
+            text = text[:max_length] + "..."
+        return text
+
+
+@dataclass
 class DivergencePoint:
     """
     执行流分歧点 — 两个 trace 第一次出现不同的基本块位置.
@@ -35,6 +74,13 @@ class DivergencePoint:
     # ── 上下文 ───────────────────────────────────────────────────
     common_prefix: list[int] = field(default_factory=list)
     # 分歧前双方共同执行的行号序列 (提供上下文)
+
+    # ── 运行时变量快照 (第二阶段采集) ────────────────────────────
+    snapshot_a: Optional[VariableSnapshot] = None
+    # trace_a 中该分歧方法的变量快照
+
+    snapshot_b: Optional[VariableSnapshot] = None
+    # trace_b 中该分歧方法的变量快照
 
 
 @dataclass
@@ -79,9 +125,17 @@ class Difference:
         if fp is None:
             return "Divergence detected but no specific point identified."
 
-        return (
+        summary = (
             f"First divergence at {fp.src_file}:{fp.diverge_line} "
             f"(class: {fp.class_name}). "
             f"Lines only in A: {fp.only_in_a[:5]}{'...' if len(fp.only_in_a) > 5 else ''}, "
             f"only in B: {fp.only_in_b[:5]}{'...' if len(fp.only_in_b) > 5 else ''}."
         )
+
+        # 附加运行时变量信息
+        if fp.snapshot_a and fp.snapshot_a.has_data:
+            summary += f"\n  [Trace A vars] {fp.snapshot_a.summary()}"
+        if fp.snapshot_b and fp.snapshot_b.has_data:
+            summary += f"\n  [Trace B vars] {fp.snapshot_b.summary()}"
+
+        return summary

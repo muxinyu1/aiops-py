@@ -49,4 +49,15 @@ public class SpanRecord {
 
     /** Exception message if is_error == true, otherwise null. */
     public String error_message;
+
+    // ── 运行时变量快照 (由 trace-agent 在 snapshot 模式下填充) ────────────────
+
+    /** 方法参数值的 JSON 快照, e.g. {"0":"hello","1":"42"} */
+    public String args_snapshot;
+
+    /** 返回值的 JSON 快照, e.g. {"type":"String","value":"ok"} */
+    public String return_snapshot;
+
+    /** this 对象字段的 JSON 快照, e.g. {"_class":"UserService","field":"value"} */
+    public String this_snapshot;
 }

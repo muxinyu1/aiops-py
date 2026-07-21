@@ -18,6 +18,7 @@ public class TraceFilter implements Filter {
 
     private static final String REQUEST_HEADER = "X-Return-Trace";
     private static final String RESPONSE_HEADER = "X-Execution-Trace";
+    private static final String SNAPSHOT_HEADER = "X-Snapshot-Methods";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -47,6 +48,12 @@ public class TraceFilter implements Filter {
         String traceId = UUID.randomUUID().toString().replace("-", "");
         TraceContext.begin(traceId);
 
+        // Configure snapshot targets (if any)
+        String snapshotMethods = httpReq.getHeader(SNAPSHOT_HEADER);
+        if (snapshotMethods != null && !snapshotMethods.isEmpty()) {
+            SnapshotTargetRegistry.setTargets(snapshotMethods);
+        }
+
         try {
             chain.doFilter(request, response);
         } finally {
@@ -57,6 +64,8 @@ public class TraceFilter implements Filter {
                 String encoded = Base64.getEncoder().encodeToString(json.getBytes("UTF-8"));
                 httpResp.setHeader(RESPONSE_HEADER, encoded);
             }
+            // Clean up snapshot targets
+            SnapshotTargetRegistry.clear();
         }
     }
 

@@ -18,6 +18,11 @@ public class SpanRecord {
     public boolean is_error;
     public String error_message;
 
+    // ── 运行时变量快照 (仅在 snapshot 模式下填充) ──────────────────
+    public String args_snapshot;        // 方法参数值的 JSON 快照, e.g. {"0":"hello","1":"42"}
+    public String return_snapshot;      // 返回值的 JSON 快照
+    public String this_snapshot;        // this 对象字段的 JSON 快照
+
     public String toJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
@@ -34,6 +39,16 @@ public class SpanRecord {
         sb.append("\"duration_ns\":").append(duration_ns).append(",");
         sb.append("\"is_error\":").append(is_error).append(",");
         sb.append("\"error_message\":").append(error_message == null ? "null" : "\"" + escape(error_message) + "\"");
+        // 运行时变量快照 (仅在非 null 时输出)
+        if (args_snapshot != null) {
+            sb.append(",\"args_snapshot\":").append(args_snapshot); // 已经是 JSON 对象
+        }
+        if (return_snapshot != null) {
+            sb.append(",\"return_snapshot\":").append(return_snapshot);
+        }
+        if (this_snapshot != null) {
+            sb.append(",\"this_snapshot\":").append(this_snapshot);
+        }
         sb.append("}");
         return sb.toString();
     }
