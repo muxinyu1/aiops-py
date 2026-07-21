@@ -146,7 +146,8 @@ class ExpectedPath:
     @property
     def id(self) -> str:
         """路径唯一标识: entry_id → sink_id."""
-        return f"{self.api_entry.id} → {self.log_sink.id}"
+        sink_id = self.log_sink.id if self.log_sink else "?"
+        return f"{self.api_entry.id} → {sink_id}"
 
     @property
     def method_sequence(self) -> list[str]:
