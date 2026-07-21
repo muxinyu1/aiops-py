@@ -162,6 +162,9 @@ def check_sink_reached_with_line(trace: Trace, sink: Sink) -> bool:
 # ExecuteFn 类型: 接收 HttpParameter, 返回 Trace
 ExecuteFn = Callable[[HttpParameter], Trace]
 
+# CheckLogFn 类型: 检查容器日志中是否出现攻击标记, 返回 bool
+CheckLogFn = Callable[[str], bool]
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Pipeline 主控
@@ -170,14 +173,17 @@ ExecuteFn = Callable[[HttpParameter], Trace]
 @dataclass
 class Pipeline:
     """
-    Sink-Centric Fuzz 主控循环。
+    Log Injection Fuzz 主控循环。
 
     对每条预期路径执行：
-      fuzzer 生成参数 → executor 执行 → 检查 sink → 偏差反馈 → 重试
+      fuzzer 生成参数 → executor 执行 → 检查 sink → 检查日志 → 偏差反馈 → 重试
+
+    攻击成功判定 = trace 到达 sink + 容器日志出现攻击标记
 
     Args:
         fuzzer: LLM Fuzz Agent
         execute_fn: 执行函数，发送请求并返回 trace
+        check_log_fn: 日志检查函数，检查攻击标记是否出现在应用日志中
         path_differ: 偏差计算器
         max_attempts: 每条路径的最大尝试次数
         sink_checker: sink 到达检查函数 (默认方法级检查)
@@ -185,6 +191,7 @@ class Pipeline:
 
     fuzzer: Fuzzer
     execute_fn: ExecuteFn
+    check_log_fn: CheckLogFn  # 必须提供
     path_differ: PathDiffer = field(default_factory=PathDiffer)
     max_attempts: int = 10
     sink_checker: Callable[[Trace, Sink], bool] = check_sink_reached
@@ -198,19 +205,23 @@ class Pipeline:
         """
         对单条预期路径运行 fuzz 循环。
 
+        攻击成功 = trace 到达 sink method + 容器日志中出现攻击标记
+
         循环步骤：
-          1. Fuzzer 生成 HTTP 请求
+          1. Fuzzer 生成 HTTP 请求（含攻击标记 payload）
           2. Executor 执行请求，获取 trace
-          3. 检查是否到达 sink → 成功则退出
-          4. 计算偏差（trace vs expected_path）
-          5. 将偏差反馈给 fuzzer → 回到步骤 1
-          6. 超过 max_attempts 次则标记为不可达
+          3. 检查 trace 是否到达 sink
+          4. 检查容器日志是否出现攻击标记
+          5. 两者都满足 → 攻击成功
+          6. 否则计算偏差，反馈给 fuzzer → 回到步骤 1
         """
         start_time = time.time()
         history: list[FuzzAttempt] = []
         result = PathResult(expected_path=expected_path, sink=sink)
+        attack_marker = self.fuzzer.attack_marker
 
-        logger.info(f"开始 fuzz: {api_entry.id} → {sink.qualified_method}")
+        logger.info(f"开始攻击: {api_entry.id} → {sink.qualified_method}")
+        logger.info(f"  攻击标记: \"{attack_marker}\"")
 
         for attempt_num in range(1, self.max_attempts + 1):
             try:
@@ -225,9 +236,15 @@ class Pipeline:
                 # Step 3: 检查是否到达 sink
                 reached = self.sink_checker(trace, sink)
 
-                if reached:
-                    logger.info(f"  ✅ 第 {attempt_num} 次成功到达 sink!")
-                    attempt = FuzzAttempt(request=param, reached_sink=True)
+                # Step 4: 检查容器日志是否出现攻击标记
+                marker_found = self.check_log_fn(attack_marker)
+
+                # Step 5: 判定攻击是否成功
+                if reached and marker_found:
+                    logger.info(f"  🎯 第 {attempt_num} 次攻击成功! sink 到达 + 日志注入成功")
+                    attempt = FuzzAttempt(
+                        request=param, reached_sink=True, marker_found=True,
+                    )
                     history.append(attempt)
                     result.status = PathStatus.REACHED
                     result.successful_request = param
@@ -235,25 +252,30 @@ class Pipeline:
                     result.elapsed_seconds = time.time() - start_time
                     return result
 
-                # Step 4: 未到达 sink — 计算偏差
-                divergence = self.path_differ.diff(trace, expected_path)
-                logger.info(f"    偏差: {divergence.summary}")
+                # 部分成功的提示
+                if reached and not marker_found:
+                    logger.info(f"    ⚠️ 到达 sink 但日志中未出现攻击标记")
+                elif not reached:
+                    logger.info(f"    ❌ 未到达 sink")
 
-                # Step 5: 记录本次尝试，反馈给下一轮
+                # Step 6: 计算偏差，记录反馈
+                divergence = self.path_differ.diff(trace, expected_path)
+                if not reached:
+                    logger.info(f"    偏差: {divergence.summary}")
+
                 attempt = FuzzAttempt(
                     request=param,
                     divergence=divergence,
-                    reached_sink=False,
+                    reached_sink=reached,
+                    marker_found=marker_found,
                 )
                 history.append(attempt)
 
             except Exception as e:
                 logger.warning(f"    执行异常: {e}")
-                # 记录失败尝试（无 divergence）
                 if 'param' in locals():
                     history.append(FuzzAttempt(request=param, reached_sink=False))
                 else:
-                    # Fuzzer 本身出错（如 LLM 调用失败）
                     result.status = PathStatus.ERROR
                     result.error_message = str(e)
                     result.elapsed_seconds = time.time() - start_time
@@ -261,7 +283,7 @@ class Pipeline:
                     return result
 
         # 达到最大尝试次数
-        logger.info(f"  ❌ 达到最大尝试次数 ({self.max_attempts})，标记为不可达")
+        logger.info(f"  ❌ 达到最大尝试次数 ({self.max_attempts})，攻击失败")
         result.status = PathStatus.UNREACHABLE
         result.attempts = history
         result.elapsed_seconds = time.time() - start_time

@@ -194,19 +194,32 @@ def execute_with_trace(param: HttpParameter) -> Trace:
         data=param.body.encode() if param.body else None,
     )
 
+    trace_header = ""
+    resp_body = ""
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
-            resp.read()
+            resp_body = resp.read().decode(errors="replace")
             trace_header = resp.getheader("X-Execution-Trace", "")
     except urllib.error.HTTPError as e:
         # 非 2xx 也可能有 trace
+        resp_body = e.read().decode(errors="replace")
         trace_header = e.headers.get("X-Execution-Trace", "")
     except Exception:
         trace_header = ""
 
-    # 解析 X-Execution-Trace (Base64 encoded JSON span array)
+    # 解析 trace: 支持 header 模式和 IN_BODY 模式
     nodes: list[TraceNode] = []
-    if trace_header:
+    if trace_header == "IN_BODY":
+        # Trace 数据太大放在了 body 中
+        try:
+            body_data = json.loads(resp_body)
+            if "trace" in body_data:
+                spans = body_data["trace"]
+                nodes = _parse_spans(spans)
+        except Exception as e:
+            logger.debug(f"Trace IN_BODY 解析失败: {e}")
+    elif trace_header:
+        # 正常 Base64 header 模式
         try:
             decoded = base64.b64decode(trace_header)
             spans = json.loads(decoded)
@@ -297,15 +310,54 @@ class MockLLM(LLM):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Docker 日志检查
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 默认攻击标记
+ATTACK_MARKER = "sink_attacked"
+
+# 容器名称 (java-microservice 的容器)
+CONTAINER_NAME = "trace-real-java-microservice"
+
+
+def check_container_log(marker: str, container_name: str = CONTAINER_NAME) -> bool:
+    """
+    检查 Docker 容器日志中是否出现攻击标记。
+
+    使用 `docker logs --tail 50` 获取最近的日志行，
+    检查是否包含 marker 字符串。
+    """
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["docker", "logs", "--tail", "50", container_name],
+            capture_output=True, text=True, timeout=5,
+        )
+        # 同时检查 stdout 和 stderr（Java 日志通常输出到 stderr）
+        output = result.stdout + result.stderr
+        return marker in output
+    except Exception:
+        return False
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # 主入口
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
-    parser = argparse.ArgumentParser(description="Sink-Centric Fuzz Pipeline Demo")
+    parser = argparse.ArgumentParser(description="Log Injection Fuzz Pipeline Demo")
     parser.add_argument("--mock", action="store_true", help="使用 Mock LLM (不需要真实 LLM)")
     parser.add_argument("--base-url", default=BASE_URL, help="目标服务 URL")
-    parser.add_argument("--max-attempts", type=int, default=5, help="每条路径最大尝试次数")
+    parser.add_argument("--max-attempts", type=int, default=10, help="每条路径最大尝试次数")
+    parser.add_argument("--marker", default=ATTACK_MARKER, help="攻击标记字符串")
+    parser.add_argument("--container", default=CONTAINER_NAME, help="目标 Docker 容器名称")
     args = parser.parse_args()
+
+    # 用闭包捕获容器名
+    container_name = args.container
+
+    def _check_log(marker: str) -> bool:
+        return check_container_log(marker, container_name)
 
     # 选择 LLM
     if args.mock:
@@ -319,15 +371,24 @@ def main():
         logger.info(f"使用 LLM: {llm.model} @ {llm.base_url}")
 
     # 构建 pipeline
-    fuzzer = Fuzzer(llm=llm, base_url=args.base_url)
+    source_root = "examples/java-microservice/src/main/java"
+    fuzzer = Fuzzer(
+        llm=llm,
+        base_url=args.base_url,
+        attack_marker=args.marker,
+        source_root=source_root,
+    )
     pipeline = Pipeline(
         fuzzer=fuzzer,
         execute_fn=execute_with_trace,
+        check_log_fn=_check_log,
         max_attempts=args.max_attempts,
     )
 
-    # 运行 fuzz
+    # 运行攻击
     logger.info(f"目标服务: {args.base_url}")
+    logger.info(f"攻击标记: \"{args.marker}\"")
+    logger.info(f"目标容器: {args.container}")
     logger.info(f"Fuzz 目标数: {len(FUZZ_TARGETS)}")
     logger.info("")
 
@@ -336,7 +397,7 @@ def main():
     # 输出结果
     print("\n" + result.summary)
 
-    # 返回码: 有成功到达 sink 的路径则返回 0
+    # 返回码: 有攻击成功的路径则返回 0
     sys.exit(0 if result.reached_count > 0 else 1)
 
 
