@@ -320,22 +320,116 @@ ATTACK_MARKER = "sink_attacked"
 CONTAINER_NAME = "trace-real-java-microservice"
 
 
-def check_container_log(marker: str, container_name: str = CONTAINER_NAME) -> bool:
+def check_container_log(marker: str, container_name: str = CONTAINER_NAME, since: str = "") -> bool:
     """
-    检查 Docker 容器日志中是否出现攻击标记。
+    检查 Docker 容器**最近新增**的日志中是否出现攻击标记。
 
-    使用 `docker logs --tail 50` 获取最近的日志行，
-    检查是否包含 marker 字符串。
+    策略: 使用 --since 时间戳只看请求发出之后的日志。
+    额外过滤: 排除 Spring 框架自身的异常转换日志（MethodArgumentTypeMismatchException），
+    只匹配应用代码自己的日志输出。
+
+    Args:
+        marker: 要检查的攻击标记字符串
+        container_name: Docker 容器名称
+        since: 只检查此时间戳之后的日志 (ISO 格式)
+
+    Returns:
+        bool: 应用日志中是否包含 marker（排除框架异常日志）
+    """
+    import subprocess
+    try:
+        cmd = ["docker", "logs"]
+        if since:
+            cmd += ["--since", since]
+        else:
+            cmd += ["--tail", "10"]
+        cmd.append(container_name)
+
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=5,
+        )
+        # 同时检查 stdout 和 stderr
+        output = result.stdout + result.stderr
+
+        # 逐行检查: marker 必须出现在应用日志行中（排除 Spring 框架异常行）
+        for line in output.splitlines():
+            if marker not in line:
+                continue
+            # 排除 Spring 框架的类型转换异常日志
+            if "MethodArgumentTypeMismatchException" in line:
+                continue
+            if "DefaultHandlerExceptionResolver" in line:
+                continue
+            if "Failed to convert value" in line:
+                continue
+            # 找到了应用代码产生的含 marker 的日志行
+            return True
+
+        return False
+    except Exception:
+        return False
+
+
+def get_container_log_line_count(container_name: str = CONTAINER_NAME) -> int:
+    """获取容器当前日志总行数."""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["docker", "logs", container_name],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, timeout=10,
+        )
+        return len(result.stdout.splitlines())
+    except Exception:
+        return 0
+
+
+def check_container_log_after_line(
+    marker: str,
+    skip_lines: int,
+    container_name: str = CONTAINER_NAME,
+) -> bool:
+    """
+    检查容器日志中第 skip_lines 行之后的新增日志是否包含攻击标记。
+
+    这是最可靠的方式 — 不依赖时间戳，完全基于行数差值。
+
+    Args:
+        marker: 要检查的攻击标记字符串
+        skip_lines: 跳过前 N 行（请求前的日志行数）
+        container_name: Docker 容器名称
+
+    Returns:
+        bool: 新增日志中是否包含 marker（排除框架异常行）
     """
     import subprocess
     try:
         result = subprocess.run(
-            ["docker", "logs", "--tail", "50", container_name],
-            capture_output=True, text=True, timeout=5,
+            ["docker", "logs", container_name],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, timeout=10,
         )
-        # 同时检查 stdout 和 stderr（Java 日志通常输出到 stderr）
-        output = result.stdout + result.stderr
-        return marker in output
+        all_lines = result.stdout.splitlines()
+
+        # 只取新增的行
+        new_lines = all_lines[skip_lines:]
+
+        for line in new_lines:
+            if marker not in line:
+                continue
+            # 排除 Spring 框架的类型转换异常日志
+            if "MethodArgumentTypeMismatchException" in line:
+                continue
+            if "DefaultHandlerExceptionResolver" in line:
+                continue
+            if "Failed to convert value" in line:
+                continue
+            if "TypeMismatchException" in line:
+                continue
+            # 找到了应用代码产生的含 marker 的日志行
+            return True
+
+        return False
     except Exception:
         return False
 
@@ -351,13 +445,19 @@ def main():
     parser.add_argument("--max-attempts", type=int, default=10, help="每条路径最大尝试次数")
     parser.add_argument("--marker", default=ATTACK_MARKER, help="攻击标记字符串")
     parser.add_argument("--container", default=CONTAINER_NAME, help="目标 Docker 容器名称")
+    parser.add_argument("--verbose", "-v", action="store_true", help="输出完整的 prompt/response 决策链")
     args = parser.parse_args()
 
     # 用闭包捕获容器名
     container_name = args.container
 
-    def _check_log(marker: str) -> bool:
-        return check_container_log(marker, container_name)
+    def _check_log(marker: str, skip_lines: int) -> bool:
+        """检查容器新增日志中是否出现攻击标记（基于行数差值）."""
+        return check_container_log_after_line(marker, skip_lines, container_name)
+
+    def _get_log_line_count() -> int:
+        """获取容器当前日志行数."""
+        return get_container_log_line_count(container_name)
 
     # 选择 LLM
     if args.mock:
@@ -377,11 +477,13 @@ def main():
         base_url=args.base_url,
         attack_marker=args.marker,
         source_root=source_root,
+        verbose=args.verbose,
     )
     pipeline = Pipeline(
         fuzzer=fuzzer,
         execute_fn=execute_with_trace,
         check_log_fn=_check_log,
+        get_log_line_count_fn=_get_log_line_count,
         max_attempts=args.max_attempts,
     )
 

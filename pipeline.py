@@ -15,13 +15,14 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Callable, Optional
 
 from expected_path import APIEntry, ExpectedPath
-from fuzzer import FuzzAttempt, Fuzzer
+from fuzzer import FuzzAttempt, FuzzConversationLog, Fuzzer
 from llm import LLM
 from parameter import HttpParameter
 from path_differ import PathDiffer, PathDivergence
@@ -37,8 +38,9 @@ logger = logging.getLogger(__name__)
 
 class PathStatus(str, Enum):
     """单条预期路径的 fuzz 结果状态."""
-    REACHED = "reached"           # 成功到达 sink
-    UNREACHABLE = "unreachable"   # 达到最大尝试次数仍未到达
+    REACHED = "reached"           # 攻击成功: 到达 sink + marker 出现
+    REACHED_NO_MARKER = "reached_no_marker"  # 到达 sink 但 marker 未出现（注入失败）
+    UNREACHABLE = "unreachable"   # 达到最大尝试次数仍未到达 sink
     ERROR = "error"               # 执行出错
 
 
@@ -61,12 +63,20 @@ class PathResult:
     def summary(self) -> str:
         status_icon = {
             PathStatus.REACHED: "✅",
+            PathStatus.REACHED_NO_MARKER: "⚠️",
             PathStatus.UNREACHABLE: "❌",
-            PathStatus.ERROR: "⚠️",
+            PathStatus.ERROR: "💥",
+        }
+        status_desc = {
+            PathStatus.REACHED: "attacked",
+            PathStatus.REACHED_NO_MARKER: "reached sink, marker not injected",
+            PathStatus.UNREACHABLE: "unreachable",
+            PathStatus.ERROR: "error",
         }
         icon = status_icon.get(self.status, "?")
+        desc = status_desc.get(self.status, self.status.value)
         path_desc = self.expected_path.id if self.expected_path else "?"
-        return f"{icon} {path_desc} — {self.status.value} ({self.num_attempts} attempts, {self.elapsed_seconds:.1f}s)"
+        return f"{icon} {path_desc} — {desc} ({self.num_attempts} attempts, {self.elapsed_seconds:.1f}s)"
 
 
 @dataclass
@@ -92,7 +102,7 @@ class PipelineResult:
         lines = [
             f"═══ Fuzz Pipeline 结果 ═══",
             f"总路径数: {self.total_count}",
-            f"成功到达: {self.reached_count} ({self.reach_rate:.0%})",
+            f"攻击成功: {self.reached_count} ({self.reach_rate:.0%})",
             f"总耗时: {self.total_elapsed:.1f}s",
             f"",
         ]
@@ -162,8 +172,11 @@ def check_sink_reached_with_line(trace: Trace, sink: Sink) -> bool:
 # ExecuteFn 类型: 接收 HttpParameter, 返回 Trace
 ExecuteFn = Callable[[HttpParameter], Trace]
 
-# CheckLogFn 类型: 检查容器日志中是否出现攻击标记, 返回 bool
-CheckLogFn = Callable[[str], bool]
+# CheckLogFn 类型: 检查容器日志第 N 行之后是否出现攻击标记 (marker, skip_lines) -> bool
+CheckLogFn = Callable[[str, int], bool]
+
+# GetLogLineCountFn 类型: 获取容器当前日志总行数 () -> int
+GetLogLineCountFn = Callable[[], int]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -183,7 +196,8 @@ class Pipeline:
     Args:
         fuzzer: LLM Fuzz Agent
         execute_fn: 执行函数，发送请求并返回 trace
-        check_log_fn: 日志检查函数，检查攻击标记是否出现在应用日志中
+        check_log_fn: 日志检查函数，(marker, skip_lines) -> bool
+        get_log_line_count_fn: 获取容器当前日志总行数
         path_differ: 偏差计算器
         max_attempts: 每条路径的最大尝试次数
         sink_checker: sink 到达检查函数 (默认方法级检查)
@@ -191,10 +205,12 @@ class Pipeline:
 
     fuzzer: Fuzzer
     execute_fn: ExecuteFn
-    check_log_fn: CheckLogFn  # 必须提供
+    check_log_fn: CheckLogFn  # (marker, skip_lines) -> bool
+    get_log_line_count_fn: GetLogLineCountFn  # () -> int
     path_differ: PathDiffer = field(default_factory=PathDiffer)
     max_attempts: int = 10
     sink_checker: Callable[[Trace, Sink], bool] = check_sink_reached
+    log_dir: str = "logs/fuzz"  # 对话日志保存目录
 
     def run_single_path(
         self,
@@ -220,6 +236,9 @@ class Pipeline:
         result = PathResult(expected_path=expected_path, sink=sink)
         attack_marker = self.fuzzer.attack_marker
 
+        # 开始对话日志
+        self.fuzzer.start_conversation_log(api_entry, sink)
+
         logger.info(f"开始攻击: {api_entry.id} → {sink.qualified_method}")
         logger.info(f"  攻击标记: \"{attack_marker}\"")
 
@@ -230,14 +249,20 @@ class Pipeline:
                 param = self.fuzzer.fuzz(api_entry, sink, expected_path, history)
                 logger.info(f"    请求: {param.method} {param.url}")
 
+                # 记录请求前的日志行数（用于只检查新增日志）
+                log_line_count_before = self.get_log_line_count_fn()
+
                 # Step 2: 执行请求，获取 trace
                 trace = self.execute_fn(param)
 
                 # Step 3: 检查是否到达 sink
                 reached = self.sink_checker(trace, sink)
 
-                # Step 4: 检查容器日志是否出现攻击标记
-                marker_found = self.check_log_fn(attack_marker)
+                # Step 4: 检查容器日志是否出现攻击标记（只看请求之后的新增行）
+                marker_found = self.check_log_fn(attack_marker, log_line_count_before)
+
+                # 更新对话日志中最后一条记录的执行结果
+                self.fuzzer.update_last_call(param, reached, marker_found)
 
                 # Step 5: 判定攻击是否成功
                 if reached and marker_found:
@@ -250,6 +275,7 @@ class Pipeline:
                     result.successful_request = param
                     result.attempts = history
                     result.elapsed_seconds = time.time() - start_time
+                    self._save_conversation_log(PathStatus.REACHED)
                     return result
 
                 # 部分成功的提示
@@ -280,14 +306,42 @@ class Pipeline:
                     result.error_message = str(e)
                     result.elapsed_seconds = time.time() - start_time
                     result.attempts = history
+                    self._save_conversation_log(PathStatus.ERROR)
                     return result
 
         # 达到最大尝试次数
         logger.info(f"  ❌ 达到最大尝试次数 ({self.max_attempts})，攻击失败")
-        result.status = PathStatus.UNREACHABLE
+        # 区分: 是否曾经到达过 sink
+        ever_reached = any(a.reached_sink for a in history)
+        if ever_reached:
+            result.status = PathStatus.REACHED_NO_MARKER
+        else:
+            result.status = PathStatus.UNREACHABLE
         result.attempts = history
         result.elapsed_seconds = time.time() - start_time
+        self._save_conversation_log(result.status)
         return result
+
+    def _save_conversation_log(self, status: PathStatus) -> None:
+        """保存当前路径的 LLM 对话日志为 JSON 文件."""
+        conv_log = self.fuzzer.finalize_conversation_log(status.value)
+        if conv_log is None:
+            return
+
+        os.makedirs(self.log_dir, exist_ok=True)
+
+        # 文件名: {api}_{sink}_{timestamp}.json
+        from datetime import datetime, timezone
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        api_safe = conv_log.api_entry_id.replace("/", "_").replace(" ", "_").strip("_")
+        sink_safe = conv_log.sink_id.split(".")[-1] if "." in conv_log.sink_id else conv_log.sink_id
+        filename = f"{api_safe}__{sink_safe}__{ts}.json"
+        filepath = os.path.join(self.log_dir, filename)
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(conv_log.to_dict(), f, ensure_ascii=False, indent=2)
+
+        logger.info(f"  📝 对话日志已保存: {filepath}")
 
     def run(
         self,

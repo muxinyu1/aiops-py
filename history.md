@@ -563,3 +563,171 @@ Taint 边: 11
 2. **覆盖率评估**: 统计 trace 覆盖了多少预期路径 (覆盖率 = 已验证路径 / 总预期路径)
 3. **异常检测**: 如果 taint 路径 (高置信度) 在实际 trace 中缺失, 说明链路可能断裂
 4. **回归测试**: 代码变更后重新分析, 对比预期路径变化 (新增/删除/修改)
+
+---
+
+### 阶段 13: API 自动发现 (2026-07-21)
+
+#### 目标
+自动扫描 Java 源码中的 Spring MVC 注解，提取所有 REST API 入口，避免手工标注。
+
+#### 实现
+- `api_discovery.py` — 正则扫描 `@RestController` / `@Controller` + `@GetMapping` / `@PostMapping` / `@RequestMapping` 等
+- 输出兼容 `APIEntry` 结构
+- 配套测试: `tests/test_api_discovery.py`
+
+#### 关键 commit
+- `475f3ece feat: add API entry discovery module for Spring MVC projects`
+
+---
+
+### 阶段 14: LLM 驱动 Sink-Centric Fuzz 框架 (2026-07-22 ~ 2026-07-25)
+
+#### 目标
+实现完整的 LLM 引导 Log Injection 攻击循环：Fuzzer 生成参数 → Executor 执行 → Trace 采集 → 偏差反馈 → LLM 迭代优化。
+
+#### 核心模块
+
+| 文件 | 职责 |
+|------|------|
+| `fuzzer.py` | LLM Fuzz Agent — 构造 system/user prompt, 解析 LLM `<|im_start|>+<json>` 输出为 HttpParameter |
+| `pipeline.py` | 主控循环 — 遍历 (API, Sink, Path) 三元组, 运行 fuzz → 检查 sink → 日志验证 |
+| `sink.py` | Sink 模型 — 日志打印点位置 + 类型 + tainted_params |
+| `llm.py` | OpenAI 兼容 LLM 客户端（支持环境变量配置） |
+| `parameter.py` | HttpParameter 数据模型 |
+| `path_differ.py` | Trace vs ExpectedPath 偏差计算（到达深度 + 首次偏离点） |
+| `demo_fuzz.py` | java-microservice 通用演示 + 工具函数 (execute_with_trace, MockLLM, check_container_log) |
+
+#### 攻击成功判定
+1. Trace 到达目标 sink 方法 (`check_sink_reached`)
+2. **且** 容器日志中出现攻击标记字符串 (`check_container_log_after_line`)
+
+二者都满足 = Log Injection 攻击成功 (PathStatus.REACHED)
+
+#### Prompt 工程
+- System prompt: 声明合法授权测试、描述目标 sink (类/方法/行号/日志模板/污染参数)、API 信息、预期路径
+- User prompt: 偏差反馈 (到达深度、missed node) + 历史失败请求
+- 输出格式: `<|im_start|>分析推理[tid]HTTP请求</json>`
+- 支持 reasoning model (`refactor: use <|im_start|>+<json> output format`)
+
+#### Pipeline 结果模型
+```
+PipelineResult
+  └── PathResult[]
+        ├── status: REACHED | REACHED_NO_MARKER | UNREACHABLE | ERROR
+        ├── attempts: FuzzAttempt[]
+        └── elapsed_seconds
+```
+
+#### 关键 commit
+- `942bbb2f feat: implement LLM-driven sink-centric fuzz framework`
+- `d1a0f5c0 refactor(fuzzer): use <|im_start|>+<json> output format for reasoning models`
+- `cb88d1b5 feat: log injection attack mode with marker-based success detection`
+- `7ceda806 fix: correct trace span field names and handle null log_sink in path id`
+
+---
+
+### 阶段 15: novel-cloud Fuzz 实战验证 (2026-07-25 ~ 进行中)
+
+#### 目标
+以 novel-cloud (book-service) 为第一个真实目标，端到端打通 fuzz 攻击闭环。
+
+#### 目标服务
+- 镜像: `crpi-xxx/llmfuzz/novel-cloud-novel-book-service:latest`
+- 容器: `trace-real-novel-cloud-novel-book-service`
+- 端口: 8080 (network_mode: host)
+- 依赖: MySQL + Redis (via `_shared/real-deps.compose.yaml`)
+- trace-agent 已注入 (`packages=io.github.xxyopen.novel`)
+
+#### 攻击面 (3 条路径)
+
+| # | API 入口 | Sink | 攻击策略 |
+|---|---------|------|---------|
+| 1 | GET /api/front/book/content/{chapterId} | BookServiceImpl.getBookContentAbout → log.error | chapterId 异常值触发 NPE/BusinessException |
+| 2 | GET /api/front/book/{id} | BookServiceImpl.getBookById → log.error | 无效 ID 触发异常链 |
+| 3 | POST /api/front/book/visit | BookServiceImpl.addVisitCount → log.error | bookId 异常触发错误 |
+
+附加攻击面: 任意端点 + Authorization header 含恶意 JWT → `JwtUtils.parseToken` → `log.warn("JWT解析失败:{}", token)`
+
+#### 静态分析产物
+- `novel-cloud-callgraph.json` — Joern 调用图 (方法节点 + 调用边)
+- `novel-cloud-logging-sinks.json` — 10 个日志 Sink (含模板、参数、行号)
+
+#### 运行方式
+```bash
+# 启动目标容器
+cd examples-yml/novel-cloud && docker compose -f compose.real.yaml up -d
+
+# Mock 模式 (不需要 LLM)
+set -a && source .env && set +a
+uv run python demo_fuzz_novel.py --mock --max-attempts 10
+
+# 真实 LLM 模式
+uv run python demo_fuzz_novel.py --max-attempts 10 --verbose
+```
+
+#### 当前打通状态
+
+| 层次 | 状态 | 说明 |
+|------|------|------|
+| 静态分析 (Joern CG) | ✅ 完成 | 调用图 JSON 已缓存 |
+| 日志 Sink 扫描 | ✅ 完成 | 10 个 sink 结构化数据 |
+| API 入口标注 | ✅ 完成 | 3 个攻击面已定义 |
+| 预期路径构建 | ✅ 完成 | Controller → ServiceImpl 两跳路径 |
+| Docker 容器部署 | ✅ 完成 | compose.real.yaml 含 MySQL/Redis 依赖 |
+| trace-agent 注入 | ✅ 完成 | X-Return-Trace 协议可用 |
+| Fuzz Pipeline 代码 | ✅ 完成 | demo_fuzz_novel.py 可运行 |
+| LLM Prompt 工程 | ✅ 完成 | system + feedback prompt 模板 |
+| MockLLM 测试 | ✅ 完成 | 框架逻辑可验证 |
+| 真实 LLM 攻击验证 | ⏳ 待验证 | 需要容器运行 + LLM API 可用 |
+| 攻击成功确认 | ⏳ 待验证 | 需确认 marker 出现在容器日志中 |
+
+#### 待完成
+1. 启动 novel-cloud 容器，确认 `/api/front/book/content/999999` 等端点可访问
+2. 用真实 LLM (配置 .env) 运行 `demo_fuzz_novel.py`
+3. 确认攻击标记 `sink_attacked` 出现在容器日志中
+4. 记录首次攻击成功的尝试次数和 LLM 输出
+
+---
+
+## 当前项目全局状态 (截至 2026-07-26)
+
+### 架构总览
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    静态分析层 (离线, 一次性)                        │
+│                                                                  │
+│  源码 → Joern(CG) → CodeQL(taint) → PathGenerator(BFS)          │
+│  api_discovery.py (API 自动发现)                                  │
+│  *-logging-sinks.json (Sink 扫描)                                │
+│                          ↓ ExpectedPathSet                        │
+├──────────────────────────────────────────────────────────────────┤
+│                    Fuzz 循环层 (在线, 迭代)                        │
+│                                                                  │
+│  Fuzzer(LLM) → Executor(HTTP) → PathDiffer(偏差) → LLM(反馈)    │
+│       ↑                                              ↓           │
+│       └──────── 偏差 + 变量快照 反馈 ←───────────────┘           │
+├──────────────────────────────────────────────────────────────────┤
+│                    目标微服务容器                                   │
+│                                                                  │
+│  trace-agent(ByteBuddy) + TracingAspect(AOP) + JaCoCo            │
+│  X-Return-Trace → span → X-Execution-Trace                       │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### 完成度
+
+| 模块 | 完成度 | 说明 |
+|------|--------|------|
+| 18 项目 trace 注入 + 镜像 | 100% | 全部验证通过 |
+| 预期路径 BFS 算法 | 100% | |
+| Joern 调用图集成 | 100% | java-microservice + novel-cloud 验证 |
+| CodeQL 污点分析 | 100% | java-microservice 验证 |
+| API 自动发现 | 100% | |
+| 偏差计算 (path_differ) | 100% | |
+| 变量快照 (snapshot) | 100% | |
+| Fuzz Pipeline 框架 | 100% | 代码完整, MockLLM 可跑 |
+| LLM Prompt 工程 | 90% | 模板完整, 真实效果待验证 |
+| 真实 LLM Fuzz 验证 | 30% | novel-cloud 进行中 |
+| 多项目批量 Fuzz | 0% | 待 novel-cloud 验证通过后推广 |

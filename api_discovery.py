@@ -27,6 +27,108 @@ from expected_path import APIEntry
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Java Constant Resolver
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Match: public static final String NAME = expression;
+_RE_CONST_DECL = re.compile(
+    r'public\s+static\s+final\s+String\s+(\w+)\s*=\s*(.+?)\s*;'
+)
+
+
+class _JavaConstantResolver:
+    """
+    解析 Java 项目中 public static final String 常量定义，
+    支持字符串字面量拼接和常量引用递归解析。
+    """
+
+    def __init__(self) -> None:
+        # key: "ClassName.FIELD" or just "FIELD", value: raw expression
+        self._raw: dict[str, str] = {}
+        # resolved cache
+        self._resolved: dict[str, str] = {}
+
+    def scan_file(self, filepath: str) -> None:
+        """扫描单个 Java 文件中的 static final String 常量."""
+        try:
+            with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+                content = f.read()
+        except (OSError, IOError):
+            return
+
+        # 提取类名
+        class_match = re.search(r'(?:public\s+)?(?:class|interface)\s+(\w+)', content)
+        class_name = class_match.group(1) if class_match else ""
+
+        for m in _RE_CONST_DECL.finditer(content):
+            field_name = m.group(1)
+            expression = m.group(2).strip()
+            # 存两种 key: 短名和全名
+            self._raw[field_name] = expression
+            if class_name:
+                self._raw[f"{class_name}.{field_name}"] = expression
+
+    def scan_directory(self, source_dir: str) -> None:
+        """递归扫描目录下所有 Java 文件的常量."""
+        for root, _, files in os.walk(source_dir):
+            for fname in files:
+                if fname.endswith(".java") and "test" not in root.lower():
+                    self.scan_file(os.path.join(root, fname))
+
+    def resolve(self, expr: str, depth: int = 0) -> Optional[str]:
+        """
+        解析常量表达式为字符串值。
+        支持: 字符串字面量、常量引用、+ 拼接。
+        """
+        if depth > 10:
+            return None
+
+        expr = expr.strip()
+
+        # 缓存命中
+        if expr in self._resolved:
+            return self._resolved[expr]
+
+        # 纯字符串字面量
+        if expr.startswith('"') and expr.endswith('"'):
+            val = expr[1:-1]
+            self._resolved[expr] = val
+            return val
+
+        # 拼接表达式: A + B + C
+        if "+" in expr:
+            parts = expr.split("+")
+            resolved_parts = []
+            for part in parts:
+                r = self.resolve(part.strip(), depth + 1)
+                if r is None:
+                    return None
+                resolved_parts.append(r)
+            val = "".join(resolved_parts)
+            self._resolved[expr] = val
+            return val
+
+        # 常量引用: ClassName.FIELD 或 FIELD
+        # 去掉可能的 ClassName. 前缀来查找
+        lookup_keys = [expr]
+        if "." in expr:
+            lookup_keys.append(expr.split(".")[-1])
+
+        for key in lookup_keys:
+            if key in self._raw:
+                val = self.resolve(self._raw[key], depth + 1)
+                if val is not None:
+                    self._resolved[expr] = val
+                    return val
+
+        return None
+
+
+# 全局常量解析器实例（在 discover_api_entries 中初始化）
+_constant_resolver: Optional[_JavaConstantResolver] = None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Constants: Spring MVC annotation patterns
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -166,6 +268,14 @@ class _ClassInfo:
                 paths = a.path_values()
                 if paths:
                     return paths
+                # 尝试常量解析: 注解参数可能是常量引用
+                if _constant_resolver and a.raw_args:
+                    # 去掉可能的 value= 或 path= 前缀
+                    expr = a.raw_args.strip()
+                    expr = re.sub(r'^(?:value|path)\s*=\s*', '', expr)
+                    resolved = _constant_resolver.resolve(expr)
+                    if resolved:
+                        return [resolved]
         return [""]
 
 
@@ -419,6 +529,11 @@ def discover_api_entries(
 
     if exclude_patterns is None:
         exclude_patterns = ["test", "generated", "target"]
+
+    # 初始化 Java 常量解析器（解析 static final String 常量引用）
+    global _constant_resolver
+    _constant_resolver = _JavaConstantResolver()
+    _constant_resolver.scan_directory(str(source_path))
 
     entries: list[APIEntry] = []
 
