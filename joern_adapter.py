@@ -508,7 +508,7 @@ class JoernDockerAdapter:
     使用官方镜像: ghcr.io/joernio/joern
     """
     config: JoernConfig
-    image: str = "ghcr.io/joernio/joern"
+    image: str = "ghcr.io/joernio/joern:master"
 
     def is_available(self) -> bool:
         """检查 Docker 是否可用."""

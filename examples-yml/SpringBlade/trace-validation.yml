@@ -1,0 +1,32 @@
+# SpringBlade blade-auth 真实验证配置
+
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 5000
+          blade-system:
+            url: http://127.0.0.1:8106
+    discovery:
+      client:
+        simple:
+          instances:
+            blade-system:
+              - uri: http://127.0.0.1:8106
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: none
+# 禁用 ribbon/ribbon-loadbalancer 重试
+ribbon:
+  MaxAutoRetries: 0
+  MaxAutoRetriesNextServer: 0
+  OkToRetryOnAllOperations: false
+  ConnectTimeout: 2000
+  ReadTimeout: 3000

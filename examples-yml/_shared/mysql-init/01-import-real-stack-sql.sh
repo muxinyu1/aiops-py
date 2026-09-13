@@ -64,3 +64,5 @@ import_optional_sql mall_pms /trace-sql/youlai/mall_pms.sql
 import_optional_sql mall_sms /trace-sql/youlai/mall_sms.sql
 import_optional_sql mall_ums /trace-sql/youlai/mall_ums.sql
 import_optional_sql xxl_job /trace-sql/youlai/xxl_job.sql
+
+import_optional_sql blade /trace-sql/springblade/blade.mysql.all.create.sql

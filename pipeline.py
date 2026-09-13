@@ -261,6 +261,15 @@ class Pipeline:
                 # Step 4: 检查容器日志是否出现攻击标记（只看请求之后的新增行）
                 marker_found = self.check_log_fn(attack_marker, log_line_count_before)
 
+                # 框架异常处理型 sink 特殊处理:
+                # @ExceptionHandler/@RestControllerAdvice 触发时 (404/405/参数错误等),
+                # 请求未进入目标 Controller 方法, trace 中无入口节点, 常无 X-Execution-Trace 头,
+                # 导致 trace 判定 reached=False. 但这类 sink 的日志输出本身就是执行证据 —
+                # marker 出现在日志中即证明 handler 被调用. 故以 marker_found 作为到达依据.
+                if not reached and marker_found and self._is_framework_exception_handler(sink):
+                    logger.info(f"    ℹ️ 框架异常处理 sink, 以日志标记作为到达依据")
+                    reached = True
+
                 # 更新对话日志中最后一条记录的执行结果
                 self.fuzzer.update_last_call(param, reached, marker_found)
 
@@ -298,7 +307,9 @@ class Pipeline:
                 history.append(attempt)
 
             except Exception as e:
+                import traceback
                 logger.warning(f"    执行异常: {e}")
+                logger.warning(f"    堆栈: {traceback.format_exc()}")
                 if 'param' in locals():
                     history.append(FuzzAttempt(request=param, reached_sink=False))
                 else:
@@ -321,6 +332,21 @@ class Pipeline:
         result.elapsed_seconds = time.time() - start_time
         self._save_conversation_log(result.status)
         return result
+
+    @staticmethod
+    def _is_framework_exception_handler(sink: Sink) -> bool:
+        """
+        判断 sink 是否为框架级异常处理器 (@ExceptionHandler / @RestControllerAdvice).
+
+        这类 sink (GlobalExceptionHandler / ErrorHandler 等) 由 Spring MVC 在请求
+        未进入业务 Controller 方法时反射调用 (404/405/参数绑定错误等), trace 中
+        通常无入口节点, 需以日志标记作为到达依据.
+        """
+        name = sink.class_name.lower()
+        return ("exceptionhandler" in name
+                or "errorhandler" in name
+                or "controlleradvice" in name
+                or name.endswith("handler") and "exception" in sink.method.lower())
 
     def _save_conversation_log(self, status: PathStatus) -> None:
         """保存当前路径的 LLM 对话日志为 JSON 文件."""

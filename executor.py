@@ -36,7 +36,7 @@ class JavaExecutor:
 
         ex = JavaExecutor(
             jar_path="examples/java-microservice/target/...jar",
-            agent_path="opentelemetry-javaagent.jar",
+            agent_path="tools/opentelemetry-javaagent.jar",
         )
         ex.start()                      # starts receiver + Java process
         trace = ex.execute(HttpParameter("GET", "http://localhost:8080/api/users/1"))

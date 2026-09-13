@@ -10,13 +10,14 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.central -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=com.central.*"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.central"
       OTEL_SERVICE_NAME: zlt-microservices-platform-zlt-uaa
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
       ZLT_DATASOURCE_IP: 127.0.0.1
       ZLT_DATASOURCE_USERNAME: root
       ZLT_DATASOURCE_PASSWORD: "123456"
+    entrypoint: ["sh", "-c", "exec java $JAVA_TOOL_OPTIONS -jar /app/app.jar $0 $@"]
     command:
       - --spring.config.location=optional:file:/tmp/trace-validation.yml
       - --spring.cloud.bootstrap.enabled=false
@@ -33,15 +34,17 @@ services:
       - --spring.profiles.active=trace-validation,local,dev
       - --server.port=8080
       - --spring.application.name=zlt-uaa
-      - --zlt.datasource.ip=127.0.0.1
-      - --zlt.datasource.username=root
-      - --zlt.datasource.password=123456
       - --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/oauth-center?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      - --spring.datasource.username=root
+      - --spring.datasource.password=123456
       - --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
       - --spring.data.redis.host=127.0.0.1
       - --spring.data.redis.port=6379
+      - --spring.data.redis.password=password
       - --spring.redis.host=127.0.0.1
       - --spring.redis.port=6379
+      - --spring.redis.password=password
+      - --zlt.security.ignore.http-urls=/validata/**,/validata/smsCode/**
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
       - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro

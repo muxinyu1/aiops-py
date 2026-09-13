@@ -197,7 +197,8 @@ def execute_with_trace(param: HttpParameter) -> Trace:
     trace_header = ""
     resp_body = ""
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        # 超时需大于下游 feign 重试总耗时 (blade-auth 调 blade-system 重试可达 ~60s)
+        with urllib.request.urlopen(req, timeout=90) as resp:
             resp_body = resp.read().decode(errors="replace")
             trace_header = resp.getheader("X-Execution-Trace", "")
     except urllib.error.HTTPError as e:
@@ -227,11 +228,15 @@ def execute_with_trace(param: HttpParameter) -> Trace:
         except Exception as e:
             logger.debug(f"Trace 解析失败: {e}")
 
-    return Trace(
+    trace = Trace(
         source=Source(type=Type.RESTFUL, data=RESTfulSource()),
         sink=Sink(class_name="", method=""),
         nodes=nodes,
     )
+    # 附加响应 body (not_started 时常含校验错误详情, 供偏差反馈引导 LLM)
+    # Trace 是 dataclass (非 slots), 可动态附加属性
+    trace.response_body = resp_body
+    return trace
 
 
 def _parse_spans(spans: list[dict]) -> list[TraceNode]:

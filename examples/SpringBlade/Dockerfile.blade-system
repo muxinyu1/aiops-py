@@ -1,0 +1,35 @@
+# syntax=docker/dockerfile:1.4
+FROM eclipse-temurin:17-jdk-jammy AS builder
+WORKDIR /build
+RUN apt-get update && apt-get install -y --no-install-recommends maven && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /root/.m2 && cat > /root/.m2/settings.xml <<'EOF'
+<settings>
+  <mirrors>
+    <mirror>
+      <id>aliyunmaven</id>
+      <mirrorOf>*</mirrorOf>
+      <name>aliyun</name>
+      <url>https://maven.aliyun.com/repository/public</url>
+    </mirror>
+  </mirrors>
+</settings>
+EOF
+COPY . .
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn -B -ntp clean package -DskipTests -DskipITs \
+    -Dgit.skip=true -Dgit.commit.id.skip=true -Dmaven.gitcommitid.skip=true \
+    -Dcheckstyle.skip=true -Dspotless.skip=true -Denforcer.skip=true \
+    -Djacoco.skip=true -Ddocker.skip=true -Ddocker.skip.build=true \
+    -DskipDocker=true -Ddockerfile.skip=true \
+    -s /root/.m2/settings.xml \
+    -pl blade-service/blade-system -am
+RUN set -eux; \
+    JAR=$(ls -S /build/blade-service/blade-system/target/*.jar | grep -v "original-" | grep -v -- "-sources.jar" | grep -v -- "-javadoc.jar" | head -n 1); \
+    test -n "$JAR"; \
+    cp "$JAR" /build/app.jar
+
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+COPY --from=builder /build/app.jar app.jar
+EXPOSE 8088
+ENTRYPOINT ["java", "-jar", "app.jar"]

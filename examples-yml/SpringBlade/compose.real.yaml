@@ -2,23 +2,17 @@ name: trace-real-springblade-blade-auth
 include:
   - ../_shared/real-deps.compose.yaml
 services:
-  app:
-    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/springblade-blade-auth:latest
-    container_name: trace-real-springblade-blade-auth
+  blade-system:
+    image: springblade-blade-system:latest
+    container_name: trace-real-springblade-blade-system
     network_mode: host
     restart: unless-stopped
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=org.springblade -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=org.springblade.*"
-      OTEL_SERVICE_NAME: springblade-blade-auth
-      TRACE_SMOKE_MODE: "false"
-      SPRING_PROFILES_ACTIVE: trace-validation
-    volumes:
-      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
-      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
+      SPRING_PROFILES_ACTIVE: dev
+    entrypoint: ["java", "-jar", "/app/app.jar"]
     command:
-      - --spring.config.location=optional:file:/tmp/trace-validation.yml
       - --spring.cloud.bootstrap.enabled=false
       - --spring.cloud.config.enabled=false
       - --spring.cloud.config.import-check.enabled=false
@@ -28,9 +22,9 @@ services:
       - --spring.cloud.service-registry.auto-registration.enabled=false
       - --eureka.client.enabled=false
       - --spring.main.allow-bean-definition-overriding=true
-      - --spring.profiles.active=trace-validation
-      - --server.port=8080
-      - --spring.application.name=blade-auth
+      - --spring.main.lazy-initialization=false
+      - --server.port=8106
+      - --spring.application.name=blade-system
       - --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/blade?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
       - --spring.datasource.username=root
       - --spring.datasource.password=123456
@@ -44,6 +38,53 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/springblade-blade-auth:latest
+    container_name: trace-real-springblade-blade-auth
+    network_mode: host
+    restart: unless-stopped
+    env_file:
+      - ../common-real.env
+    environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=org.springblade"
+      OTEL_SERVICE_NAME: springblade-blade-auth
+      TRACE_SMOKE_MODE: "false"
+      SPRING_PROFILES_ACTIVE: trace-validation
+    entrypoint: ["java", "-javaagent:/opt/trace-agent.jar=packages=org.springblade", "-jar", "/app/app.jar"]
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
+      - ./trace-validation.yml:/tmp/trace-validation.yml:ro
+    command:
+      - --spring.config.import=optional:file:/tmp/trace-validation.yml
+      - --spring.cloud.bootstrap.enabled=false
+      - --spring.cloud.config.enabled=false
+      - --spring.cloud.config.import-check.enabled=false
+      - --spring.cloud.nacos.config.enabled=false
+      - --spring.cloud.nacos.discovery.enabled=false
+      - --eureka.client.enabled=false
+      - --spring.main.allow-bean-definition-overriding=true
+      - --spring.main.lazy-initialization=false
+      - --spring.profiles.active=trace-validation
+      - --server.port=8080
+      - --spring.application.name=blade-auth
+      - --spring.cloud.discovery.client.simple.instances.blade-system[0].uri=http://127.0.0.1:8106
+      - --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/blade?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      - --spring.datasource.username=root
+      - --spring.datasource.password=123456
+      - --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+      - --spring.data.redis.host=127.0.0.1
+      - --spring.data.redis.port=6379
+      - --spring.redis.host=127.0.0.1
+      - --spring.redis.port=6379
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      blade-system:
+        condition: service_started
     labels:
       aiops.trace.endpoint: /__trace_smoke
       aiops.trace.mode: real

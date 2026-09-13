@@ -114,7 +114,12 @@ _SYSTEM_PROMPT_TEMPLATE = """\
 你要调用的 API：
 - HTTP 方法: {http_method}
 - 路径: {http_path}
-- 完整 URL: {base_url}{http_path}
+- URL 模板: {base_url}{http_path}
+
+⚠️ **注意**: 上面 URL 中形如 `{{xxx}}` 的部分是**路径参数占位符**，代表一个由你决定的变量，而不是字面字符串。\
+你在输出请求时**必须**把每个 `{{xxx}}` 替换成一个具体的值（例如把 `{{chapterId}}` 替换成 `1`），\
+否则请求无法匹配到后端路由，将根本不会进入 Controller。
+
 {param_info}
 
 ## 预期执行路径
@@ -135,7 +140,7 @@ _SYSTEM_PROMPT_TEMPLATE = """\
 <json>
 {{
   "method": "GET 或 POST 等",
-  "url": "完整 URL（包括路径参数的具体值）",
+  "url": "完整 URL（所有 {{路径参数}} 都已替换为具体值，例如 .../content/1 而不是 .../content/{{chapterId}}）",
   "headers": {{"Header-Name": "value"}},
   "body": null 或 JSON 对象
 }}
@@ -143,7 +148,8 @@ _SYSTEM_PROMPT_TEMPLATE = """\
 
 ## 重要提示
 
-1. URL 中的路径参数（如 `{{id}}`）必须替换为具体值
+1. **URL 中绝对不能出现 `{{}}` 花括号占位符**。形如 `{{id}}`、`{{chapterId}}` 的路径参数是变量，\
+必须替换成具体值（数字参数用 `1` 之类的合法值）。如果输出的 URL 里还留着 `{{...}}`，请求会 404 / 无法进入 Controller，本次尝试必然失败。
 2. POST/PUT 请求需要提供 JSON body
 3. **核心目标: 让应用日志中出现 `{attack_marker}` 字符串**
 4. 攻击标记可以通过请求参数、路径参数或 HTTP Header（如 Authorization、Cookie 等）注入
@@ -368,9 +374,16 @@ class Fuzzer:
                 content=self._format_request_as_json(attempt.request),
             ))
             if attempt.divergence:
+                feedback = f"请求未能到达 sink。偏差: {attempt.divergence.summary}\n请调整参数重试。"
+                if re.search(r'\{\w+\}', attempt.request.url):
+                    feedback += (
+                        "\n⚠️ 你上次输出的 URL 里仍残留 `{...}` 花括号占位符，"
+                        "它们是路径参数变量，必须替换成具体值（如把 `{chapterId}` 换成 `1`），"
+                        "否则请求无法匹配后端路由、根本不会进入 Controller。"
+                    )
                 messages.append(Message(
                     role="user",
-                    content=f"请求未能到达 sink。偏差: {attempt.divergence.summary}\n请调整参数重试。",
+                    content=feedback,
                 ))
 
         # 当前轮的 user prompt
@@ -473,6 +486,14 @@ class Fuzzer:
             actual = " → ".join(div.actual_path_sequence[:10])
             lines.append(f"- 实际执行路径: {actual}")
 
+        # ── HTTP 响应 body (not_started 时常含参数校验错误, 关键引导信息) ──
+        if div.response_body:
+            lines.append("")
+            lines.append("**HTTP 响应 body** (含失败原因, 请据此修正请求使其通过校验/路由):")
+            lines.append("```")
+            lines.append(div.response_body)
+            lines.append("```")
+
         # ── 偏差点方法的输入参数值 ──
         if div.matched_trace_node and div.matched_trace_node.args_snapshot:
             lines.append("")
@@ -482,17 +503,140 @@ class Fuzzer:
             lines.append(f"```")
 
         # ── 偏差点方法的源码 ──
-        divergence_node = div.first_missed_node or div.reached_node
-        if divergence_node and self.source_root:
+        # 策略：同时给出「已到达节点(分派点)」和「未到达节点(目标)」的源码。
+        # 关键场景：reached_node 是分支分派点（如 Controller 按某参数路由到不同
+        # 实现），LLM 需要看到 reached_node 的源码才能理解"为什么没走到目标分支"，
+        # 而只看 first_missed_node(终点方法内部) 看不到分派条件。
+        seen_sources: set[str] = set()
+
+        # 1. 已到达节点（分派点）源码 —— 帮助 LLM 定位分支条件 / 参数契约
+        if div.reached_node and self.source_root:
+            reached_src = self._read_method_source(div.reached_node)
+            if reached_src:
+                seen_sources.add(div.reached_node.qualified_name)
+                lines.append("")
+                lines.append(f"**已到达方法源码** (`{div.reached_node.qualified_name}`) — 检查此处如何分派到目标分支:")
+                lines.append("```java")
+                lines.append(reached_src)
+                lines.append("```")
+
+        # 2. 未到达节点（目标）源码 —— 仅在它与 reached_node 不同时给出
+        divergence_node = div.first_missed_node
+        if divergence_node and self.source_root \
+                and divergence_node.qualified_name not in seen_sources:
             source_snippet = self._read_method_source(divergence_node)
             if source_snippet:
                 lines.append("")
-                lines.append(f"**偏差点方法源码** (`{divergence_node.qualified_name}`):")
+                lines.append(f"**目标方法源码** (`{divergence_node.qualified_name}`) — 需要到达但未到:")
                 lines.append("```java")
                 lines.append(source_snippet)
                 lines.append("```")
 
+        # ── 请求体 DTO 字段定义 ──
+        # 关键场景：not_started 且响应含校验错误(如"收货地址不能为空")时,
+        # LLM 知道"缺什么"但不知道"字段名和嵌套结构"。提取入口方法 @RequestBody
+        # 的 DTO 字段定义, 让 LLM 能一次构造合法请求体。
+        dto_src = self._extract_request_body_dto(div)
+        if dto_src:
+            lines.append("")
+            lines.append("**请求体 DTO 字段定义** (请求 body 必须符合此结构, 注意嵌套对象):")
+            lines.append("```java")
+            lines.append(dto_src)
+            lines.append("```")
+
         return "\n".join(lines)
+
+    def _extract_request_body_dto(self, div: Optional[PathDivergence]) -> str:
+        """
+        提取 API 入口方法 @RequestBody 参数的 DTO 字段定义.
+
+        仅当 not_started (请求未进 Controller, 多为校验/路由失败) 时才有意义.
+        从 reached 失败的入口方法签名解析 @RequestBody 类型, 读取该类的字段.
+        """
+        if not div or not self.source_root:
+            return ""
+        # 只对 not_started (请求被拦在 Controller 前) 提取, 此时最可能是 body 校验失败
+        if div.divergence_reason != "not_started":
+            return ""
+
+        api_entry = div.expected_path.api_entry
+        if not api_entry or not api_entry.class_name:
+            return ""
+
+        # 读入口方法源码, 找 @RequestBody 参数类型
+        entry_node = PathNode(class_name=api_entry.class_name, method=api_entry.method)
+        method_src = self._read_method_source(entry_node)
+        if not method_src:
+            return ""
+
+        # 匹配 @RequestBody XxxType paramName
+        m = re.search(r'@RequestBody[^)]*?\)\s*(?:@\w+[^)]*\)\s*)*([A-Z]\w+)\s+\w+', method_src)
+        if not m:
+            m = re.search(r'@RequestBody\s+([A-Z]\w+)\s+\w+', method_src)
+        if not m:
+            return ""
+        dto_simple_name = m.group(1)
+
+        # 在 source_root 下找该 DTO 类文件并提取字段
+        dto_src = self._read_class_fields(dto_simple_name)
+        return dto_src
+
+    def _read_class_fields(self, simple_class_name: str, _depth: int = 0) -> str:
+        """读取指定类的字段定义 (含校验注解). 递归展开嵌套的自定义对象字段(一层)."""
+        import os
+        import glob
+
+        if _depth > 1:
+            return ""
+
+        pattern = os.path.join(self.source_root, "**", f"{simple_class_name}.java")
+        matches = glob.glob(pattern, recursive=True)
+        if not matches:
+            return ""
+
+        try:
+            with open(matches[0], "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        except Exception:
+            return ""
+
+        # 提取字段定义行 (含上面的校验注解) + 嵌套类
+        out = []
+        anno_buf = []
+        nested_types = []
+        in_class = False
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith(("public class", "class ", "public static class")):
+                in_class = True
+            if stripped.startswith("@"):
+                anno_buf.append(line.rstrip())
+                continue
+            # 字段行: private Type name;
+            fm = re.match(r'(private|public|protected)\s+([\w<>,\[\]]+)\s+(\w+)\s*;', stripped)
+            if fm and in_class:
+                ftype, fname = fm.group(2), fm.group(3)
+                for a in anno_buf:
+                    out.append(a)
+                out.append(line.rstrip())
+                anno_buf = []
+                # 记录嵌套自定义类型 (首字母大写且非 JDK 类型)
+                base = ftype.split("<")[0].replace("[]", "")
+                if base[:1].isupper() and base not in ("String", "Long", "Integer", "BigDecimal", "Boolean", "Double", "Float", "Date", "List"):
+                    nested_types.append(base)
+            else:
+                if stripped and not stripped.startswith("//"):
+                    anno_buf = []
+
+        result = "\n".join(out)
+
+        # 递归展开一层嵌套对象 (如 ShippingAddress)
+        for nt in set(nested_types):
+            sub = self._read_class_fields(nt, _depth + 1)
+            if sub:
+                result += f"\n\n// 嵌套对象 {nt}:\n" + sub
+
+        return result
 
     def _read_method_source(self, node: "PathNode") -> str:
         """

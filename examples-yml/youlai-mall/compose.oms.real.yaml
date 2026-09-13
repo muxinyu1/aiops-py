@@ -1,0 +1,77 @@
+name: trace-real-youlai-mall-oms
+include:
+  - ../_shared/real-deps.compose.yaml
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/youlai-mall-mall-oms:latest
+    container_name: trace-real-youlai-mall-oms
+    network_mode: host
+    restart: unless-stopped
+    env_file:
+      - ../common-real.env
+    environment:
+      # 只挂 trace-agent —— 不挂 jacocoagent（双 agent 会死锁）
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.youlai"
+      OTEL_SERVICE_NAME: youlai-mall-mall-oms
+      TRACE_SMOKE_MODE: "false"
+      SPRING_PROFILES_ACTIVE: trace-validation,local,dev
+      JAVA_OPTS: --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED
+      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/mall_oms?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "123456"
+      SPRINGDOC_INFO_TITLE: trace-validation
+      SPRINGDOC_INFO_VERSION: trace-validation
+      SPRINGDOC_INFO_DESCRIPTION: trace-validation
+      SPRINGDOC_INFO_CONTACT_NAME: trace-validation
+      SPRINGDOC_INFO_CONTACT_URL: http://127.0.0.1
+      SPRINGDOC_INFO_CONTACT_EMAIL: trace@example.invalid
+      SPRINGDOC_INFO_LICENSE_NAME: trace-validation
+      SPRINGDOC_INFO_LICENSE_URL: http://127.0.0.1
+    # entrypoint override 绕过镜像内硬编码的 OTEL agent
+    entrypoint: ["sh", "-c", "exec java $JAVA_OPTS $JAVA_TOOL_OPTIONS -jar /app/app.jar $0 $@"]
+    command:
+      - --spring.config.location=optional:file:/tmp/trace-validation.yml
+      - --spring.cloud.bootstrap.enabled=false
+      - --spring.cloud.nacos.config.enabled=false
+      - --spring.cloud.nacos.discovery.enabled=false
+      - --spring.cloud.nacos.config.import-check.enabled=false
+      - --spring.cloud.config.enabled=false
+      - --spring.cloud.config.import-check.enabled=false
+      - --spring.cloud.discovery.enabled=false
+      - --spring.cloud.service-registry.auto-registration.enabled=false
+      - --eureka.client.enabled=false
+      - --seata.enabled=false
+      - --spring.main.allow-bean-definition-overriding=true
+      - --spring.main.allow-circular-references=true
+      - --spring.profiles.active=trace-validation,local,dev
+      - --server.port=8803
+      - --spring.application.name=mall-oms
+      - --spring.security.oauth2.authorizationserver.token-uri=http://127.0.0.1:8080/oauth2/token
+      - --spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://127.0.0.1:8080/oauth2/jwks
+      - --security.whitelist-paths=/app-api/**,/admin-api/**,/__trace_smoke,/**
+      - --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/mall_oms?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
+      - --springdoc.info.title=trace-validation
+      - --springdoc.info.version=trace-validation
+      - --springdoc.info.description=trace-validation
+      - --springdoc.info.contact.name=trace-validation
+      - --springdoc.info.contact.url=http://127.0.0.1
+      - --springdoc.info.contact.email=trace@example.invalid
+      - --springdoc.info.license.name=trace-validation
+      - --springdoc.info.license.url=http://127.0.0.1
+      - --spring.datasource.password=123456
+      - --spring.data.redis.host=127.0.0.1
+      - --spring.data.redis.port=6379
+      - --spring.data.redis.password=password
+      - --spring.redis.host=127.0.0.1
+      - --spring.redis.port=6379
+      - --spring.redis.password=password
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      aiops.trace.endpoint: /app-api/v1/orders/confirm
+      aiops.trace.mode: real

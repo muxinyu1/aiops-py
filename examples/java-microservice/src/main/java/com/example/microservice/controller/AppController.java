@@ -106,4 +106,17 @@ public class AppController {
             return ResponseEntity.status(404).body(ApiResponse.error(e.getMessage()));
         }
     }
+
+    // POST /api/orders/risk-eval —— 参数组合靶场端点
+    @PostMapping("/orders/risk-eval")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> evaluateRisk(
+            @RequestBody Map<String, Object> body) {
+        String orderId = body.get("orderId") == null ? null : body.get("orderId").toString();
+        String level = body.get("level") == null ? null : body.get("level").toString();
+        Long amount = body.get("amount") == null ? null : Long.valueOf(body.get("amount").toString());
+        String channel = body.get("channel") == null ? null : body.get("channel").toString();
+        log.info("Risk eval request received");  // 不打印参数, 避免提前泄露 marker 干扰 sink 判定
+        Map<String, Object> result = orderService.evaluateRisk(orderId, level, amount, channel);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
 }

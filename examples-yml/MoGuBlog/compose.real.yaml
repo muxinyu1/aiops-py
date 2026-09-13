@@ -19,8 +19,8 @@ services:
       AUDIENCE_CLIENT_ID: trace-validation
       AUDIENCE_BASE64_SECRET: dHJhY2UtdmFsaWRhdGlvbi1zZWNyZXQ=
       AUDIENCE_NAME: trace-validation
-      AUDIENCE_EXPIRES_SECOND: "3600"
-      AUDIENCE_REFRESH_SECOND: "7200"
+      AUDIENCE_EXPIRES_SECOND: "7200"
+      AUDIENCE_REFRESH_SECOND: "600"
       IS_REMEMBER_ME_EXPIRES_SECOND: "7200"
     command:
       - --spring.config.location=optional:file:/tmp/trace-validation.yml
@@ -58,17 +58,21 @@ services:
       - --spring.datasource.connectionProperties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=500
       - --spring.data.redis.host=127.0.0.1
       - --spring.data.redis.port=6379
+      - --spring.data.redis.password=password
       - --spring.redis.host=127.0.0.1
       - --spring.redis.port=6379
+      - --spring.redis.password=password
       - --spring.rabbitmq.host=127.0.0.1
       - --spring.rabbitmq.port=5672
+      - --log.thread.corePoolSize=2
+      - --log.thread.maxPoolSize=5
       - --tokenHead=Bearer 
       - --tokenHeader=Authorization
       - --audience.clientId=trace-validation
       - --audience.base64Secret=dHJhY2UtdmFsaWRhdGlvbi1zZWNyZXQ=
       - --audience.name=trace-validation
-      - --audience.expiresSecond=3600
-      - --audience.refreshSecond=7200
+      - --audience.expiresSecond=7200
+      - --audience.refreshSecond=600
       - --isRememberMeExpiresSecond=7200
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
@@ -79,8 +83,6 @@ services:
       redis:
         condition: service_healthy
       rabbitmq:
-        condition: service_healthy
-      nacos:
         condition: service_healthy
     labels:
       aiops.trace.endpoint: /index/getWebConfig

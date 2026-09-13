@@ -10,14 +10,17 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.ctrip.framework.apollo -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=com.ctrip.framework.apollo.*"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.ctrip.framework.apollo"
       OTEL_SERVICE_NAME: apollo-apollo-adminservice
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: github,mysql
       SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/ApolloConfigDB?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "123456"
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
       EUREKA_INSTANCE_HOSTNAME: 127.0.0.1
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://127.0.0.1:8761/eureka/
+    entrypoint: ["sh", "-c", "exec java $JAVA_TOOL_OPTIONS -jar /app/app.jar $0 $@"]
     command:
       - --spring.config.location=optional:file:/tmp/trace-validation.yml
       - --spring.cloud.bootstrap.enabled=false
@@ -32,6 +35,8 @@ services:
       - --server.port=8080
       - --spring.application.name=apollo-adminservice
       - --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/ApolloConfigDB?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      - --spring.datasource.username=root
+      - --spring.datasource.password=123456
       - --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
       - --eureka.instance.hostname=127.0.0.1
       - --eureka.client.service-url.defaultZone=http://127.0.0.1:8761/eureka/

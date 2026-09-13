@@ -1,0 +1,106 @@
+# syntax=docker/dockerfile:1.4
+FROM eclipse-temurin:8-jdk-focal AS builder
+WORKDIR /build
+RUN apt-get update && apt-get install -y --no-install-recommends maven && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /root/.m2 && cat > /root/.m2/settings.xml <<'EOF'
+<settings>
+  <mirrors>
+    <mirror>
+      <id>aliyunmaven</id>
+      <mirrorOf>*</mirrorOf>
+      <name>aliyun</name>
+      <url>https://maven.aliyun.com/repository/public</url>
+    </mirror>
+  </mirrors>
+</settings>
+EOF
+COPY . .
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn -B -ntp clean package -DskipTests -DskipITs -Dgit.skip=true -Dgit.commit.id.skip=true -Dmaven.gitcommitid.skip=true -Dcheckstyle.skip=true -Dspotless.skip=true -Denforcer.skip=true -Djacoco.skip=true -Ddocker.skip=true -Ddocker.skip.build=true -DskipDocker=true -Ddockerfile.skip=true -Dstart-class=cn.iocoder.yudao.module.trade.TradeServerApplication -Dspring-boot.repackage.mainClass=cn.iocoder.yudao.module.trade.TradeServerApplication -s /root/.m2/settings.xml -pl yudao-module-mall/yudao-module-trade-server -am
+RUN set -eux; \
+    JAR=$(ls -S /build/yudao-module-mall/yudao-module-trade-server/target/*.jar | grep -v "original-" | grep -v -- "-sources.jar" | grep -v -- "-javadoc.jar" | head -n 1); \
+    test -n "$JAR"; \
+    cp "$JAR" /build/app.jar
+RUN mkdir -p /build/smoke-launcher && cat > /tmp/TraceSmokeStandaloneServer.java <<'EOF'
+package aiops.tracesmoke.launcher;
+
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+
+public class TraceSmokeStandaloneServer {
+    private static Object service;
+    private static Object traceStore;
+    private static Object objectMapper;
+    private static Class<?> contextHolderClass;
+
+    public static void main(String[] args) throws Exception {
+        String rootPackage = System.getProperty("trace.smoke.root");
+        if (rootPackage == null || rootPackage.trim().isEmpty()) {
+            throw new IllegalStateException("Missing -Dtrace.smoke.root");
+        }
+        int port = resolvePort(args);
+        bootstrapAopContext(rootPackage);
+        startHttp(port);
+    }
+
+    private static int resolvePort(String[] args) {
+        for (String arg : args) {
+            if (arg.startsWith("--server.port=")) return Integer.parseInt(arg.substring("--server.port=".length()));
+        }
+        return 8080;
+    }
+
+    private static void bootstrapAopContext(String rootPackage) throws Exception {
+        Class<?> ctxClass = Class.forName("org.springframework.context.annotation.AnnotationConfigApplicationContext");
+        Object ctx = ctxClass.getConstructor(String[].class).newInstance((Object) new String[]{rootPackage + ".tracing"});
+        traceStore = ctxClass.getMethod("getBean", Class.class).invoke(ctx, Class.forName(rootPackage + ".tracing.TraceStore"));
+        contextHolderClass = Class.forName(rootPackage + ".tracing.TraceContextHolder");
+    }
+
+    private static void startHttp(int port) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        server.createContext("/__trace_smoke", exchange -> {
+            String traceId = UUID.randomUUID().toString().replace("-", "");
+            try {
+                contextHolderClass.getMethod("set", String.class).invoke(null, traceId);
+                if (service != null) service.getClass().getMethod("hello").invoke(service);
+            } catch (Exception ignored) {}
+            finally { try { contextHolderClass.getMethod("clear").invoke(null); } catch (Exception ignored) {} }
+            Collection<?> spans = null;
+            try { spans = (Collection<?>) traceStore.getClass().getMethod("getAndRemove", String.class).invoke(traceStore, traceId); } catch (Exception ignored) {}
+            byte[] body; int code;
+            if (spans != null && !spans.isEmpty()) {
+                String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(spans);
+                Headers h = exchange.getResponseHeaders();
+                h.set("X-Execution-Trace", Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8)));
+                body = json.getBytes(StandardCharsets.UTF_8); code = 200;
+            } else { body = "no spans".getBytes(); code = 204; }
+            exchange.sendResponseHeaders(code, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.getResponseBody().close();
+        });
+        server.setExecutor(Executors.newFixedThreadPool(2));
+        server.start();
+        System.out.println("Smoke server on port " + port);
+    }
+}
+EOF
+RUN javac -d /build/smoke-launcher /tmp/TraceSmokeStandaloneServer.java 2>/dev/null || true
+
+FROM eclipse-temurin:11-jre-focal
+WORKDIR /app
+COPY --from=builder /build/app.jar /app/app.jar
+COPY --from=builder /build/smoke-launcher /app/smoke-launcher
+LABEL maintainer="aiops" description="yudao-cloud trade-server with trace agent support"
+EXPOSE 8080
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_TOOL_OPTIONS -jar /app/app.jar $0 $@"]

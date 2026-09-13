@@ -30,6 +30,7 @@ services:
     network_mode: host
     restart: unless-stopped
     environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=org.dromara -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6301,includes=org.dromara.*"
       SERVER_PORT: "9201"
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: dev
@@ -45,6 +46,8 @@ services:
       DUBBO_CONSUMER_CHECK: "false"
       DUBBO_REGISTRY_CHECK: "false"
       DUBBO_REFERENCE_CHECK: "false"
+      SA_TOKEN_CHECK_SAME_TOKEN: "false"
+      API_DECRYPT_ENABLED: "false"
       DATASOURCE_SYSTEM_MASTER_PASSWORD: "123456"
       DATASOURCE_GEN_PASSWORD: "123456"
       DATASOURCE_JOB_PASSWORD: "123456"
@@ -58,6 +61,8 @@ services:
       SPRING_REDIS_PASSWORD: password
     command:
       - --spring.profiles.active=dev
+      - --sa-token.check-same-token=false
+      - --api-decrypt.enabled=false
       - --spring.cloud.nacos.config.enabled=true
       - --spring.cloud.nacos.discovery.enabled=true
       - --spring.cloud.discovery.enabled=true
@@ -131,6 +136,8 @@ services:
       DUBBO_REFERENCE_CHECK: "false"
       DUBBO_APPLICATION_QOS_ENABLE: "false"
       SA_TOKEN_CHECK_SAME_TOKEN: "false"
+      API_DECRYPT_ENABLED: "false"
+      SECURITY_CAPTCHA_ENABLED: "false"
       SPRING_DATA_REDIS_HOST: 127.0.0.1
       SPRING_DATA_REDIS_PORT: "6379"
       SPRING_DATA_REDIS_PASSWORD: password
@@ -166,6 +173,8 @@ services:
       - --dubbo.reference.check=false
       - --dubbo.application.qos-enable=false
       - --sa-token.check-same-token=false
+      - --api-decrypt.enabled=false
+      - --security.captcha.enabled=false
       - --spring.datasource.password=123456
       - --spring.datasource.dynamic.datasource.master.password=123456
       - --spring.data.redis.host=127.0.0.1
@@ -189,3 +198,26 @@ services:
     labels:
       aiops.trace.endpoint: /code
       aiops.trace.mode: real
+
+  ruoyi-workflow:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/ruoyi-cloud-plus-ruoyi-workflow:latest
+    container_name: trace-real-ruoyi-cloud-plus-ruoyi-workflow
+    network_mode: host
+    entrypoint: ["/bin/bash","-c","set -f; java -Djava.security.egd=file:/dev/./urandom -XX:+HeapDumpOnOutOfMemoryError $${JAVA_OPTS} -jar /app/app.jar"]
+    restart: unless-stopped
+    environment:
+      JAVA_OPTS: "-Dmybatis-plus.mapperPackage=org.dromara.**.mapper -Dmybatis-plus.mapperLocations=classpath*:mapper/**/*Mapper.xml -Dmybatis-plus.typeAliasesPackage=org.dromara.**.domain -Dmybatis-plus.enableLogicDelete=true -Dspring.cloud.bus.id=ruoyi-workflow -Dspring.cloud.bus.base-packages=org.dromara.**.event -Dspring.cloud.nacos.config.enabled=true -Dspring.cloud.nacos.discovery.enabled=true -Dspring.profiles.active=dev -Dspring.application.name=ruoyi-workflow -Dspring.config.additional-location=optional:file:/tmp/application-common.yml -Dspring.config.import=optional:nacos:application-common.yml,optional:nacos:datasource.yml,optional:nacos:ruoyi-workflow.yml -Dspring.cloud.nacos.config.enabled=true -Dspring.cloud.nacos.config.namespace=dev -Dspring.cloud.nacos.discovery.namespace=dev -Dspring.cloud.nacos.discovery.enabled=true -Dspring.cloud.discovery.enabled=true -Dspring.cloud.service-registry.auto-registration.enabled=true -Dspring.cloud.nacos.server-addr=127.0.0.1:8848 -Dspring.cloud.nacos.username=nacos -Dspring.cloud.nacos.password=nacos -Dsa-token.check-same-token=false -Dapi-decrypt.enabled=false -Dserver.port=9205 -Ddubbo.application.qos-enable=false -Ddubbo.consumer.check=false -Ddubbo.registry.check=false -Ddubbo.reference.check=false -Dspring.datasource.dynamic.primary=master -Dspring.datasource.dynamic.datasource.master.url=jdbc:mysql://127.0.0.1:3306/ry-workflow?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true -Dspring.datasource.dynamic.datasource.master.username=root -Dspring.datasource.dynamic.datasource.master.password=123456 -Dspring.datasource.dynamic.strict=false -Dseata.enabled=false -Dwarm-flow.enabled=true -Dspring.data.redis.host=127.0.0.1 -Dspring.data.redis.port=6379 -Dspring.data.redis.password=password -Dspring.redis.host=127.0.0.1 -Dspring.redis.port=6379 -Dspring.redis.password=password -Ddatasource.workflow.url=jdbc:mysql://127.0.0.1:3306/ry-workflow?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true -Ddatasource.workflow.username=root -Ddatasource.workflow.password=123456 -Dspring.datasource.dynamic.datasource.master.url=jdbc:mysql://127.0.0.1:3306/ry-workflow?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true -Dspring.datasource.dynamic.datasource.master.username=root -Dspring.datasource.dynamic.datasource.master.password=123456 -Dspring.datasource.dynamic.primary=master -Dspring.datasource.dynamic.strict=false -Dseata.enabled=false -Dwarm-flow.enabled=true -Dspring.data.redis.database=0 -Dspring.config.import=optional:nacos:application-common.yml,optional:nacos:datasource.yml,optional:nacos:ruoyi-workflow.yml"
+      OTEL_SERVICE_NAME: ruoyi-workflow
+      TRACE_SMOKE_MODE: "false"
+      API_DECRYPT_ENABLED: "false"
+      SECURITY_CAPTCHA_ENABLED: "false"
+      SA_TOKEN_CHECK_SAME_TOKEN: "false"
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
+      - ../_shared/app-common-full.yml:/tmp/application-common.yml:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy

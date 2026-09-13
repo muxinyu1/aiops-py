@@ -1,0 +1,83 @@
+name: trace-real-yudao-cloud-trade-server
+include:
+  - ../_shared/real-deps.compose.yaml
+services:
+  app:
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/yudao-cloud-yudao-module-trade-server:latest
+    container_name: trace-real-yudao-cloud-trade-server
+    network_mode: host
+    restart: unless-stopped
+    env_file:
+      - ../common-real.env
+    environment:
+      JAVA_TOOL_OPTIONS: "-Djava.io.tmpdir=/tmp -javaagent:/opt/trace-agent.jar=packages=cn.iocoder.yudao"
+      OTEL_SERVICE_NAME: yudao-cloud-yudao-module-trade-server
+      TRACE_SMOKE_MODE: "false"
+      SPRING_PROFILES_ACTIVE: trace-validation,local,dev
+      YUDAO_INFO_BASE_PACKAGE: cn.iocoder.yudao
+      YUDAO_INFO_VERSION: trace-validation
+    entrypoint: ["sh", "-c", "exec java $JAVA_TOOL_OPTIONS -jar /app/app.jar $0 $@"]
+    command:
+      - --spring.config.location=optional:file:/tmp/trace-validation.yml
+      - --spring.cloud.bootstrap.enabled=false
+      - --spring.cloud.nacos.config.enabled=false
+      - --spring.cloud.nacos.discovery.enabled=false
+      - --spring.cloud.nacos.config.import-check.enabled=false
+      - --spring.cloud.config.enabled=false
+      - --spring.cloud.config.import-check.enabled=false
+      - --spring.cloud.discovery.enabled=false
+      - --spring.cloud.service-registry.auto-registration.enabled=false
+      - --eureka.client.enabled=false
+      - --seata.enabled=false
+      - --spring.main.allow-bean-definition-overriding=true
+      - --spring.main.allow-circular-references=true
+      - --spring.autoconfigure.exclude=com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure,cn.iocoder.yudao.framework.tenant.config.YudaoTenantAutoConfiguration,cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration,org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration,org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityAutoConfiguration
+      - --springdoc.api-docs.enabled=false
+      - --springdoc.swagger-ui.enabled=false
+      - --knife4j.enable=false
+      - --spring.profiles.active=trace-validation,local,dev
+      - --server.port=8080
+      - --spring.application.name=yudao-module-trade-server
+      - --yudao.info.base-package=cn.iocoder.yudao
+      - --yudao.info.version=trace-validation
+      - --yudao.web.admin-ui.url=http://127.0.0.1:8080
+      - --yudao.api-encrypt.enable=false
+      - --yudao.api-encrypt.algorithm=AES
+      - --yudao.api-encrypt.request-key=52549111389893486934626385991395
+      - --yudao.api-encrypt.response-key=96103715984234343991809655248883
+      - --spring.datasource.dynamic.primary=master
+      - --spring.datasource.dynamic.datasource.master.url=jdbc:mysql://127.0.0.1:3306/ruoyi-vue-pro?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true
+      - --spring.datasource.dynamic.datasource.master.username=root
+      - --spring.datasource.dynamic.datasource.master.password=123456
+      - --spring.datasource.dynamic.datasource.master.driver-class-name=com.mysql.cj.jdbc.Driver
+      - --spring.datasource.dynamic.datasource.slave.lazy=true
+      - --spring.datasource.dynamic.datasource.slave.url=jdbc:mysql://127.0.0.1:3306/ruoyi-vue-pro?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true
+      - --spring.datasource.dynamic.datasource.slave.username=root
+      - --spring.datasource.dynamic.datasource.slave.password=123456
+      - --spring.datasource.dynamic.datasource.slave.driver-class-name=com.mysql.cj.jdbc.Driver
+      - --spring.data.redis.host=127.0.0.1
+      - --spring.data.redis.port=6379
+      - --spring.data.redis.password=password
+      - --spring.redis.host=127.0.0.1
+      - --spring.redis.port=6379
+      - --spring.redis.password=password
+      - --rocketmq.name-server=127.0.0.1:9876
+      - --yudao.trade.order.pay-expire-time=2h
+      - --yudao.trade.order.receive-expire-time=14d
+      - --yudao.trade.order.comment-expire-time=7d
+      - --yudao.trade.order.status-sync-to-wxa-enable=false
+      - --spring.aop.auto=true
+      - --spring.aop.proxy-target-class=true
+    tmpfs:
+      - /tmp
+    volumes:
+      - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar
+      - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      aiops.trace.endpoint: /admin-api/trade/order/page
+      aiops.trace.mode: real

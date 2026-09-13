@@ -10,14 +10,15 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=cn.iocoder.yudao -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=cn.iocoder.yudao.*"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=cn.iocoder.yudao"
       OTEL_SERVICE_NAME: yudao-cloud-yudao-module-system-server
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
       YUDAO_INFO_BASE_PACKAGE: cn.iocoder.yudao
       YUDAO_INFO_VERSION: trace-validation
+    entrypoint: ["sh", "-c", "exec java $JAVA_TOOL_OPTIONS -jar /app/app.jar $0 $@"]
     command:
-      - --spring.config.location=optional:file:/tmp/trace-validation.yml
+      - --spring.config.location=optional:file:/tmp/trace-validation.yml,optional:file:/tmp/feign-direct.yml
       - --spring.cloud.bootstrap.enabled=false
       - --spring.cloud.nacos.config.enabled=false
       - --spring.cloud.nacos.discovery.enabled=false
@@ -44,6 +45,7 @@ services:
       - --yudao.api-encrypt.algorithm=AES
       - --yudao.api-encrypt.request-key=52549111389893486934626385991395
       - --yudao.api-encrypt.response-key=96103715984234343991809655248883
+      - --yudao.captcha.enable=false
       - --yudao.sms-code.expire-times=10m
       - --yudao.sms-code.send-frequency=1m
       - --yudao.sms-code.send-maximum-quantity-per-day=10
@@ -65,6 +67,7 @@ services:
       - --spring.redis.port=6379
       - --rocketmq.name-server=127.0.0.1:9876
     volumes:
+      - /tmp/feign-direct.yml:/tmp/feign-direct.yml:ro
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
       - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     depends_on:

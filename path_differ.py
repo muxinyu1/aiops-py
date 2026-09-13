@@ -67,6 +67,10 @@ class PathDivergence:
     actual_path_sequence: list[str] = field(default_factory=list)
     # 实际 trace 的方法调用序列 (class.method 格式)
 
+    response_body: str = ""
+    # HTTP 响应 body (截断). not_started 时常含参数校验错误详情,
+    # 如 "收货地址不能为空", 对引导 LLM 构造合法请求至关重要
+
     @property
     def reach_rate(self) -> float:
         """到达率: 到达深度 / 预期路径长度."""
@@ -128,6 +132,10 @@ class PathDiffer:
         if not trace.root_nodes:
             trace.build_tree()
 
+        # 提取响应 body (execute_with_trace 动态附加在 trace 上, 含校验错误详情)
+        resp_body = getattr(trace, "response_body", "") or ""
+        resp_body = resp_body[:500]  # 截断防爆
+
         # 提取实际调用序列 (用于诊断)
         actual_sequence = [
             f"{node.class_namespace.replace('/', '.')}.{node.function}"
@@ -141,6 +149,7 @@ class PathDiffer:
                 has_divergence=True,
                 divergence_reason="empty_expected_path",
                 actual_path_sequence=actual_sequence,
+                response_body=resp_body,
             )
 
         # 开始 DFS 对齐
@@ -165,6 +174,7 @@ class PathDiffer:
                 matched_trace_node=matched_trace_node,
                 divergence_reason="full_reach",
                 actual_path_sequence=actual_sequence,
+                response_body=resp_body,
             )
 
         # 有偏差: 定位第一个未到达节点
@@ -187,6 +197,7 @@ class PathDiffer:
             first_missed_node=first_missed_node,
             divergence_reason=reason,
             actual_path_sequence=actual_sequence,
+            response_body=resp_body,
         )
 
     def _align_path(
