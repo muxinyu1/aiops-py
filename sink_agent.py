@@ -183,6 +183,7 @@ def tool_send_http(method: str, url: str, headers_json: str, body: str) -> str:
     except urllib.error.HTTPError as e:
         status = e.code
         content = e.read().decode("utf-8", errors="replace")
+        resp = e  # HTTPError 也带 headers, 统一用 resp 变量避免 UnboundLocalError
     except Exception as e:
         return f"HTTP ERROR: {e}"
     # 工具层修复: 不可见字符 (NBSP/控制字符) 会在 agent 复制长字符串时丢失,
