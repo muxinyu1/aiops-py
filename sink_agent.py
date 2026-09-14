@@ -663,6 +663,34 @@ SINK_TASKS = {
         "hint_level": "hint",
         "container": "/tmp/pigboot.log",
     },
+    # ── pig db_state 第二批 (2026-09-14) ──
+    "pig_sms_login_not_exist": {
+        "sink": "SmsLoginHandler.info 中的 "
+                "log.info(\"手机号 不存在用户:{}\", identify) "
+                "(L69, 源码 examples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/handler/SmsLoginHandler.java)。"
+                "触发条件: 走短信验证码登录 (oauth2 密码模式), 手机号在 sys_user 表中不存在。",
+        "api": "POST http://localhost:9999/admin/oauth2/token (grant_type=mobile 相关流程, Basic 认证与密码加密同其他任务)",
+        "env": "目标服务: pig-boot 单体 9999 端口, 日志文件: /tmp/pigboot.log。"
+               "登录端点: POST http://localhost:9999/admin/oauth2/token, Basic 认证 test:test。"
+               "数据库: trace-real-mysql 的 pig 库 (sys_user 表查已注册手机号)。"
+               "redis: docker exec trace-real-redis redis-cli (密码/库号自行获取)。"
+               "注意: 短信登录可能有验证码校验, 校验逻辑与答案存储方式需自行从源码推理。",
+        "hint_level": "hint",
+        "container": "/tmp/pigboot.log",
+    },
+    "pig_opaque_token_locked": {
+        "sink": "PigCustomOpaqueTokenIntrospector.introspect 中的 "
+                "log.warn(\"用户账号 {} 已被锁定，拒绝访问\", userDetails.getUsername()) "
+                "(L95, 源码 examples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigCustomOpaqueTokenIntrospector.java)。"
+                "触发条件: 持有 token 访问受保护资源时, token 内省检查发现该用户 lockFlag 为锁定态。",
+        "api": "锁用户: PUT http://localhost:9999/admin/user/lock/{username}; 之后携带 token 访问任意受保护资源触发内省",
+        "env": "目标服务: pig-boot 单体 9999 端口, 日志文件: /tmp/pigboot.log。"
+               "登录: POST http://localhost:9999/admin/oauth2/token, Basic test:test, "
+               "form: grant_type=password&scope=server&username=admin&password=<工具层自动加密>。"
+               "提示: 当前用户是 admin; 想想 introspect 在什么时候被调用、以及先锁谁再访问才能保证链路完整。",
+        "hint_level": "hint",
+        "container": "/tmp/pigboot.log",
+    },
 }
 
 
