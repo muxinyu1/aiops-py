@@ -44,6 +44,7 @@ import_optional_sql ApolloPortalDB /trace-sql/apollo/apolloportaldb.sql
 
 import_optional_sql novel /trace-sql/novel/init.sql
 import_optional_sql ruoyi-vue-pro /trace-sql/yudao/ruoyi-vue-pro.sql
+import_optional_sql pig /trace-sql/pig/pig.sql
 import_optional_sql ruoyi-vue-pro /trace-sql/yudao/quartz.sql
 
 import_optional_sql mogu_blog /trace-sql/mogublog/mogu_blog.sql

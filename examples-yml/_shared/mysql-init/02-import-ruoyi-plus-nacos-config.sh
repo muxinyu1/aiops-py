@@ -28,16 +28,15 @@ import_nacos_yaml() {
   local content
   content=$(escape_sql_string "${file}")
 
-  docker_process_sql --database=ry-config <<EOSQL
+  docker_process_sql --database=nacos_config <<EOSQL
 SET NAMES utf8mb4;
-UPDATE config_info
-   SET content = '${content}',
-       md5 = MD5('${content}'),
-       type = 'yaml',
-       gmt_modified = NOW()
- WHERE data_id = '${data_id}'
-   AND group_id = 'DEFAULT_GROUP'
-   AND tenant_id IN ('dev', 'prod');
+INSERT INTO config_info (data_id, group_id, content, md5, type, tenant_id, gmt_create, gmt_modified)
+VALUES ('${data_id}', 'DEFAULT_GROUP', '${content}', MD5('${content}'), 'yaml', 'dev', NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+   content = '${content}',
+   md5 = MD5('${content}'),
+   type = 'yaml',
+   gmt_modified = NOW();
 EOSQL
   echo "[trace-real-deps] imported RuoYi-Cloud-Plus Nacos config ${data_id}"
 }
