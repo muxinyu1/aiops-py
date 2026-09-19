@@ -1,0 +1,924 @@
+{
+  "reached": false,
+  "turns": 25,
+  "tool_calls": 101,
+  "elapsed": 2238.201007127762,
+  "tool_log": [
+    {
+      "n": 1,
+      "tool": "read_source",
+      "args": {
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwInstanceServiceImpl.java",
+        "start": 150,
+        "end": 320
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwInstanceServiceImpl.java (L150-320, 共485行)\n 150 |         return queryWrapper;\n 151 |     }\n 152 | \n 153 |     /**\n 154 |      * 根据业务id查询流程实例\n 155 |      *\n 156 |      * @param businessId 业务id\n 157 |      */\n 158 |     @Override\n 159 |     public FlowInstance selectInstByBusinessId(String businessId) {\n 160 |         return flowInstanceMapper.selectOne(new LambdaQueryWrapper<FlowInstance>().eq(FlowInstance::getBusinessId, businessId));\n 161 |     }\n 162 | \n 163 |     /**\n 164 |      * 按照实例id查询流程实例\n 165 |      *\n 166 |      * @param instanceId 实例id\n 167 |      */\n 168 |     @Override\n 169 |     public FlowInstance selectInstById(Long instanceId) {\n 170 |         return flowInstanceMapper.selectById(instanceId);\n 171 |     }\n 172 | \n 173 |     /**\n 174 |      * 按照实例id查询流程实例\n 175 |      *\n 176 |      * @param instanceIds 实例id\n 177 |      */\n 178 |     @Override\n 179 |     public List<FlowInstance> selectInstListByIdList(List<Long> instanceIds) {\n 180 |         return flowInstanceMapper.selectByIds(instanceIds);\n 181 |     }\n 182 | \n 183 |     /**\n 184 |      * 按照业务id删除流程实例\n 185 |      *\n 186 |      * @param businessIds 业务id\n 187 |      */\n 188 |     @Override\n 189 |     @Transactional(rollbackFor = Exception.class)\n 190 |     public boolean deleteByBusinessIds(List<String> businessIds) {\n 191 |         List<FlowInstance> flowInstances = flowInstanceMapper.selectList(new LambdaQueryWrapper<FlowInstance>().in(FlowInstance::getBusinessId, businessIds));\n 192 |         if (CollUtil.isEmpty(flowInstances)) {\n 193 |             log.warn(\"未找到对应的流程实例信息，无法执行删除操作。\");\n 194 |             return false;\n 195 |         }\n 196 |         // 发送事件\n 197 |         processDeleteHandler(flowInstances);\n 198 |         return insService.remove(StreamUtils.toList(flowInstances, FlowInstance::getId));\n 199 |     }\n 200 | \n 201 |     /**\n 202 |      * 按照实例id删除流程实例\n 203 |      *\n 204 |      * @param in"
+    },
+    {
+      "n": 2,
+      "tool": "docker_ps",
+      "args": {},
+      "result": "trace-real-ruoyi-cloud-plus-ruoyi-workflow\tUp About an hour\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/ruoyi-cloud-plus-ruoyi-workflow:latest\ninterview-app\tUp 45 hours\tinterview-helper-app\ninterview-mysql\tUp 45 hours (healthy)\tmysql:8\ntrace-real-ruoyi-cloud-plus-ruoyi-auth\tUp 2 days\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/ruoyi-cloud-plus-ruoyi-auth:latest\ntrace-real-ruoyi-cloud-plus-ruoyi-system\tUp 2 days (healthy)\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/ruoyi-cloud-plus-ruoyi-system:latest\ntrace-real-ruoyi-cloud-plus-nacos\tUp 2 days (healthy)\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/ruoyi-cloud-plus-ruoyi-nacos:latest\ntrace-real-piggymetrics-registry\tUp 2 days (healthy)\tsqshq/piggymetrics-registry\ntrace-real-redis\tUp 2 days (healthy)\tredis:7-alpine\ntrace-real-rabbitmq\tUp 2 days (healthy)\trabbitmq:3-management\ntrace-real-mysql\tUp 2 days (healthy)\tmysql:8.0\ntrace-real-mongo\tUp 2 days (healthy)\tmongo:4.4\ntrace-real-piggymetrics-config\tUp 2 days (healthy)\tsqshq/piggymetrics-config\n"
+    },
+    {
+      "n": 3,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "deleteByInstanceIds"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwInstanceController.java:95:    @DeleteMapping(\"/deleteByInstanceIds/{instanceIds}\")\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwInstanceController.java:98:    public R<Void> deleteByInstanceIds(@PathVariable List<Long> instanceIds) {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwInstanceController.java:99:        return toAjax(flwInstanceService.deleteByInstanceIds(instanceIds));\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/IFlwInstanceService.java:86:    boolean deleteByInstanceIds(List<Long> instanceIds);\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwInstanceServiceImpl.java:208:    public boolean deleteByInstanceIds(List<Long> instanceIds) {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwInstanceController.java:95:    @DeleteMapping(\"/deleteByInstanceIds/{instanceIds}\")\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwInstanceController.java:98:    public R<Void> deleteByInstanceIds(@PathVariable List<Long> instanceIds) {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwInstanceController.java:99:        return toAjax(flwInstanceService.deleteByInstanceIds(instanceIds));\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/IFlwInstanceService.java:86:    boolean deleteByInstanceIds(List<Long> instanceIds);\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwInstanceServiceImpl.java:208:    public boolean deleteByInstanceIds(List<Long> instanceIds) {\n"
+    },
+    {
+      "n": 4,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "class FlwDefinitionServiceImpl"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwDefinitionServiceImpl.java:59:public class FlwDefinitionServiceImpl implements IFlwDefinitionService {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwDefinitionServiceImpl.java:59:public class FlwDefinitionServiceImpl implements IFlwDefinitionService {\n"
+    },
+    {
+      "n": 5,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM ry-workflow.flow_instance"
+      },
+      "result": "[stderr] ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '-workflow.flow_instance' at line 1"
+    },
+    {
+      "n": 6,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM `ry-workflow`.flow_instance"
+      },
+      "result": "id\tdefinition_id\tbusiness_id\tnode_type\tnode_code\tnode_name\tvariable\tflow_status\tactivity_status\tdef_json\tcreate_time\tcreate_by\tupdate_time\tupdate_by\text\tdel_flag\ttenant_id\n2098659387294920706\t2098658892962639874\t9999\t1\tapprove\t??\t{\"leaveDays\":3,\"initiator\":\"1\",\"initiatorDeptId\":103,\"businessId\":\"9999\",\"autoPass\":false,\"businessCode\":\"1789194363779\"}\tdraft\t1\t{\"flowCode\":\"leave_test\",\"flowName\":\"??????\",\"modelValue\":\"CLASSICS\",\"category\":\"103\",\"version\":\"1\",\"isPublish\":1,\"formCustom\":\"N\",\"nodeList\":[{\"nodeType\":0,\"nodeCode\":\"start\",\"nodeName\":\"??\",\"nodeRatio\":\"0\",\"coordinate\":\"80|200|60|60\",\"formCustom\":\"N\",\"status\":2,\"skipList\":[{\"nowNodeCode\":\"start\",\"nextNodeCode\":\"approve\",\"skipType\":\"PASS\",\"status\":2,\"createBy\":\"1\",\"updateBy\":\"1\"}],\"createBy\":\"1\",\"updateBy\":\"1\"},{\"nodeType\":1,\"nodeCode\":\"approve\",\"nodeName\":\"??\",\"permissionFlag\":\"role:1\",\"nodeRatio\":\"0\",\"coordinate\":\"260|200|60|60\",\"formCustom\":\"N\",\"status\":1,\"skipList\":[{\"nowNodeCode\":\"approve\",\"nextNodeCode\":\"end\",\"skipType\":\"PASS\",\"status\":0,\"createBy\":\"1\",\"updateBy\":\"1\"}],\"createBy\":\"1\",\"updateBy\":\"1\"},{\"nodeType\":2,\"nodeCode\":\"end\",\"nodeName\":\"??\",\"nodeRatio\":\"0\",\"coordinate\":\"440|200|60|60\",\"formCustom\":\"N\",\"status\":0,\"createBy\":\"1\",\"updateBy\":\"1\"}],\"topTextShow\":false,\"createBy\":\"1\",\"updateBy\":\"1\"}\t2026-09-12 14:26:04\t1\t2026-09-12 14:26:04\t1\tNULL\t0\t000000\n2098659747115872257\t2098658892962639874\t2098659702626889729\t2\tend\t??\t{\"leaveDays\":3,\"initiator\":\"1\",\"initiatorDeptId\":103,\"businessId\":\"2098659702626889729\",\"autoPass\":false,\"businessCode\":\"1789194449571\"}\tfinish\t1\t{\"flowCode\":\"leave_test\",\"flowName\":\"??????\",\"modelValue\":\"CLASSICS\",\"category\":\"103\",\"version\":\"1\",\"isPublish\":1,\"formCustom\":\"N\",\"nodeList\":[{\"nodeType\":0,\"nodeCode\":\"start\",\"nodeName\":\"??\",\"nodeRatio\":\"0\",\"coordinate\":\"80|200|60|60\",\"formCustom\":\"N\",\"status\":2,\"skipList\":[{\"nowNodeCode\":\"start\",\"nextNodeCode\":\"approve\",\"skipType\":\"PASS\",\"status\":2,\"createBy\":\"1\",\"updateBy\":\"1\"}],\"createBy\":\"1\",\"updateBy\":\"1\"},{\"nodeType\":1,\"nodeCode\":\"approv"
+    },
+    {
+      "n": 7,
+      "tool": "read_source",
+      "args": {
+        "end": 260,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwDefinitionServiceImpl.java",
+        "start": 120
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwDefinitionServiceImpl.java (L120-260, 共272行)\n 120 |     @Override\n 121 |     @Transactional(rollbackFor = Exception.class)\n 122 |     public boolean publish(Long id) {\n 123 |         List<FlowNode> flowNodes = flowNodeMapper.selectList(new LambdaQueryWrapper<FlowNode>().eq(FlowNode::getDefinitionId, id));\n 124 |         List<String> errorMsg = new ArrayList<>();\n 125 |         if (CollUtil.isNotEmpty(flowNodes)) {\n 126 |             String applyNodeCode = flwCommonService.applyNodeCode(id);\n 127 |             for (FlowNode flowNode : flowNodes) {\n 128 |                 if (StringUtils.isBlank(flowNode.getPermissionFlag()) && !applyNodeCode.equals(flowNode.getNodeCode()) && NodeType.BETWEEN.getKey().equals(flowNode.getNodeType())) {\n 129 |                     errorMsg.add(flowNode.getNodeName());\n 130 |                 }\n 131 |             }\n 132 |             if (CollUtil.isNotEmpty(errorMsg)) {\n 133 |                 throw new ServiceException(\"节点【{}】未配置办理人!\", StringUtils.joinComma(errorMsg));\n 134 |             }\n 135 |         }\n 136 |         return defService.publish(id);\n 137 |     }\n 138 | \n 139 |     /**\n 140 |      * 导入流程定义\n 141 |      *\n 142 |      * @param file 文件\n 143 |      */\n 144 |     @Override\n 145 |     @Transactional(rollbackFor = Exception.class)\n 146 |     public boolean importJson(MultipartFile file, String category) {\n 147 |         try {\n 148 |             DefJson defJson = JsonUtils.parseObject(file.getBytes(), DefJson.class);\n 149 |             defJson.setCategory(category);\n 150 |             defService.importDef(defJson);\n 151 |         } catch (IOException e) {\n 152 |             log.error(\"读取文件流错误: {}\", e.getMessage(), e);\n 153 |             throw new IllegalStateException(\"文件读取失败，请检查文件内容\", e);\n 154 |         }\n 155 |         return true;\n 156 |     }\n 157 | \n 158 |     /**\n 159 |      * 导出流程定义\n 160 |      *\n 161 |      * @param id       流程定"
+    },
+    {
+      "n": 8,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, flow_code, flow_name, version, is_publish, tenant_id, del_flag FROM `ry-workflow`.flow_definition"
+      },
+      "result": "id\tflow_code\tflow_name\tversion\tis_publish\ttenant_id\tdel_flag\n2098658257345228801\tleave_test\t??????\t1\t0\t000000\t1\n2098658892962639874\t<<SINK_REACHED>>\t??????\t1\t1\t000000\t0\n2098660843020398594\tleave_test\t??????\t1\t0\t196204\t0\n2098665043326447617\t<<SINK_REACHED>>\t??????\t1\t0\t394190\t0"
+    },
+    {
+      "n": 9,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT definition_id, COUNT(*) c FROM `ry-workflow`.flow_his_task GROUP BY definition_id"
+      },
+      "result": "definition_id\tc\n2098658892962639874\t5"
+    },
+    {
+      "n": 10,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, definition_id, business_id, flow_status, task_status, create_time FROM `ry-workflow`.flow_his_task ORDER BY id"
+      },
+      "result": "ERROR: query_db 仅允许只读 SELECT/SHOW/DESC 语句, 写操作请用 execute_sql"
+    },
+    {
+      "n": 11,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, definition_id, instance_id, business_id, node_code, flow_status FROM `ry-workflow`.flow_his_task"
+      },
+      "result": "[stderr] ERROR 1054 (42S22) at line 1: Unknown column 'business_id' in 'field list'"
+    },
+    {
+      "n": 12,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow",
+        "pattern": "public List<Definition> getByIds|public Map.*getByIds|getByIds\\(List"
+      },
+      "result": "无匹配: public List<Definition> getByIds|public Map.*getByIds|getByIds\\(List"
+    },
+    {
+      "n": 13,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow",
+        "pattern": "Draft|draft"
+      },
+      "result": "examples/lamp-cloud/A极其重要/01-docs/sql/mysql/lamp_none.sql:748:INSERT INTO `def_dict` (`id`, `parent_id`, `parent_key`, `dict_group`, `classify`, `data_type`, `key_`, `name`, `state`, `remark`, `sort_value`, `icon`, `css_style`, `css_class`, `prop_type`, `i18n_json`, `created_by`, `created_time`, `updated_by`, `updated_time`) VALUES (683406468767748103, 683406468767748102, 'TaskStatus', 'system', '30', '1', 'DRAFT', '草稿', b'1', '', 0, '', '', '', '', '{\\\"zh-CN\\\": \\\"草稿\\\", \\\"en-US\\\": \\\"Draft\\\"}', 2, '2025-09-30 15:30:41', 2, '2025-09-30 15:30:41');\nexamples/lamp-cloud/lamp-base/lamp-base-biz/src/main/java/top/tangyh/lamp/msg/service/impl/ExtendMsgServiceImpl.java:82:        if (data != null && data.getDraft() != null && data.getDraft()) {\nexamples/lamp-cloud/lamp-base/lamp-base-entity/src/main/java/top/tangyh/lamp/msg/vo/update/ExtendMsgPublishVO.java:77:    private Boolean draft;\nexamples/lamp-cloud/lamp-base/lamp-base-entity/src/main/java/top/tangyh/lamp/msg/vo/save/ExtendMsgSaveVO.java:117:    private Boolean draft;\nexamples/Apollo/.mergify.yml:25:      - \"-draft\"\nexamples/Apollo/.mergify.yml:43:      - \"-draft\"\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-core/src/main/java/org/dromara/common/core/enums/BusinessStatusEnum.java:32:    DRAFT(\"draft\", \"草稿\"),\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-core/src/main/java/org/dromara/common/core/enums/BusinessStatusEnum.java:103:    public static boolean isDraftOrCancelOrBack(String status) {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwTaskServiceImpl.java:235:        if (BusinessStatusEnum.isDraftOrCancelOrBack(ins.getFlowStatus())) {\nexamples/RuoYi-Cloud-Plus/script/sql/oracle/oracle_ry_cloud.sql:991:INSERT INTO sys_dict_data VALUES (40, '000000', 2, '草稿', 'draft', 'wf_business_status', '', 'info', 'N', 103, 1, SYSDATE, NULL, NULL, '草稿');\nexamples/RuoYi-Cloud-Plus/script/sql/ry-cloud.sql:756:INSERT INTO sys_dict_data VALUES (40, '000000', 2, "
+    },
+    {
+      "n": 14,
+      "tool": "query_db",
+      "args": {
+        "sql": "DESC `ry-workflow`.flow_his_task"
+      },
+      "result": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tbigint\tNO\tPRI\tNULL\t\ndefinition_id\tbigint\tNO\t\tNULL\t\ninstance_id\tbigint\tNO\t\tNULL\t\ntask_id\tbigint\tNO\t\tNULL\t\nnode_code\tvarchar(100)\tYES\t\tNULL\t\nnode_name\tvarchar(100)\tYES\t\tNULL\t\nnode_type\ttinyint(1)\tYES\t\tNULL\t\ntarget_node_code\tvarchar(200)\tYES\t\tNULL\t\ntarget_node_name\tvarchar(200)\tYES\t\tNULL\t\napprover\tvarchar(40)\tYES\t\tNULL\t\ncooperate_type\ttinyint(1)\tNO\t\t0\t\ncollaborator\tvarchar(500)\tYES\t\tNULL\t\nskip_type\tvarchar(10)\tNO\t\tNULL\t\nflow_status\tvarchar(20)\tNO\t\tNULL\t\nform_custom\tchar(1)\tYES\t\tN\t\nform_path\tvarchar(100)\tYES\t\tNULL\t\nmessage\tvarchar(500)\tYES\t\tNULL\t\nvariable\ttext\tYES\t\tNULL\t\next\ttext\tYES\t\tNULL\t\ncreate_time\tdatetime\tYES\t\tNULL\t\nupdate_time\tdatetime\tYES\t\tNULL\t\ndel_flag\tchar(1)\tYES\t\t0\t\ntenant_id\tvarchar(40)\tYES\t\tNULL"
+    },
+    {
+      "n": 15,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "getByIds"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwInstanceServiceImpl.java:260:            defService.getByIds(StreamUtils.toList(flowInstances, Instance::getDefinitionId)),\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwInstanceServiceImpl.java:260:            defService.getByIds(StreamUtils.toList(flowInstances, Instance::getDefinitionId)),\n"
+    },
+    {
+      "n": 16,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow",
+        "pattern": "草稿"
+      },
+      "result": "examples/lamp-cloud/A极其重要/01-docs/sql/sqlserver/lamp_none.sql:7269:#TaskStatus{DRAFT:草稿;WAITING:等待执行;SUCCESS:执行成功;FAIL:执行失败}',\nexamples/lamp-cloud/A极其重要/01-docs/sql/mysql/lamp_none.sql:748:INSERT INTO `def_dict` (`id`, `parent_id`, `parent_key`, `dict_group`, `classify`, `data_type`, `key_`, `name`, `state`, `remark`, `sort_value`, `icon`, `css_style`, `css_class`, `prop_type`, `i18n_json`, `created_by`, `created_time`, `updated_by`, `updated_time`) VALUES (683406468767748103, 683406468767748102, 'TaskStatus', 'system', '30', '1', 'DRAFT', '草稿', b'1', '', 0, '', '', '', '', '{\\\"zh-CN\\\": \\\"草稿\\\", \\\"en-US\\\": \\\"Draft\\\"}', 2, '2025-09-30 15:30:41', 2, '2025-09-30 15:30:41');\nexamples/lamp-cloud/A极其重要/01-docs/sql/mysql/lamp_none.sql:1869:  `status` varchar(10) DEFAULT NULL COMMENT '执行状态;\\n#TaskStatus{DRAFT:草稿;WAITING:等待执行;SUCCESS:执行成功;FAIL:执行失败}',\nexamples/lamp-cloud/A极其重要/01-docs/sql/dameng/lamp_none.sql:1328:#TaskStatus{DRAFT:草稿;WAITING:等待执行;SUCCESS:执行成功;FAIL:执行失败}';\nexamples/lamp-cloud/lamp-base/lamp-base-entity/src/main/java/top/tangyh/lamp/msg/vo/update/ExtendMsgPublishVO.java:76:    @Schema(description = \"是否草稿\")\nexamples/lamp-cloud/lamp-base/lamp-base-entity/src/main/java/top/tangyh/lamp/msg/vo/save/ExtendMsgSaveVO.java:116:    @Schema(description = \"是否草稿\")\nexamples/lamp-cloud/lamp-base/lamp-base-entity/src/main/java/top/tangyh/lamp/msg/vo/query/ExtendMsgPageQuery.java:58:     * #TaskStatus{DRAFT:草稿;WAITING:等待执行;SUCCESS:执行成功;FAIL:执行失败}\nexamples/lamp-cloud/lamp-base/lamp-base-entity/src/main/java/top/tangyh/lamp/msg/vo/result/ExtendMsgResultVO.java:69:     * #TaskStatus{DRAFT:草稿;WAITING:等待执行;SUCCESS:执行成功;FAIL:执行失败}\nexamples/lamp-cloud/lamp-base/lamp-base-entity/src/main/java/top/tangyh/lamp/msg/entity/ExtendMsg.java:58:     * #TaskStatus{DRAFT:草稿;WAITING:等待执行;SUCCESS:执行成功;FAIL:执行失败}\nexamples/lamp-cloud/lamp-base/lamp-base-entity/src/main/java/top/tangyh/lamp/msg/enumeration/TaskStatus.java:29:    DRAFT(\"草稿\", \"default\"),\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-co"
+    },
+    {
+      "n": 17,
+      "tool": "read_source",
+      "args": {
+        "end": 80,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwInstanceServiceImpl.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/FlwInstanceServiceImpl.java (L1-80, 共485行)\n   1 | package org.dromara.workflow.service.impl;\n   2 | \n   3 | import cn.hutool.core.bean.BeanUtil;\n   4 | import cn.hutool.core.collection.CollUtil;\n   5 | import cn.hutool.core.convert.Convert;\n   6 | import cn.hutool.core.util.ObjectUtil;\n   7 | import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;\n   8 | import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;\n   9 | import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;\n  10 | import com.baomidou.mybatisplus.core.toolkit.Wrappers;\n  11 | import com.baomidou.mybatisplus.extension.plugins.pagination.Page;\n  12 | import lombok.RequiredArgsConstructor;\n  13 | import lombok.extern.slf4j.Slf4j;\n  14 | import org.dromara.common.core.enums.BusinessStatusEnum;\n  15 | import org.dromara.common.core.exception.ServiceException;\n  16 | import org.dromara.common.core.utils.StreamUtils;\n  17 | import org.dromara.common.core.utils.StringUtils;\n  18 | import org.dromara.common.mybatis.core.page.PageQuery;\n  19 | import org.dromara.common.mybatis.core.page.TableDataInfo;\n  20 | import org.dromara.common.satoken.utils.LoginHelper;\n  21 | import org.dromara.warm.flow.core.FlowEngine;\n  22 | import org.dromara.warm.flow.core.constant.ExceptionCons;\n  23 | import org.dromara.warm.flow.core.dto.FlowParams;\n  24 | import org.dromara.warm.flow.core.entity.Definition;\n  25 | import org.dromara.warm.flow.core.entity.Instance;\n  26 | import org.dromara.warm.flow.core.entity.Task;\n  27 | import org.dromara.warm.flow.core.entity.User;\n  28 | import org.dromara.warm.flow.core.enums.NodeType;\n  29 | import org.dromara.warm.flow.core.service.DefService;\n  30 | import org.dromara.warm.flow.core.service.InsService;\n  31 | import org.dromara.warm.flow.core.service.TaskService;\n  32 | import org.dromara.warm.flow.orm.entity.FlowHisTask;\n  33 | import org.droma"
+    },
+    {
+      "n": 18,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "class DefService|interface DefService"
+      },
+      "result": "无匹配: class DefService|interface DefService"
+    },
+    {
+      "n": 19,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-ruoyi-cloud-plus-ruoyi-workflow",
+        "tail": 60
+      },
+      "result": "d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLog],SpendTime=[8ms]\n\u001b[36m2026-09-12 07:30:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务调用: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLog]\n\u001b[36m2026-09-12 07:30:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLog],SpendTime=[3ms]\n\u001b[36m2026-09-12 07:30:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[1;31mERROR\u001b[0;39m \u001b[1;35mo.d.c.w.h.GlobalExceptionHandler\n\u001b[0;39m - 流程任务不存在或任务已审批！\n Consume Time：0 ms 2026-09-12 07:27:54\n Execute SQL：SELECT id, create_time, update_time, create_by, update_by, tenant_id, del_flag, node_type, definition_id, node_code, node_name, permission_flag, node_ratio, coordinate, version, any_node_skip, listener_type, listener_path, form_custom, form_path, ext FROM flow_node WHERE del_flag = '0' AND definition_id = 2098658892962639874 AND node_code = 'approve' AND tenant_id = '000000'\n\n Consume Time：1 ms 2026-09-12 07:27:54\n Execute SQL：SELECT id, create_time, update_time, create_by, update_by, tenant_id, del_flag, type, processed_by, associated FROM flow_user WHERE del_flag = '0' AND associated = 2098674900540633093 AND tenant_id = '000000'\n\n Consume Time：1 ms 2026-09-12 07:27:54\n Execute SQL：SELECT id, create_time, update_time, create_by, update_by, tenant_id, del_flag, node_type, definition_id, node_code, node_name, permission_flag, node_ratio, coordinate, version, any_node_skip, listener_type, listener_path, form_custom, form_path, ext FROM flow_node WHERE del_flag = '0' AND definition_id = 2098658892962639874 AND tenant_id = '000000'\n\n Consume Time：1 ms 2026-09-12 07:27:54\n Execute SQL：SELECT id, create_time, update_time, create_by, update_by, tenant_id, del_flag, definition_id, now_node_code, now_node_typ"
+    },
+    {
+      "n": 20,
+      "tool": "read_source",
+      "args": {
+        "end": 100,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/handler/FlowProcessEventHandler.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/handler/FlowProcessEventHandler.java (L1-96, 共96行)\n   1 | package org.dromara.workflow.handler;\n   2 | \n   3 | import lombok.extern.slf4j.Slf4j;\n   4 | import org.dromara.common.core.utils.SpringUtils;\n   5 | import org.dromara.common.tenant.helper.TenantHelper;\n   6 | import org.dromara.warm.flow.core.entity.Instance;\n   7 | import org.dromara.warm.flow.core.entity.Task;\n   8 | import org.dromara.workflow.api.event.ProcessDeleteEvent;\n   9 | import org.dromara.workflow.api.event.ProcessEvent;\n  10 | import org.dromara.workflow.api.event.ProcessTaskEvent;\n  11 | import org.dromara.workflow.common.ConditionalOnEnable;\n  12 | import org.springframework.stereotype.Component;\n  13 | \n  14 | import java.util.Map;\n  15 | \n  16 | /**\n  17 |  * 流程监听服务\n  18 |  *\n  19 |  * @author may\n  20 |  * @date 2024-06-02\n  21 |  */\n  22 | @ConditionalOnEnable\n  23 | @Slf4j\n  24 | @Component\n  25 | public class FlowProcessEventHandler {\n  26 | \n  27 |     /**\n  28 |      * 总体流程监听(例如: 草稿，撤销，退回，作废，终止，已完成等)\n  29 |      *\n  30 |      * @param flowCode 流程定义编码\n  31 |      * @param instance 实例数据\n  32 |      * @param status   流程状态\n  33 |      * @param params   办理参数\n  34 |      * @param submit   当为true时为申请人节点办理\n  35 |      */\n  36 |     public void processHandler(String flowCode, Instance instance, String status, Map<String, Object> params, boolean submit) {\n  37 |         String tenantId = TenantHelper.getTenantId();\n  38 |         log.info(\"【流程事件发布】租户ID: {}, 流程编码: {}, 业务ID: {}, 流程状态: {}, 节点类型: {}, 节点编码: {}, 节点名称: {}, 是否申请人节点: {}, 参数: {}\",\n  39 |             tenantId, flowCode, instance.getBusinessId(), status, instance.getNodeType(), instance.getNodeCode(), instance.getNodeName(), submit, params);\n  40 |         ProcessEvent processEvent = new ProcessEvent();\n  41 |         processEvent.setTenantId(tenantId);\n  42 |         processEvent.setFlowCode(flowCode);\n  43 |         processEvent.setInstanceId(instance.getI"
+    },
+    {
+      "n": 21,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow",
+        "pattern": "excludes|tenant"
+      },
+      "result": "examples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/configuration/EventSearchTenantConfiguration.java:18:import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;\nexamples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/configuration/EventSearchTenantEngineModule.java:18:import com.sitewhere.microservice.multitenant.TenantEngineModule;\nexamples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/configuration/EventSearchTenantEngineModule.java:23: * tenant engine.\nexamples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/configuration/EventSearchTenantEngineModule.java:27:    public EventSearchTenantEngineModule(IEventSearchTenantEngine tenantEngine,\nexamples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/configuration/EventSearchTenantEngineModule.java:29:\tsuper(tenantEngine, configuration);\nexamples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/microservice/EventSearchMicroservice.java:20:import com.sitewhere.microservice.multitenant.MultitenantMicroservice;\nexamples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/microservice/EventSearchMicroservice.java:29:import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;\nexamples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/microservice/EventSearchMicroservice.java:36:\textends MultitenantMicroservice<MicroserviceIdentifier, EventSearchConfiguration, IEventSearchTenantEngine>\nexamples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/microservice/EventSearchMicroservice.java:73:     * @see com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice#\nexamples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/microservice/EventSearchMicroservice.java:74:     * createTenantEngine(io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine)\nexamples/SiteWhere/service-event-search/src/main/java/com/sitewhere/search/"
+    },
+    {
+      "n": 22,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, definition_id, instance_id, node_code, flow_status, LEFT(message,50) msg, create_time FROM `ry-workflow`.flow_his_task"
+      },
+      "result": "ERROR: query_db 仅允许只读 SELECT/SHOW/DESC 语句, 写操作请用 execute_sql"
+    },
+    {
+      "n": 23,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow",
+        "pattern": "RequestMapping\\(\"/(leave|test)"
+      },
+      "result": "examples/PassJava-Platform/passjava-member/src/main/java/com/jackson0714/passjava/member/controller/SampleController.java:26:    @RequestMapping(\"/test-local-config\")\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/QuestionController.java:67:    @RequestMapping(\"/test\")\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/QuestionController.java:73:    @RequestMapping(\"/test2\")\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/TypeController.java:95:    @RequestMapping(\"/test-redis\")\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/TypeController.java:105:    @RequestMapping(\"/test-transaction-annotations\")\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/TypeController.java:111:    @RequestMapping(\"/test-redis-multi\")\nexamples/gulimall-learning/gulimall-coupon/src/main/java/io/niceseason/gulimall/coupon/controller/CouponController.java:41:    @RequestMapping(\"/test\")\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/TestLeaveController.java:37:@RequestMapping(\"/leave\")\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/TestLeaveController.java:37:@RequestMapping(\"/leave\")\n"
+    },
+    {
+      "n": 24,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow",
+        "pattern": "class TestLeaveController|class FlwDefinitionController"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwDefinitionController.java:37:public class FlwDefinitionController extends BaseController {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/TestLeaveController.java:38:public class TestLeaveController extends BaseController {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwDefinitionController.java:37:public class FlwDefinitionController extends BaseController {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/TestLeaveController.java:38:public class TestLeaveController extends BaseController {\n"
+    },
+    {
+      "n": 25,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, definition_id, instance_id, node_code, flow_status, message, create_time FROM `ry-workflow`.flow_his_task"
+      },
+      "result": "ERROR: query_db 仅允许只读 SELECT/SHOW/DESC 语句, 写操作请用 execute_sql"
+    },
+    {
+      "n": 26,
+      "tool": "read_source",
+      "args": {
+        "end": 120,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/TestLeaveController.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/TestLeaveController.java (L1-119, 共119行)\n   1 | package org.dromara.workflow.controller;\n   2 | \n   3 | import cn.dev33.satoken.annotation.SaCheckPermission;\n   4 | import jakarta.servlet.http.HttpServletResponse;\n   5 | import jakarta.validation.constraints.NotEmpty;\n   6 | import jakarta.validation.constraints.NotNull;\n   7 | import lombok.RequiredArgsConstructor;\n   8 | import org.dromara.common.core.domain.R;\n   9 | import org.dromara.common.core.validate.AddGroup;\n  10 | import org.dromara.common.core.validate.EditGroup;\n  11 | import org.dromara.common.excel.utils.ExcelUtil;\n  12 | import org.dromara.common.idempotent.annotation.RepeatSubmit;\n  13 | import org.dromara.common.log.annotation.Log;\n  14 | import org.dromara.common.log.enums.BusinessType;\n  15 | import org.dromara.common.mybatis.core.page.PageQuery;\n  16 | import org.dromara.common.mybatis.core.page.TableDataInfo;\n  17 | import org.dromara.common.web.core.BaseController;\n  18 | import org.dromara.workflow.common.ConditionalOnEnable;\n  19 | import org.dromara.workflow.domain.bo.TestLeaveBo;\n  20 | import org.dromara.workflow.domain.vo.TestLeaveVo;\n  21 | import org.dromara.workflow.service.ITestLeaveService;\n  22 | import org.springframework.validation.annotation.Validated;\n  23 | import org.springframework.web.bind.annotation.*;\n  24 | \n  25 | import java.util.List;\n  26 | \n  27 | /**\n  28 |  * 请假\n  29 |  *\n  30 |  * @author may\n  31 |  * @date 2023-07-21\n  32 |  */\n  33 | @ConditionalOnEnable\n  34 | @Validated\n  35 | @RequiredArgsConstructor\n  36 | @RestController\n  37 | @RequestMapping(\"/leave\")\n  38 | public class TestLeaveController extends BaseController {\n  39 | \n  40 |     private final ITestLeaveService testLeaveService;\n  41 | \n  42 |     /**\n  43 |      * 查询请假列表\n  44 |      */\n  45 |     @SaCheckPermission(\"workflow:leave:list\")\n  46 |     @GetMapping(\"/list\")\n  47 |     public TableDataInfo<TestLe"
+    },
+    {
+      "n": 27,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM `ry-workflow`.flow_his_task"
+      },
+      "result": "id\tdefinition_id\tinstance_id\ttask_id\tnode_code\tnode_name\tnode_type\ttarget_node_code\ttarget_node_name\tapprover\tcooperate_type\tcollaborator\tskip_type\tflow_status\tform_custom\tform_path\tmessage\tvariable\text\tcreate_time\tupdate_time\tdel_flag\ttenant_id\n2098659387311697921\t2098658892962639874\t2098659387294920706\t2098659387299115010\tstart\t??\t0\tapprove\t??\t1\t1\tNULL\tPASS\tdraft\tN\tNULL\tNULL\t{\"leaveDays\":3,\"initiator\":\"1\",\"initiatorDeptId\":103,\"businessId\":\"9999\",\"autoPass\":false,\"businessCode\":\"1789194363779\"}\tNULL\t2026-09-12 14:26:04\t2026-09-12 14:26:04\t0\t000000\n2098659747115872259\t2098658892962639874\t2098659747115872257\t2098659747115872258\tstart\t??\t0\tapprove\t??\t1\t1\tNULL\tPASS\tdraft\tN\tNULL\tNULL\t{\"leaveDays\":3,\"initiator\":\"1\",\"initiatorDeptId\":103,\"businessId\":\"2098659702626889729\",\"autoPass\":false,\"businessCode\":\"1789194449571\"}\tNULL\t2026-09-12 14:27:30\t2026-09-12 14:27:30\t0\t000000\n2098659796004679681\t2098658892962639874\t2098659747115872257\t2098659747115872260\tapprove\t??\t1\tend\t??\t1\t1\tNULL\tPASS\tpass\tN\t\tNULL\t{\"businessCode\":\"1789194449571\",\"leaveDays\":3,\"submit\":true,\"initiator\":\"1\",\"businessId\":\"2098659702626889729\",\"initiatorDeptId\":103,\"autoPass\":false}\tNULL\t2026-09-12 14:27:30\t2026-09-12 14:27:41\t0\t000000\n2098674900540633092\t2098658892962639874\t2098674900540633090\t2098674900540633091\tstart\t??\t0\tapprove\t??\t1\t1\tNULL\tPASS\tdraft\tN\tNULL\tNULL\t{\"initiator\":\"1\",\"initiatorDeptId\":103,\"businessId\":\"2098674631740272641\",\"autoPass\":false,\"businessCode\":\"1789198062432\"}\tNULL\t2026-09-12 15:27:42\t2026-09-12 15:27:42\t0\t000000\n2098674952503865346\t2098658892962639874\t2098674900540633090\t2098674900540633093\tapprove\t??\t1\tend\t??\t1\t1\tNULL\tPASS\tpass\tN\t\t<<SINK_REACHED>>\t{\"businessCode\":\"1789198062432\",\"submit\":true,\"initiator\":\"1\",\"businessId\":\"2098674631740272641\",\"initiatorDeptId\":103,\"autoPass\":false}\tNULL\t2026-09-12 15:27:42\t2026-09-12 15:27:55\t0\t000000"
+    },
+    {
+      "n": 28,
+      "tool": "read_source",
+      "args": {
+        "end": 130,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwDefinitionController.java",
+        "start": 37
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwDefinitionController.java (L37-130, 共209行)\n  37 | public class FlwDefinitionController extends BaseController {\n  38 | \n  39 |     private final DefService defService;\n  40 |     private final IFlwDefinitionService flwDefinitionService;\n  41 | \n  42 |     /**\n  43 |      * 查询流程定义列表\n  44 |      *\n  45 |      * @param flowDefinition 参数\n  46 |      * @param pageQuery      分页\n  47 |      */\n  48 |     @GetMapping(\"/list\")\n  49 |     @SaCheckPermission(\"workflow:definition:list\")\n  50 |     public TableDataInfo<FlowDefinitionVo> list(FlowDefinition flowDefinition, PageQuery pageQuery) {\n  51 |         return flwDefinitionService.queryList(flowDefinition, pageQuery);\n  52 |     }\n  53 | \n  54 |     /**\n  55 |      * 查询未发布的流程定义列表\n  56 |      *\n  57 |      * @param flowDefinition 参数\n  58 |      * @param pageQuery      分页\n  59 |      */\n  60 |     @GetMapping(\"/unPublishList\")\n  61 |     @SaCheckPermission(\"workflow:definition:list\")\n  62 |     public TableDataInfo<FlowDefinitionVo> unPublishList(FlowDefinition flowDefinition, PageQuery pageQuery) {\n  63 |         return flwDefinitionService.unPublishList(flowDefinition, pageQuery);\n  64 |     }\n  65 | \n  66 |     /**\n  67 |      * 获取流程定义详细信息\n  68 |      *\n  69 |      * @param id 流程定义id\n  70 |      */\n  71 |     @GetMapping(value = \"/{id}\")\n  72 |     @SaCheckPermission(\"workflow:definition:query\")\n  73 |     public R<Definition> getInfo(@PathVariable Long id) {\n  74 |         return R.ok(defService.getById(id));\n  75 |     }\n  76 | \n  77 |     /**\n  78 |      * 新增流程定义\n  79 |      *\n  80 |      * @param flowDefinition 参数\n  81 |      */\n  82 |     @Log(title = \"流程定义\", businessType = BusinessType.INSERT)\n  83 |     @PostMapping\n  84 |     @RepeatSubmit()\n  85 |     @Transactional(rollbackFor = Exception.class)\n  86 |     @SaCheckPermission(\"workflow:definition:add\")\n  87 |     public R<Boolean> add(@RequestBody FlowDefinition flowDef"
+    },
+    {
+      "n": 29,
+      "tool": "query_db",
+      "args": {
+        "sql": "SHOW DATABASES"
+      },
+      "result": "Database\napolloconfigdb\napolloportaldb\nblade\ncloud_admin_v1\nfile-center\nfile_center\ninformation_schema\nlamp_nacos\nlamp_none\nlamp_sw\nlogger-center\nmall_oms\nmall_pms\nmall_sms\nmall_ums\nmogu_blog\nmogu_picture\nmysql\nnacos\nnacos_config\nnovel\nnovel-cloud\nnovel_test\noauth-center\noauth2_server\nperformance_schema\nruoyi-vue-pro\nry-cloud\nry-config\nry-job\nry-seata\nry-workflow\nseata\nsys\ntest\nuser-center\nxxl_job\nyoulai_system"
+    },
+    {
+      "n": 30,
+      "tool": "read_source",
+      "args": {
+        "end": 120,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/TestLeaveServiceImpl.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/TestLeaveServiceImpl.java (L1-120, 共247行)\n   1 | package org.dromara.workflow.service.impl;\n   2 | \n   3 | import cn.hutool.core.convert.Convert;\n   4 | import cn.hutool.core.date.DateUtil;\n   5 | import cn.hutool.core.map.MapUtil;\n   6 | import cn.hutool.core.util.ObjectUtil;\n   7 | import cn.hutool.core.util.StrUtil;\n   8 | import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;\n   9 | import com.baomidou.mybatisplus.core.toolkit.Wrappers;\n  10 | import com.baomidou.mybatisplus.extension.plugins.pagination.Page;\n  11 | import lombok.RequiredArgsConstructor;\n  12 | import lombok.extern.slf4j.Slf4j;\n  13 | import org.dromara.common.core.enums.BusinessStatusEnum;\n  14 | import org.dromara.common.core.exception.ServiceException;\n  15 | import org.dromara.common.core.utils.MapstructUtils;\n  16 | import org.dromara.common.core.utils.StreamUtils;\n  17 | import org.dromara.common.core.utils.StringUtils;\n  18 | import org.dromara.common.mybatis.core.domain.BaseEntity;\n  19 | import org.dromara.common.mybatis.core.page.PageQuery;\n  20 | import org.dromara.common.mybatis.core.page.TableDataInfo;\n  21 | import org.dromara.common.tenant.helper.TenantHelper;\n  22 | import org.dromara.workflow.api.domain.RemoteStartProcess;\n  23 | import org.dromara.workflow.api.event.ProcessDeleteEvent;\n  24 | import org.dromara.workflow.api.event.ProcessEvent;\n  25 | import org.dromara.workflow.api.event.ProcessTaskEvent;\n  26 | import org.dromara.workflow.common.ConditionalOnEnable;\n  27 | import org.dromara.workflow.common.constant.FlowConstant;\n  28 | import org.dromara.workflow.domain.TestLeave;\n  29 | import org.dromara.workflow.domain.bo.TestLeaveBo;\n  30 | import org.dromara.workflow.domain.vo.TestLeaveVo;\n  31 | import org.dromara.workflow.mapper.TestLeaveMapper;\n  32 | import org.dromara.workflow.service.ITestLeaveService;\n  33 | import org.dromara.workflow.service.WorkflowS"
+    },
+    {
+      "n": 31,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "class FlowDefinition"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/domain/vo/FlowDefinitionVo.java:17:public class FlowDefinitionVo implements Serializable {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/domain/vo/FlowDefinitionVo.java:17:public class FlowDefinitionVo implements Serializable {\n"
+    },
+    {
+      "n": 32,
+      "tool": "read_source",
+      "args": {
+        "end": 200,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/TestLeaveServiceImpl.java",
+        "start": 120
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/TestLeaveServiceImpl.java (L120-200, 共247行)\n 120 |             bo.setId(add.getId());\n 121 |         }\n 122 |         return MapstructUtils.convert(add, TestLeaveVo.class);\n 123 |     }\n 124 | \n 125 |     @Transactional(rollbackFor = Exception.class)\n 126 |     @Override\n 127 |     public TestLeaveVo submitAndFlowStart(TestLeaveBo bo) {\n 128 |         long day = DateUtil.betweenDay(bo.getStartDate(), bo.getEndDate(), true);\n 129 |         // 截止日期也算一天\n 130 |         bo.setLeaveDays((int) day + 1);\n 131 |         if (ObjectUtil.isNull(bo.getId())) {\n 132 |             bo.setApplyCode(System.currentTimeMillis() + StrUtil.EMPTY);\n 133 |         }\n 134 |         TestLeave leave = MapstructUtils.convert(bo, TestLeave.class);\n 135 |         boolean flag = baseMapper.insertOrUpdate(leave);\n 136 |         if (flag) {\n 137 |             bo.setId(leave.getId());\n 138 |             // 后端发起需要忽略权限\n 139 |             bo.getParams().put(\"ignore\", true);\n 140 | \n 141 |             RemoteStartProcess startProcess = new RemoteStartProcess();\n 142 |             startProcess.setBusinessId(leave.getId().toString());\n 143 |             startProcess.setFlowCode(StringUtils.isEmpty(bo.getFlowCode()) ? \"leave1\" : bo.getFlowCode());\n 144 |             startProcess.setVariables(bo.getParams());\n 145 |             // 后端发起 如果没有登录用户 比如定时任务 可以手动设置一个处理人id\n 146 |             // startProcess.setHandler(\"0\");\n 147 | \n 148 |             boolean flag1 = workflowService.startCompleteTask(startProcess);\n 149 |             if (!flag1) {\n 150 |                 throw new ServiceException(\"流程发起异常\");\n 151 |             }\n 152 |         }\n 153 |         return MapstructUtils.convert(leave, TestLeaveVo.class);\n 154 |     }\n 155 | \n 156 |     /**\n 157 |      * 修改请假\n 158 |      */\n 159 |     @Override\n 160 |     public TestLeaveVo updateByBo(TestLeaveBo bo) {\n 161 |         TestLeave update = MapstructUtils.convert(bo, Te"
+    },
+    {
+      "n": 33,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow",
+        "pattern": "class WorkflowService|interface WorkflowService"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/WorkflowService.java:15:public interface WorkflowService {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/WorkflowServiceImpl.java:34:public class WorkflowServiceImpl implements WorkflowService {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/WorkflowService.java:15:public interface WorkflowService {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/WorkflowServiceImpl.java:34:public class WorkflowServiceImpl implements WorkflowService {\n"
+    },
+    {
+      "n": 34,
+      "tool": "read_source",
+      "args": {
+        "end": 209,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwDefinitionController.java",
+        "start": 130
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwDefinitionController.java (L130-209, 共209行)\n 130 |     }\n 131 | \n 132 |     /**\n 133 |      * 删除流程定义\n 134 |      */\n 135 |     @Log(title = \"流程定义\", businessType = BusinessType.DELETE)\n 136 |     @DeleteMapping(\"/{ids}\")\n 137 |     @SaCheckPermission(\"workflow:definition:remove\")\n 138 |     public R<Void> remove(@PathVariable List<Long> ids) {\n 139 |         return toAjax(flwDefinitionService.removeDef(ids));\n 140 |     }\n 141 | \n 142 |     /**\n 143 |      * 复制流程定义\n 144 |      *\n 145 |      * @param id 流程定义id\n 146 |      */\n 147 |     @Log(title = \"流程定义\", businessType = BusinessType.INSERT)\n 148 |     @PostMapping(\"/copy/{id}\")\n 149 |     @RepeatSubmit()\n 150 |     @Transactional(rollbackFor = Exception.class)\n 151 |     @SaCheckPermission(\"workflow:definition:copy\")\n 152 |     public R<Boolean> copy(@PathVariable Long id) {\n 153 |         return R.ok(defService.copyDef(id));\n 154 |     }\n 155 | \n 156 |     /**\n 157 |      * 导入流程定义\n 158 |      *\n 159 |      * @param file     文件\n 160 |      * @param category 分类\n 161 |      */\n 162 |     @Log(title = \"流程定义\", businessType = BusinessType.IMPORT)\n 163 |     @PostMapping(\"/importDef\")\n 164 |     @SaCheckPermission(\"workflow:definition:import\")\n 165 |     public R<Boolean> importDef(MultipartFile file, String category) {\n 166 |         return R.ok(flwDefinitionService.importJson(file, category));\n 167 |     }\n 168 | \n 169 |     /**\n 170 |      * 导出流程定义\n 171 |      *\n 172 |      * @param id       流程定义id\n 173 |      * @param response 响应\n 174 |      * @throws IOException 异常\n 175 |      */\n 176 |     @Log(title = \"流程定义\", businessType = BusinessType.EXPORT)\n 177 |     @PostMapping(\"/exportDef/{id}\")\n 178 |     @SaCheckPermission(\"workflow:definition:export\")\n 179 |     public void exportDef(@PathVariable Long id, HttpServletResponse response) throws IOException {\n 180 |         flwDefinitionService.exportDef(id, response);\n 181 |     }"
+    },
+    {
+      "n": 35,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM `ry-cloud`.sys_user"
+      },
+      "result": "user_id\ttenant_id\tdept_id\tuser_name\tnick_name\tuser_type\temail\tphonenumber\tsex\tavatar\tpassword\tstatus\tdel_flag\tlogin_ip\tlogin_date\tcreate_dept\tcreate_by\tcreate_time\tupdate_by\tupdate_time\tremark\n1\t000000\t103\tadmin\t疯狂的狮子Li\tsys_user\tcrazyLionLi@163.com\t15888888888\t1\tNULL\t$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2\t0\t0\t127.0.0.1\t2026-09-12 15:26:27\t103\t1\t2026-09-10 01:41:15\t-1\t2026-09-12 15:26:27\t管理员\n3\t000000\t108\ttest\t本部门及以下 密码66666\tsys_user\t\t\t0\tNULL\t$2a$10$b8yUzN0C71sbz.PhNOCgJe.Tu1yWC3RNrTyjSQ8p1W0.aaUXUJ.Ne\t0\t0\t127.0.0.1\t2026-09-10 01:41:15\t103\t1\t2026-09-10 01:41:15\tNULL\tNULL\t\n4\t000000\t102\ttest1\t仅本人 密码666666\tsys_user\t\t\t0\tNULL\t$2a$10$b8yUzN0C71sbz.PhNOCgJe.Tu1yWC3RNrTyjSQ8p1W0.aaUXUJ.Ne\t0\t0\t127.0.0.1\t2026-09-10 01:41:15\t103\t1\t2026-09-10 01:41:15\tNULL\tNULL\t\n2098660841745285121\t196204\t2098660841321660417\tadmin\tadmin\tsys_user\t\t\t0\tNULL\t$2a$10$TM9VtonBkF2wSC6fhIUL0.d0fKl3FO0pKLUzyvCHTsll/ix52gjIy\t0\t0\t\tNULL\t103\t1\t2026-09-12 14:31:51\t1\t2026-09-12 14:31:51\tNULL\n2098665042886000642\t394190\t2098665042617565186\tsinktest_user1\tsinktest_user1\tsys_user\t\t\t0\tNULL\t$2a$10$OP2791zZiRJS2xmujwUIKeXumdCj6Dz/yHlZLAXI03JJMfCLxK.qu\t0\t0\t\tNULL\t103\t1\t2026-09-12 14:48:32\t1\t2026-09-12 14:48:32\tNULL"
+    },
+    {
+      "n": 36,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:8080/login",
+        "headers_json": "{\"Content-Type\": \"application/json\"}",
+        "body": "{\"username\":\"admin\",\"password\":\"admin123\"}"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":500,\"msg\":\"Auth clientid cannot be blank\",\"data\":null}"
+    },
+    {
+      "n": 37,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM `ry-cloud`.sys_client"
+      },
+      "result": "id\tclient_id\tclient_key\tclient_secret\tgrant_type\tdevice_type\tactive_timeout\ttimeout\tstatus\tdel_flag\tcreate_dept\tcreate_by\tcreate_time\tupdate_by\tupdate_time\n1\te5cd7e4891bf95d1d19206ce24a7b32e\tpc\tpc123\tpassword,social\tpc\t1800\t604800\t0\t0\t103\t1\t2026-09-10 01:41:15\t1\t2026-09-10 01:41:15\n2\t428a8310cd442757ae699df5d894f051\tapp\tapp123\tpassword,sms,social\tandroid\t1800\t604800\t0\t0\t103\t1\t2026-09-10 01:41:15\t1\t2026-09-10 01:41:15"
+    },
+    {
+      "n": 38,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM `ry-cloud`.sys_tenant"
+      },
+      "result": "id\ttenant_id\tcontact_user_name\tcontact_phone\tcompany_name\tlicense_number\taddress\tintro\tdomain\tremark\tpackage_id\texpire_time\taccount_count\tstatus\tdel_flag\tcreate_dept\tcreate_by\tcreate_time\tupdate_by\tupdate_time\n1\t000000\t管理组\t15888888888\tXXX有限公司\tNULL\tNULL\t多租户通用后台管理管理系统\tNULL\tNULL\tNULL\tNULL\t-1\t0\t0\t103\t1\t2026-09-10 01:41:15\tNULL\tNULL\n2098660840558297089\t196204\tadmin\t15888888888\t????\tNULL\tNULL\tNULL\tNULL\tNULL\t2098660486244466689\tNULL\t-1\t0\t0\t103\t1\t2026-09-12 14:31:50\t1\t2026-09-12 14:31:50\n2098665042584010753\t394190\t<>???\t15555555555\t<>????\t91110000MA001TEST1\t??????\tNULL\tNULL\tNULL\t2098660486244466689\t2035-12-31 00:00:00\t10\t0\t0\t103\t1\t2026-09-12 14:48:32\t1\t2026-09-12 14:48:32"
+    },
+    {
+      "n": 39,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM `ry-workflow`.flow_node"
+      },
+      "result": "id\tnode_type\tdefinition_id\tnode_code\tnode_name\tpermission_flag\tnode_ratio\tcoordinate\tany_node_skip\tlistener_type\tlistener_path\tform_custom\tform_path\tversion\tcreate_time\tcreate_by\tupdate_time\tupdate_by\text\tdel_flag\ttenant_id\n2098658257538166785\t0\t2098658257345228801\tstart\t??\tNULL\t0\t80|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:21:34\t1\t2026-09-12 14:21:34\t1\tNULL\t1\t000000\n2098658257542361089\t1\t2098658257345228801\tapprove\t??\trole:1\t0\t260|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:21:34\t1\t2026-09-12 14:21:34\t1\tNULL\t1\t000000\n2098658257542361090\t2\t2098658257345228801\tend\t??\tNULL\t0\t440|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:21:34\t1\t2026-09-12 14:21:34\t1\tNULL\t1\t000000\n2098658893054914561\t0\t2098658892962639874\tstart\t??\tNULL\t0\t80|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:24:06\t1\t2026-09-12 14:24:06\t1\tNULL\t0\t000000\n2098658893059108866\t1\t2098658892962639874\tapprove\t??\trole:1\t0\t260|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:24:06\t1\t2026-09-12 14:24:06\t1\tNULL\t0\t000000\n2098658893063303169\t2\t2098658892962639874\tend\t??\tNULL\t0\t440|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:24:06\t1\t2026-09-12 14:24:06\t1\tNULL\t0\t000000\n2098660843079118849\t0\t2098660843020398594\tstart\t??\tNULL\t0\t80|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:24:06\t1\t2026-09-12 14:24:06\t1\tNULL\t0\t196204\n2098660843091701762\t1\t2098660843020398594\tapprove\t??\tNULL\t0\t260|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:24:06\t1\t2026-09-12 14:24:06\t1\tNULL\t0\t196204\n2098660843091701763\t2\t2098660843020398594\tend\t??\tNULL\t0\t440|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:24:06\t1\t2026-09-12 14:24:06\t1\tNULL\t0\t196204\n2098665043351613441\t0\t2098665043326447617\tstart\t??\tNULL\t0\t80|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:24:06\t1\t2026-09-12 14:24:06\t1\tNULL\t0\t394190\n2098665043372584961\t1\t2098665043326447617\tapprove\t??\tNULL\t0\t260|200|60|60\tNULL\tNULL\tNULL\tN\tNULL\t1\t2026-09-12 14:24:06\t1\t2026-09-12 14:24:06\t1\tNULL\t0\t394190\n2098665043376779265\t2\t2098665043326447617\tend\t??\tNULL\t0\t440|200|60|60\tNULL\tNULL\t"
+    },
+    {
+      "n": 40,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM `ry-cloud`.sys_user_role"
+      },
+      "result": "user_id\trole_id\n1\t1\n3\t3\n4\t4\n2098660841745285121\t2098660840608628737\n2098665042886000642\t2098665042600787969"
+    },
+    {
+      "n": 41,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM `ry-cloud`.sys_role"
+      },
+      "result": "role_id\ttenant_id\trole_name\trole_key\trole_sort\tdata_scope\tmenu_check_strictly\tdept_check_strictly\tstatus\tdel_flag\tcreate_dept\tcreate_by\tcreate_time\tupdate_by\tupdate_time\tremark\n1\t000000\t超级管理员\tsuperadmin\t1\t1\t1\t1\t0\t0\t103\t1\t2026-09-10 01:41:15\tNULL\tNULL\t超级管理员\n3\t000000\t本部门及以下\ttest1\t3\t4\t1\t1\t0\t0\t103\t1\t2026-09-10 01:41:15\tNULL\tNULL\t\n4\t000000\t仅本人\ttest2\t4\t5\t1\t1\t0\t0\t103\t1\t2026-09-10 01:41:15\tNULL\tNULL\t\n2098660840608628737\t196204\t???\tadmin\t1\t1\t1\t1\t0\t0\t103\t1\t2026-09-12 14:31:50\t1\t2026-09-12 14:31:50\tNULL\n2098665042600787969\t394190\t???\tadmin\t1\t1\t1\t1\t0\t0\t103\t1\t2026-09-12 14:48:32\t1\t2026-09-12 14:48:32\tNULL"
+    },
+    {
+      "n": 42,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT role_id, COUNT(*) c FROM `ry-cloud`.sys_role_menu WHERE role_id IN (2098665042600787969, 2098660840608628737) GROUP BY role_id"
+      },
+      "result": "role_id\tc\n2098660840608628737\t2\n2098665042600787969\t2"
+    },
+    {
+      "n": 43,
+      "tool": "read_source",
+      "args": {
+        "end": 140,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwInstanceController.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwInstanceController.java (L1-140, 共201行)\n   1 | package org.dromara.workflow.controller;\n   2 | \n   3 | import cn.dev33.satoken.annotation.SaCheckPermission;\n   4 | import cn.hutool.core.convert.Convert;\n   5 | import lombok.RequiredArgsConstructor;\n   6 | import org.dromara.common.core.domain.R;\n   7 | import org.dromara.common.core.utils.StreamUtils;\n   8 | import org.dromara.common.idempotent.annotation.RepeatSubmit;\n   9 | import org.dromara.common.log.annotation.Log;\n  10 | import org.dromara.common.log.enums.BusinessType;\n  11 | import org.dromara.common.mybatis.core.page.PageQuery;\n  12 | import org.dromara.common.mybatis.core.page.TableDataInfo;\n  13 | import org.dromara.common.web.core.BaseController;\n  14 | import org.dromara.warm.flow.core.service.InsService;\n  15 | import org.dromara.workflow.common.ConditionalOnEnable;\n  16 | import org.dromara.workflow.domain.bo.FlowCancelBo;\n  17 | import org.dromara.workflow.domain.bo.FlowInstanceBo;\n  18 | import org.dromara.workflow.domain.bo.FlowInvalidBo;\n  19 | import org.dromara.workflow.domain.bo.FlowVariableBo;\n  20 | import org.dromara.workflow.domain.vo.FlowInstanceVo;\n  21 | import org.dromara.workflow.service.IFlwInstanceService;\n  22 | import org.springframework.validation.annotation.Validated;\n  23 | import org.springframework.web.bind.annotation.*;\n  24 | \n  25 | import java.util.List;\n  26 | import java.util.Map;\n  27 | \n  28 | /**\n  29 |  * 流程实例管理 控制层\n  30 |  *\n  31 |  * @author may\n  32 |  */\n  33 | @ConditionalOnEnable\n  34 | @Validated\n  35 | @RequiredArgsConstructor\n  36 | @RestController\n  37 | @RequestMapping(\"/instance\")\n  38 | public class FlwInstanceController extends BaseController {\n  39 | \n  40 |     private final InsService insService;\n  41 |     private final IFlwInstanceService flwInstanceService;\n  42 | \n  43 |     /**\n  44 |      * 查询正在运行的流程实例列表\n  45 |      *\n  46 |      * @param flowInstanc"
+    },
+    {
+      "n": 44,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT rm.role_id, rm.menu_id, m.perms, m.menu_name FROM `ry-cloud`.sys_role_menu rm LEFT JOIN `ry-cloud`.sys_menu m ON m.menu_id = rm.menu_id WHERE rm.role_id IN (2098665042600787969, 2098660840608628737)"
+      },
+      "result": "role_id\tmenu_id\tperms\tmenu_name\n2098660840608628737\t1\t\t系统管理\n2098660840608628737\t2\t\t系统监控\n2098665042600787969\t1\t\t系统管理\n2098665042600787969\t2\t\t系统监控"
+    },
+    {
+      "n": 45,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "startCompleteTask"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/WorkflowService.java:104:    boolean startCompleteTask(RemoteStartProcess startProcess);\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/WorkflowServiceImpl.java:160:    public boolean startCompleteTask(RemoteStartProcess startProcess) {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/TestLeaveServiceImpl.java:148:            boolean flag1 = workflowService.startCompleteTask(startProcess);\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/dubbo/RemoteWorkflowServiceImpl.java:91:    public boolean startCompleteTask(RemoteStartProcess startProcess) {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/dubbo/RemoteWorkflowServiceImpl.java:92:        return workflowService.startCompleteTask(startProcess);\nexamples/RuoYi-Cloud-Plus/ruoyi-api/ruoyi-api-workflow/src/main/java/org/dromara/workflow/api/RemoteWorkflowServiceMock.java:78:    public boolean startCompleteTask(RemoteStartProcess startProcess) {\nexamples/RuoYi-Cloud-Plus/ruoyi-api/ruoyi-api-workflow/src/main/java/org/dromara/workflow/api/RemoteWorkflowService.java:104:    boolean startCompleteTask(RemoteStartProcess startProcess);\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/WorkflowService.java:104:    boolean startCompleteTask(RemoteStartProcess startProcess);\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/WorkflowServiceImpl.java:160:    public boolean startCompleteTask(RemoteStartProcess startProcess) {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/TestLeaveServiceImpl.java:148:            boolean flag1 = workflowService.startCompleteTask(startProcess);\nexamples/RuoY"
+    },
+    {
+      "n": 46,
+      "tool": "read_source",
+      "args": {
+        "end": 220,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/WorkflowServiceImpl.java",
+        "start": 130
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/impl/WorkflowServiceImpl.java (L130-176, 共176行)\n 130 |      *\n 131 |      * @param completeTask 参数\n 132 |      */\n 133 |     @Override\n 134 |     public boolean completeTask(RemoteCompleteTask completeTask) {\n 135 |         return flwTaskService.completeTask(BeanUtil.toBean(completeTask, CompleteTaskBo.class));\n 136 |     }\n 137 | \n 138 |     /**\n 139 |      * 办理任务\n 140 |      *\n 141 |      * @param taskId  任务ID\n 142 |      * @param message 办理意见\n 143 |      */\n 144 |     @Override\n 145 |     public boolean completeTask(Long taskId, String message) {\n 146 |         CompleteTaskBo completeTask = new CompleteTaskBo();\n 147 |         completeTask.setTaskId(taskId);\n 148 |         completeTask.setMessage(message);\n 149 |         // 忽略权限(系统后台发起审批 无用户信息 需要忽略权限)\n 150 |         completeTask.getVariables().put(\"ignore\", true);\n 151 |         return flwTaskService.completeTask(completeTask);\n 152 |     }\n 153 | \n 154 |     /**\n 155 |      * 启动流程并办理第一个任务\n 156 |      *\n 157 |      * @param startProcess 参数\n 158 |      */\n 159 |     @Override\n 160 |     public boolean startCompleteTask(RemoteStartProcess startProcess) {\n 161 |         StartProcessBo processBo = new StartProcessBo();\n 162 |         processBo.setBusinessId(startProcess.getBusinessId());\n 163 |         processBo.setFlowCode(startProcess.getFlowCode());\n 164 |         processBo.setVariables(startProcess.getVariables());\n 165 |         processBo.setHandler(startProcess.getHandler());\n 166 |         processBo.setBizExt(BeanUtil.toBean(startProcess.getBizExt(), FlowInstanceBizExt.class));\n 167 | \n 168 |         RemoteStartProcessReturn result = flwTaskService.startWorkFlow(processBo);\n 169 |         CompleteTaskBo taskBo = new CompleteTaskBo();\n 170 |         taskBo.setTaskId(result.getTaskId());\n 171 |         taskBo.setMessageType(Collections.singletonList(MessageTypeEnum.SYSTEM_MESSAGE.getCode()));\n 172 |         taskBo.setVariabl"
+    },
+    {
+      "n": 47,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-common",
+        "pattern": "isSuperAdmin\\(\\).*return true|hasPermission.*isSuperAdmin"
+      },
+      "result": "无匹配: isSuperAdmin\\(\\).*return true|hasPermission.*isSuperAdmin"
+    },
+    {
+      "n": 48,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "class SaPermissionImpl"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/core/service/SaPermissionImpl.java:22:public class SaPermissionImpl implements StpInterface {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/core/service/SaPermissionImpl.java:22:public class SaPermissionImpl implements StpInterface {\n"
+    },
+    {
+      "n": 49,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "hasPermission"
+      },
+      "result": "examples/zlt-microservices-platform/zlt-gateway/sc-gateway/src/main/java/com/central/gateway/auth/PermissionAuthManager.java:41:            boolean isPermission = super.hasPermission(auth, request.getMethod().name(), request.getURI().getPath());\nexamples/zlt-microservices-platform/zlt-commons/zlt-auth-client-spring-boot-starter/src/main/java/com/central/oauth2/common/service/impl/DefaultPermissionServiceImpl.java:52:    public boolean hasPermission(Authentication authentication, String requestMethod, String requestURI) {\nexamples/SpringBlade/blade-service-api/blade-scope-api/src/main/java/org/springblade/system/handler/ApiScopePermissionHandler.java:52:\tpublic boolean hasPermission(String permission) {\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/service/PermissionService.java:56:        boolean hasPermission = rolePerms.stream()\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/service/PermissionService.java:62:        if (!hasPermission) {\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/service/PermissionService.java:65:        return hasPermission;\nexamples/pig/db/pig.sql:1741:INSERT INTO `gen_template` (`id`, `template_name`, `generator_path`, `template_desc`, `template_code`, `create_time`, `update_time`, `del_flag`, `create_by`, `update_by`) VALUES (1, 'ControllerV2026001', '${backendPath}/src/main/java/${packagePath}/${moduleName}/controller/${ClassName}Controller.java', 'ControllerV2026001', 'package ${package}.${moduleName}.controller;\\n\\n#if($queryList)\\nimport cn.hutool.core.util.StrUtil;\\n#end\\nimport cn.hutool.core.util.ArrayUtil;\\nimport cn.hutool.core.collection.CollUtil;\\nimport com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;\\nimport com.baomidou.mybatisplus.core.toolkit.Wrappers;\\nimport com.baomidou.mybatisplus.extension.plugins.pagination.Page;\\nimport ${package}.common.core.util.R;\\nimport ${packa"
+    },
+    {
+      "n": 50,
+      "tool": "read_source",
+      "args": {
+        "end": 60,
+        "path": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/core/service/SaPermissionImpl.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/core/service/SaPermissionImpl.java (L1-60, 共86行)\n   1 | package org.dromara.common.satoken.core.service;\n   2 | \n   3 | import cn.dev33.satoken.stp.StpInterface;\n   4 | import cn.hutool.core.collection.CollUtil;\n   5 | import cn.hutool.core.util.ObjectUtil;\n   6 | import org.dromara.common.core.enums.UserType;\n   7 | import org.dromara.common.core.exception.ServiceException;\n   8 | import org.dromara.common.core.service.PermissionService;\n   9 | import org.dromara.common.core.utils.SpringUtils;\n  10 | import org.dromara.common.core.utils.StringUtils;\n  11 | import org.dromara.common.satoken.utils.LoginHelper;\n  12 | import org.dromara.system.api.model.LoginUser;\n  13 | \n  14 | import java.util.ArrayList;\n  15 | import java.util.List;\n  16 | \n  17 | /**\n  18 |  * sa-token 权限管理实现类\n  19 |  *\n  20 |  * @author Lion Li\n  21 |  */\n  22 | public class SaPermissionImpl implements StpInterface {\n  23 | \n  24 |     /**\n  25 |      * 获取菜单权限列表\n  26 |      */\n  27 |     @Override\n  28 |     public List<String> getPermissionList(Object loginId, String loginType) {\n  29 |         LoginUser loginUser = LoginHelper.getLoginUser();\n  30 |         if (ObjectUtil.isNull(loginUser) || !loginUser.getLoginId().equals(loginId)) {\n  31 |             PermissionService permissionService = getPermissionService();\n  32 |             if (ObjectUtil.isNotNull(permissionService)) {\n  33 |                 List<String> list = StringUtils.splitList(loginId.toString(), \":\");\n  34 |                 return new ArrayList<>(permissionService.getMenuPermission(Long.parseLong(list.get(1))));\n  35 |             } else {\n  36 |                 throw new ServiceException(\"PermissionService 实现类不存在\");\n  37 |             }\n  38 |         }\n  39 |         UserType userType = UserType.getUserType(loginUser.getUserType());\n  40 |         if (userType == UserType.APP_USER) {\n  41 |             // 其他端 自行根据业务编写\n  42 |         }\n"
+    },
+    {
+      "n": 51,
+      "tool": "send_http",
+      "args": {
+        "body": "{\"clientId\":\"e5cd7e4891bf95d1d19206ce24a7b32e\",\"grantType\":\"password\",\"username\":\"admin\",\"password\":\"admin123\"}",
+        "headers_json": "{\"Content-Type\": \"application/json\"}",
+        "method": "POST",
+        "url": "http://localhost:8080/login"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":500,\"msg\":\"Tenant number cannot be blank\",\"data\":null}"
+    },
+    {
+      "n": 52,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow",
+        "pattern": "class TestLeaveBo"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/domain/bo/TestLeaveBo.java:26:public class TestLeaveBo extends BaseEntity {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/domain/bo/TestLeaveBo.java:26:public class TestLeaveBo extends BaseEntity {\n"
+    },
+    {
+      "n": 53,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow",
+        "pattern": "completeTask|RequestMapping\\(\"/task\"\\)"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwTaskController.java:35:@RequestMapping(\"/task\")\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwTaskController.java:56:     * @param completeTaskBo 办理任务参数\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwTaskController.java:60:    @PostMapping(\"/completeTask\")\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwTaskController.java:61:    public R<Void> completeTask(@Validated(AddGroup.class) @RequestBody CompleteTaskBo completeTaskBo) {\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/controller/FlwTaskController.java:62:        return toAjax(flwTaskService.completeTask(completeTaskBo));\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/IFlwTaskService.java:36:     * @param completeTaskBo 办理任务参数\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/IFlwTaskService.java:39:    boolean completeTask(CompleteTaskBo completeTaskBo);\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/WorkflowService.java:82:     * completeTask.getVariables().put(\"ignore\", true);\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/WorkflowService.java:84:     * @param completeTask 参数\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/WorkflowService.java:87:    boolean completeTask(RemoteCompleteTask completeTask);\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/service/WorkflowService.java:96:    boolean completeTask(Long taskId, String message);\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org"
+    },
+    {
+      "n": 54,
+      "tool": "send_http",
+      "args": {
+        "body": "{\"clientId\":\"e5cd7e4891bf95d1d19206ce24a7b32e\",\"grantType\":\"password\",\"tenantId\":\"000000\",\"username\":\"admin\",\"password\":\"admin123\"}",
+        "headers_json": "{\"Content-Type\": \"application/json\"}",
+        "method": "POST",
+        "url": "http://localhost:8080/login"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":200,\"msg\":\"操作成功\",\"data\":{\"scope\":null,\"openid\":null,\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJyd0pEYXZNbmRzNEhybXY2ajlwM1hBNkdYM2ZLdTRSYSIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiIsImRlcHRJZCI6MTAzLCJkZXB0TmFtZSI6IsOnXHUwMGEw4oCdw6VcdTAwOGbigJjDqcaSwqjDqeKAlMKoIiwiZGVwdENhdGVnb3J5IjoiIn0.HsHwYBEH7ArnF5Ks1QVxjmTpNDjEJ0CElLsvF5tyfH4\",\"refresh_token\":null,\"expire_in\":604800,\"refresh_expire_in\":null,\"client_id\":\"e5cd7e4891bf95d1d19206ce24a7b32e\"}}"
+    },
+    {
+      "n": 55,
+      "tool": "read_source",
+      "args": {
+        "end": 80,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/domain/bo/TestLeaveBo.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/java/org/dromara/workflow/domain/bo/TestLeaveBo.java (L1-80, 共92行)\n   1 | package org.dromara.workflow.domain.bo;\n   2 | \n   3 | import com.fasterxml.jackson.annotation.JsonFormat;\n   4 | import io.github.linpeilie.annotations.AutoMapper;\n   5 | import jakarta.validation.constraints.NotBlank;\n   6 | import jakarta.validation.constraints.NotNull;\n   7 | import lombok.Data;\n   8 | import lombok.EqualsAndHashCode;\n   9 | import org.dromara.common.core.validate.AddGroup;\n  10 | import org.dromara.common.core.validate.EditGroup;\n  11 | import org.dromara.common.mybatis.core.domain.BaseEntity;\n  12 | import org.dromara.workflow.domain.TestLeave;\n  13 | import org.springframework.format.annotation.DateTimeFormat;\n  14 | \n  15 | import java.util.Date;\n  16 | \n  17 | /**\n  18 |  * 请假业务对象 test_leave\n  19 |  *\n  20 |  * @author may\n  21 |  * @date 2023-07-21\n  22 |  */\n  23 | @Data\n  24 | @EqualsAndHashCode(callSuper = true)\n  25 | @AutoMapper(target = TestLeave.class, reverseConvertGenerate = false)\n  26 | public class TestLeaveBo extends BaseEntity {\n  27 | \n  28 |     /**\n  29 |      * 主键\n  30 |      */\n  31 |     @NotNull(message = \"主键不能为空\", groups = {EditGroup.class})\n  32 |     private Long id;\n  33 | \n  34 |     /**\n  35 |      * 流程code\n  36 |      */\n  37 |     private String flowCode;\n  38 | \n  39 |     /**\n  40 |      * 申请编号\n  41 |      */\n  42 |     private String applyCode;\n  43 | \n  44 |     /**\n  45 |      * 请假类型\n  46 |      */\n  47 |     @NotBlank(message = \"请假类型不能为空\", groups = {AddGroup.class, EditGroup.class})\n  48 |     private String leaveType;\n  49 | \n  50 |     /**\n  51 |      * 开始时间\n  52 |      */\n  53 |     @NotNull(message = \"开始时间不能为空\", groups = {AddGroup.class, EditGroup.class})\n  54 |     @DateTimeFormat(pattern = \"yyyy-MM-dd\")\n  55 |     @JsonFormat(pattern = \"yyyy-MM-dd\")\n  56 |     private Date startDate;\n  57 | \n  58 |     /**\n  59 |      * 结束时间\n  60 |      */\n  61 |     @NotNull(message = \"结束"
+    },
+    {
+      "n": 56,
+      "tool": "send_http",
+      "args": {
+        "body": "{\"id\":2098658892962639874,\"tenantId\":\"394190\",\"flowName\":\"<<SINK_REACHED>>\"}",
+        "headers_json": "{\"Content-Type\": \"application/json\", \"Authorization\": \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJyd0pEYXZNbmRzNEhybXY2ajlwM1hBNkdYM2ZLdTRSYSIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiIsImRlcHRJZCI6MTAzLCJkZXB0TmFtZSI6IuebuOW9l+agvOS4qui/kemXqOe6qOmXqOWkqeKAlOKAlCIsImRlcHRDYXRlZ29yeSI6IiJ9.HsHwYBEH7ArnF5Ks1QVxjmTpNDjEJ0CElLsvF5tyfH4\"}",
+        "method": "PUT",
+        "url": "http://localhost:9205/definition"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":401,\"msg\":\"认证失败，无法访问系统资源\",\"data\":null}"
+    },
+    {
+      "n": 57,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM `ry-workflow`.flow_task"
+      },
+      "result": "id\tdefinition_id\tinstance_id\tnode_code\tnode_name\tnode_type\tflow_status\tform_custom\tform_path\tcreate_time\tcreate_by\tupdate_time\tupdate_by\tdel_flag\ttenant_id\n2098659387315892226\t2098658892962639874\t2098659387294920706\tapprove\t??\t1\tdraft\tN\t\t2026-09-12 14:26:04\t1\t2026-09-12 14:26:04\t1\t0\t000000\n2098659747115872260\t2098658892962639874\t2098659747115872257\tapprove\t??\t1\tdraft\tN\t\t2026-09-12 14:27:30\t1\t2026-09-12 14:27:41\t1\t1\t000000\n2098674900540633093\t2098658892962639874\t2098674900540633090\tapprove\t??\t1\tdraft\tN\t\t2026-09-12 15:27:42\t1\t2026-09-12 15:27:55\t1\t1\t000000"
+    },
+    {
+      "n": 58,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-ruoyi-cloud-plus-ruoyi-workflow",
+        "tail": 40
+      },
+      "result": "\u001b[36m2026-09-12 07:27:54\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.w.l.WorkflowGlobalListener\n\u001b[0;39m - 流程已结束，状态更新为: finish\n\u001b[36m2026-09-12 07:27:54\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.w.h.FlowProcessEventHandler\n\u001b[0;39m - 【流程事件发布】租户ID: 000000, 流程编码: <<SINK_REACHED>>, 业务ID: 2098674631740272641, 流程状态: finish, 节点类型: 2, 节点编码: end, 节点名称: 结束, 是否申请人节点: true, 参数: {businessCode=1789198062432, messageType=null, submit=true, initiator=1, businessId=2098674631740272641, flowCopyList=null, messageNotice=null, initiatorDeptId=103, autoPass=false}\n\u001b[36m2026-09-12 07:27:54\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务调用: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLog]\n\u001b[36m2026-09-12 07:27:54\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLog],SpendTime=[8ms]\n\u001b[36m2026-09-12 07:30:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务调用: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLog]\n\u001b[36m2026-09-12 07:30:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLog],SpendTime=[3ms]\n\u001b[36m2026-09-12 07:30:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[1;31mERROR\u001b[0;39m \u001b[1;35mo.d.c.w.h.GlobalExceptionHandler\n\u001b[0;39m - 流程任务不存在或任务已审批！\n\u001b[36m2026-09-12 07:58:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[1;31mERROR\u001b[0;39m \u001b[1;35mo.d.c.s.h.SaTokenExceptionHandler\n\u001b[0;39m - 请求地址'/definition',认证失败'token 无效：eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJyd0pEYXZNbmRzNEhybXY2ajlwM1hBNkdYM2ZLdTRSYSIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiL"
+    },
+    {
+      "n": 59,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "token-prefix|tokenPrefix"
+      },
+      "result": "examples/lamp-cloud/lamp-support/lamp-boot-server/src/main/resources/config/prod/sa-token.yml:4:  token-prefix:\nexamples/lamp-cloud/lamp-support/lamp-boot-server/src/main/resources/config/dev/sa-token.yml:4:  token-prefix:\nexamples/mall-swarm/mall-portal/src/main/resources/application.yml:108:  token-prefix: Bearer\nexamples/mall-swarm/mall-portal/src/main/java/com/macro/mall/portal/controller/UmsMemberController.java:31:    @Value(\"${sa-token.token-prefix}\")\nexamples/mall-swarm/mall-gateway/src/main/resources/application.yml:124:  token-prefix: Bearer\nexamples/mall-swarm/mall-admin/src/main/resources/application.yml:113:  token-prefix: Bearer\nexamples/mall-swarm/mall-admin/src/main/java/com/macro/mall/controller/UmsAdminController.java:40:    @Value(\"${sa-token.token-prefix}\")\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/target/classes/common-satoken.yml:13:  token-prefix: \"Bearer\"\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/resources/common-satoken.yml:13:  token-prefix: \"Bearer\"\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/target/classes/common-satoken.yml:13:  token-prefix: \"Bearer\"\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/resources/common-satoken.yml:13:  token-prefix: \"Bearer\"\n"
+    },
+    {
+      "n": 60,
+      "tool": "read_source",
+      "args": {
+        "end": 40,
+        "path": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/resources/common-satoken.yml",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/resources/common-satoken.yml (L1-13, 共13行)\n   1 | # 内置配置 不允许修改 如需修改请在 nacos 上写相同配置覆盖\n   2 | # Sa-Token配置\n   3 | sa-token:\n   4 |   # 允许动态设置 token 有效期\n   5 |   dynamic-active-timeout: true\n   6 |   # 允许从 请求参数 读取 token\n   7 |   is-read-body: true\n   8 |   # 允许从 header 读取 token\n   9 |   is-read-header: true\n  10 |   # 关闭 cookie 鉴权 从根源杜绝 csrf 漏洞风险\n  11 |   is-read-cookie: false\n  12 |   # token前缀\n  13 |   token-prefix: \"Bearer\""
+    },
+    {
+      "n": 61,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "jwt-secret-key|is-stateless|jwt-secret"
+      },
+      "result": "examples/mall-swarm/mall-portal/src/main/resources/application.yml:110:  jwt-secret-key: sa-secret-key123\nexamples/mall-swarm/mall-admin/src/main/resources/application.yml:115:  jwt-secret-key: sa-secret-key123\nexamples/RuoYi-Cloud-Plus/script/config/nacos/application-common.yml:181:  jwt-secret-key: abcdefghijklmnopqrstuvwxyz\nexamples/RuoYi-Cloud-Plus/script/config/nacos/application-common.yml:181:  jwt-secret-key: abcdefghijklmnopqrstuvwxyz\n"
+    },
+    {
+      "n": 62,
+      "tool": "read_source",
+      "args": {
+        "end": 200,
+        "path": "RuoYi-Cloud-Plus/script/config/nacos/application-common.yml",
+        "start": 160
+      },
+      "result": "RuoYi-Cloud-Plus/script/config/nacos/application-common.yml (L160-200, 共296行)\n 160 |     org.springframework: warn\n 161 |     org.apache.dubbo: error\n 162 |     com.alibaba.nacos: error\n 163 |     org.mybatis.spring.mapper: error\n 164 |     org.apache.fury: warn\n 165 |     io.micrometer: error\n 166 |     # 临时处理 spring 调整日志级别导致启动警告问题 不影响使用等待 alibaba 适配\n 167 |     org.springframework.context.support.PostProcessorRegistrationDelegate: error\n 168 |   config: classpath:logback-plus.xml\n 169 | \n 170 | # Sa-Token配置\n 171 | sa-token:\n 172 |   # token名称 (同时也是cookie名称)\n 173 |   token-name: Authorization\n 174 |   # 开启内网服务调用鉴权(不允许越过gateway访问内网服务 保障服务安全)\n 175 |   check-same-token: true\n 176 |   # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)\n 177 |   is-concurrent: true\n 178 |   # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)\n 179 |   is-share: false\n 180 |   # jwt秘钥\n 181 |   jwt-secret-key: abcdefghijklmnopqrstuvwxyz\n 182 | \n 183 | # MyBatisPlus配置\n 184 | # https://baomidou.com/config/\n 185 | mybatis-plus:\n 186 |   # 自定义配置 是否全局开启逻辑删除 关闭后 所有逻辑删除功能将失效\n 187 |   enableLogicDelete: true\n 188 |   # 多包名使用 例如 org.dromara.**.mapper,org.xxx.**.mapper\n 189 |   mapperPackage: org.dromara.**.mapper\n 190 |   # 对应的 XML 文件位置\n 191 |   mapperLocations: classpath*:mapper/**/*Mapper.xml\n 192 |   # 实体扫描，多个package用逗号或者分号分隔\n 193 |   typeAliasesPackage: org.dromara.**.domain\n 194 |   global-config:\n 195 |     dbConfig:\n 196 |       # 主键类型\n 197 |       # AUTO 自增 NONE 空 INPUT 用户输入 ASSIGN_ID 雪花 ASSIGN_UUID 唯一 UUID\n 198 |       # 如需改为自增 需要将数据库表全部设置为自增\n 199 |       idType: ASSIGN_ID\n 200 | "
+    },
+    {
+      "n": 63,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "check-same-token|checkSameToken|SameToken"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-gateway/src/main/java/org/dromara/gateway/filter/ForwardAuthFilter.java:23:        if (!SaManager.getConfig().getCheckSameToken()) {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-security/src/main/java/org/dromara/common/security/config/SecurityConfiguration.java:42:                if (SaManager.getConfig().getCheckSameToken()) {\nexamples/RuoYi-Cloud-Plus/ruoyi-gateway-mvc/src/main/java/org/dromara/gateway/filter/ForwardAuthFilter.java:45:        if (SaManager.getConfig().getCheckSameToken()) {\nexamples/RuoYi-Cloud-Plus/script/config/nacos/application-common.yml:175:  check-same-token: true\nexamples/RuoYi-Cloud-Plus/ruoyi-gateway/src/main/java/org/dromara/gateway/filter/ForwardAuthFilter.java:23:        if (!SaManager.getConfig().getCheckSameToken()) {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-security/src/main/java/org/dromara/common/security/config/SecurityConfiguration.java:42:                if (SaManager.getConfig().getCheckSameToken()) {\nexamples/RuoYi-Cloud-Plus/ruoyi-gateway-mvc/src/main/java/org/dromara/gateway/filter/ForwardAuthFilter.java:45:        if (SaManager.getConfig().getCheckSameToken()) {\nexamples/RuoYi-Cloud-Plus/script/config/nacos/application-common.yml:175:  check-same-token: true\n"
+    },
+    {
+      "n": 64,
+      "tool": "read_source",
+      "args": {
+        "end": 90,
+        "path": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-security/src/main/java/org/dromara/common/security/config/SecurityConfiguration.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-security/src/main/java/org/dromara/common/security/config/SecurityConfiguration.java (L1-64, 共64行)\n   1 | package org.dromara.common.security.config;\n   2 | \n   3 | import cn.dev33.satoken.SaManager;\n   4 | import cn.dev33.satoken.filter.SaServletFilter;\n   5 | import cn.dev33.satoken.httpauth.basic.SaHttpBasicUtil;\n   6 | import cn.dev33.satoken.interceptor.SaInterceptor;\n   7 | import cn.dev33.satoken.same.SaSameUtil;\n   8 | import cn.dev33.satoken.util.SaResult;\n   9 | import org.dromara.common.core.constant.HttpStatus;\n  10 | import org.dromara.common.core.utils.SpringUtils;\n  11 | import org.springframework.boot.autoconfigure.AutoConfiguration;\n  12 | import org.springframework.context.annotation.Bean;\n  13 | import org.springframework.web.servlet.config.annotation.InterceptorRegistry;\n  14 | import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;\n  15 | \n  16 | /**\n  17 |  * 权限安全配置\n  18 |  *\n  19 |  * @author Lion Li\n  20 |  */\n  21 | @AutoConfiguration\n  22 | public class SecurityConfiguration implements WebMvcConfigurer {\n  23 | \n  24 |     /**\n  25 |      * 注册sa-token的拦截器\n  26 |      */\n  27 |     @Override\n  28 |     public void addInterceptors(InterceptorRegistry registry) {\n  29 |         // 注册路由拦截器，自定义验证规则\n  30 |         registry.addInterceptor(new SaInterceptor()).addPathPatterns(\"/**\");\n  31 |     }\n  32 | \n  33 |     /**\n  34 |      * 校验是否从网关转发\n  35 |      */\n  36 |     @Bean\n  37 |     public SaServletFilter getSaServletFilter() {\n  38 |         return new SaServletFilter()\n  39 |             .addInclude(\"/**\")\n  40 |             .addExclude(\"/actuator\", \"/actuator/**\")\n  41 |             .setAuth(obj -> {\n  42 |                 if (SaManager.getConfig().getCheckSameToken()) {\n  43 |                     SaSameUtil.checkCurrentRequestToken();\n  44 |                 }\n  45 |             })\n  46 |             .setError(e -> SaResult.error(\"认证失败，无法访问系统资源\").setCode(HttpStatus.UNAUTHORIZED));\n "
+    },
+    {
+      "n": 65,
+      "tool": "read_source",
+      "args": {
+        "end": 70,
+        "path": "RuoYi-Cloud-Plus/ruoyi-gateway-mvc/src/main/java/org/dromara/gateway/filter/ForwardAuthFilter.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-gateway-mvc/src/main/java/org/dromara/gateway/filter/ForwardAuthFilter.java (L1-65, 共65行)\n   1 | package org.dromara.gateway.filter;\n   2 | \n   3 | import cn.dev33.satoken.SaManager;\n   4 | import cn.dev33.satoken.same.SaSameUtil;\n   5 | import jakarta.servlet.FilterChain;\n   6 | import jakarta.servlet.ServletException;\n   7 | import jakarta.servlet.http.HttpServletRequest;\n   8 | import jakarta.servlet.http.HttpServletResponse;\n   9 | import org.dromara.gateway.filter.support.MutableHttpServletRequest;\n  10 | import org.springframework.core.Ordered;\n  11 | import org.springframework.core.annotation.Order;\n  12 | import org.springframework.stereotype.Component;\n  13 | import org.springframework.util.StringUtils;\n  14 | import org.springframework.web.filter.OncePerRequestFilter;\n  15 | \n  16 | import java.io.IOException;\n  17 | \n  18 | /**\n  19 |  * 转发请求头过滤器:\n  20 |  * 1. 动态透传 X-Forwarded-Prefix\n  21 |  * 2. 转发内部 same-token\n  22 |  *\n  23 |  * @author Lion Li\n  24 |  */\n  25 | @Component\n  26 | @Order(Ordered.HIGHEST_PRECEDENCE + 15)\n  27 | public class ForwardAuthFilter extends OncePerRequestFilter {\n  28 | \n  29 |     @Override\n  30 |     protected boolean shouldNotFilter(HttpServletRequest request) {\n  31 |         return request.getRequestURI().startsWith(\"/actuator\");\n  32 |     }\n  33 | \n  34 |     @Override\n  35 |     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)\n  36 |         throws ServletException, IOException {\n  37 |         MutableHttpServletRequest newRequest = null;\n  38 | \n  39 |         String forwardedPrefix = resolveForwardedPrefix(request);\n  40 |         if (forwardedPrefix != null) {\n  41 |             newRequest = getOrCreateMutableRequest(request, newRequest);\n  42 |             newRequest.putHeader(\"X-Forwarded-Prefix\", forwardedPrefix);\n  43 |         }\n  44 | \n  45 |         if (SaManager.getConfig().getCheckSameToken()) {\n  46 |             newRequ"
+    },
+    {
+      "n": 66,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT data_id, tenant, LEFT(content, 4000) FROM `nacos_config`.config_info WHERE content LIKE '%same-token%' OR content LIKE '%jwt-secret%' LIMIT 10"
+      },
+      "result": "[stderr] ERROR 1054 (42S22) at line 1: Unknown column 'tenant' in 'field list'"
+    },
+    {
+      "n": 67,
+      "tool": "query_db",
+      "args": {
+        "sql": "DESC `nacos_config`.config_info"
+      },
+      "result": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tbigint\tNO\tPRI\tNULL\tauto_increment\ndata_id\tvarchar(255)\tNO\tMUL\tNULL\t\ngroup_id\tvarchar(255)\tYES\t\tNULL\t\ncontent\tlongtext\tNO\t\tNULL\t\nmd5\tvarchar(32)\tYES\t\tNULL\t\ngmt_create\tdatetime\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED\ngmt_modified\tdatetime\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED\nsrc_user\ttext\tYES\t\tNULL\t\nsrc_ip\tvarchar(20)\tYES\t\tNULL\t\napp_name\tvarchar(128)\tYES\t\tNULL\t\ntenant_id\tvarchar(128)\tYES\t\t\t\nc_desc\tvarchar(256)\tYES\t\tNULL\t\nc_use\tvarchar(64)\tYES\t\tNULL\t\neffect\tvarchar(64)\tYES\t\tNULL\t\ntype\tvarchar(64)\tYES\t\tNULL\t\nc_schema\ttext\tYES\t\tNULL\t\nencrypted_data_key\ttext\tYES\t\tNULL"
+    },
+    {
+      "n": 68,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT data_id, group_id, tenant_id, content FROM `nacos_config`.config_info WHERE content LIKE '%same-token%'"
+      },
+      "result": "(空结果, 执行成功)"
+    },
+    {
+      "n": 69,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT data_id, group_id, tenant_id, LEFT(content, 3000) FROM `nacos`.config_info WHERE content LIKE '%jwt-secret%' OR content LIKE '%same-token%'"
+      },
+      "result": "(空结果, 执行成功)"
+    },
+    {
+      "n": 70,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "class SaTokenExceptionHandler"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/handler/SaTokenExceptionHandler.java:20:public class SaTokenExceptionHandler {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/handler/SaTokenExceptionHandler.java:20:public class SaTokenExceptionHandler {\n"
+    },
+    {
+      "n": 71,
+      "tool": "read_source",
+      "args": {
+        "end": 60,
+        "path": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/resources/application.yml",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/resources/application.yml (L1-34, 共34行)\n   1 | # Tomcat\n   2 | server:\n   3 |   port: 9205\n   4 | \n   5 | # Spring\n   6 | spring:\n   7 |   application:\n   8 |     # 应用名称\n   9 |     name: ruoyi-workflow\n  10 |   profiles:\n  11 |     # 环境配置\n  12 |     active: @profiles.active@\n  13 | \n  14 | --- # nacos 配置\n  15 | spring:\n  16 |   cloud:\n  17 |     nacos:\n  18 |       # nacos 服务地址\n  19 |       server-addr: @nacos.server@\n  20 |       username: @nacos.username@\n  21 |       password: @nacos.password@\n  22 |       discovery:\n  23 |         # 注册组\n  24 |         group: @nacos.discovery.group@\n  25 |         namespace: ${spring.profiles.active}\n  26 |       config:\n  27 |         # 配置组\n  28 |         group: @nacos.config.group@\n  29 |         namespace: ${spring.profiles.active}\n  30 |   config:\n  31 |     import:\n  32 |       - optional:nacos:application-common.yml\n  33 |       - optional:nacos:datasource.yml\n  34 |       - optional:nacos:${spring.application.name}.yml"
+    },
+    {
+      "n": 72,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:8848/nacos/v1/cs/configs?dataId=application-common.yml&group=RUOYI&tenant=dev"
+      },
+      "result": "TOOL ERROR: UnboundLocalError: local variable 'resp' referenced before assignment"
+    },
+    {
+      "n": 73,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "StpLogicJwt|SaJwtUtil|jwt"
+      },
+      "result": "examples/PassJava-Platform/passjava-jwt/pom.xml:13:    <artifactId>passjava-jwt</artifactId>\nexamples/PassJava-Platform/passjava-jwt/pom.xml:29:        <!-- jwt 工具类 -->\nexamples/PassJava-Platform/passjava-jwt/pom.xml:32:            <artifactId>jjwt</artifactId>\nexamples/PassJava-Platform/passjava-jwt/pom.xml:77:    <name>passjava-jwt</name>\nexamples/PassJava-Platform/passjava-jwt/pom.xml:78:    <description>佳必过-jwt服务</description>\nexamples/PassJava-Platform/passjava-jwt/src/main/resources/application-jwt.yml:2:  profiles: jwt\nexamples/PassJava-Platform/passjava-jwt/src/main/resources/application-jwt.yml:5:  jwt:\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/config/PassJavaJwtGatewayConfiguration.java:1:package com.jackson0714.passjava.jwt.config;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/config/PassJavaJwtProperties.java:1:package com.jackson0714.passjava.jwt.config;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/config/PassJavaJwtProperties.java:18:@ConfigurationProperties(prefix = \"passjava.jwt\")\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/constants/TokenConstants.java:1:package com.jackson0714.passjava.jwt.constants;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:1:package com.jackson0714.passjava.jwt.utils;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:3:import com.jackson0714.passjava.jwt.config.PassJavaJwtProperties;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:23:    private static final String JWT_CACHE_KEY = \"jwt:userId:\";\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:34:    private PassJavaJwtProperties jwtProperties;\nexamples/PassJava"
+    },
+    {
+      "n": 74,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "StpLogicJwtForStateless|StpLogicJwt|SaJwt"
+      },
+      "result": "examples/mall-swarm/mall-portal/src/main/java/com/macro/mall/portal/util/StpMemberUtil.java:20:import cn.dev33.satoken.jwt.StpLogicJwtForSimple;\nexamples/mall-swarm/mall-portal/src/main/java/com/macro/mall/portal/util/StpMemberUtil.java:49:\tpublic static StpLogic stpLogic = new StpLogicJwtForSimple(TYPE);\nexamples/mall-swarm/mall-gateway/src/main/java/com/macro/mall/util/StpMemberUtil.java:20:import cn.dev33.satoken.jwt.StpLogicJwtForSimple;\nexamples/mall-swarm/mall-gateway/src/main/java/com/macro/mall/util/StpMemberUtil.java:49:\tpublic static StpLogic stpLogic = new StpLogicJwtForSimple(TYPE);\nexamples/mall-swarm/mall-admin/src/main/java/com/macro/mall/config/SaTokenConfigure.java:3:import cn.dev33.satoken.jwt.StpLogicJwtForSimple;\nexamples/mall-swarm/mall-admin/src/main/java/com/macro/mall/config/SaTokenConfigure.java:18:    public StpLogic getStpLogicJwt() {\nexamples/mall-swarm/mall-admin/src/main/java/com/macro/mall/config/SaTokenConfigure.java:19:        return new StpLogicJwtForSimple();\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/config/SaTokenConfiguration.java:4:import cn.dev33.satoken.jwt.StpLogicJwtForSimple;\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/config/SaTokenConfiguration.java:25:    public StpLogic getStpLogicJwt() {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/config/SaTokenConfiguration.java:26:        return new StpLogicJwtForSimple();\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/config/SaTokenConfiguration.java:4:import cn.dev33.satoken.jwt.StpLogicJwtForSimple;\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/config/SaTokenConfiguration.java:25:    public StpLogic getStpLogicJwt() {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/c"
+    },
+    {
+      "n": 75,
+      "tool": "read_source",
+      "args": {
+        "end": 60,
+        "path": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/handler/SaTokenExceptionHandler.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/handler/SaTokenExceptionHandler.java (L1-52, 共52行)\n   1 | package org.dromara.common.satoken.handler;\n   2 | \n   3 | import cn.dev33.satoken.exception.NotLoginException;\n   4 | import cn.dev33.satoken.exception.NotPermissionException;\n   5 | import cn.dev33.satoken.exception.NotRoleException;\n   6 | import cn.hutool.http.HttpStatus;\n   7 | import jakarta.servlet.http.HttpServletRequest;\n   8 | import lombok.extern.slf4j.Slf4j;\n   9 | import org.dromara.common.core.domain.R;\n  10 | import org.springframework.web.bind.annotation.ExceptionHandler;\n  11 | import org.springframework.web.bind.annotation.RestControllerAdvice;\n  12 | \n  13 | /**\n  14 |  * SaToken异常处理器\n  15 |  *\n  16 |  * @author Lion Li\n  17 |  */\n  18 | @Slf4j\n  19 | @RestControllerAdvice\n  20 | public class SaTokenExceptionHandler {\n  21 | \n  22 |     /**\n  23 |      * 权限码异常\n  24 |      */\n  25 |     @ExceptionHandler(NotPermissionException.class)\n  26 |     public R<Void> handleNotPermissionException(NotPermissionException e, HttpServletRequest request) {\n  27 |         String requestURI = request.getRequestURI();\n  28 |         log.error(\"请求地址'{}',权限码校验失败'{}'\", requestURI, e.getMessage());\n  29 |         return R.fail(HttpStatus.HTTP_FORBIDDEN, \"没有访问权限，请联系管理员授权\");\n  30 |     }\n  31 | \n  32 |     /**\n  33 |      * 角色权限异常\n  34 |      */\n  35 |     @ExceptionHandler(NotRoleException.class)\n  36 |     public R<Void> handleNotRoleException(NotRoleException e, HttpServletRequest request) {\n  37 |         String requestURI = request.getRequestURI();\n  38 |         log.error(\"请求地址'{}',角色权限校验失败'{}'\", requestURI, e.getMessage());\n  39 |         return R.fail(HttpStatus.HTTP_FORBIDDEN, \"没有访问权限，请联系管理员授权\");\n  40 |     }\n  41 | \n  42 |     /**\n  43 |      * 认证失败\n  44 |      */\n  45 |     @ExceptionHandler(NotLoginException.class)\n  46 |     public R<Void> handleNotLoginException(NotLoginException e, HttpServletRequest request)"
+    },
+    {
+      "n": 76,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "access_token|createToken|LoginHelper\\.create"
+      },
+      "result": "examples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:26:    private static final String ACCESS_TOKEN = \"access_token\";\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/controller/SysLoginController.java:86:\t\tR r = sysUserTokenService.createToken(user.getUserId());\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/oauth2/OAuth2Filter.java:35:    protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) throws Exception {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/service/impl/SysUserTokenServiceImpl.java:29:\tpublic R createToken(long userId) {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/service/SysUserTokenService.java:26:\tR createToken(long userId);\nexamples/PassJava-Platform/data/sql/01.初始化业务数据库.sql:235:DROP TABLE IF EXISTS chms_access_token;\nexamples/PassJava-Platform/data/sql/01.初始化业务数据库.sql:238:/* Table: chms_access_token                                     */\nexamples/PassJava-Platform/data/sql/01.初始化业务数据库.sql:240:CREATE TABLE chms_access_token\nexamples/PassJava-Platform/data/sql/01.初始化业务数据库.sql:243:   access_token         VARCHAR(500) COMMENT 'access_token',\nexamples/PassJava-Platform/data/sql/01.初始化业务数据库.sql:252:ALTER TABLE chms_access_token COMMENT '渠道-认证表';\nexamples/PassJava-Platform/passjava-channel/src/main/resources/mapper/channel/AccessTokenDao.xml:9:        <result property=\"accessToken\" column=\"access_token\"/>\nexamples/PassJava-Platform/passjava-channel/src/main/java/com/jackson0714/passjava/channel/entity/AccessTokenEntity.java:19:@TableName(\"chms_access_token\")\nexamples/PassJava-Platform/passjava-channel/src/main/java/com/jackson0714/passjava/channel/entity/AccessTokenEntity.java:29:\t * access_token\nexamples/zlt-microservices-platform/zlt-doc/sql/oauth-center.sql:18:  `access_token_validity` int(11) NULL DEFAULT NULL COMMENT 'access_token有效期',"
+    },
+    {
+      "n": 77,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "rnStr"
+      },
+      "result": "examples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/text/Convert.java:965:        String returnString = new String(c);\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/text/Convert.java:967:        return returnString;\nexamples/MoGuBlog/mogu_utils/src/main/java/com/moxi/mogublog/utils/IpUtils.java:223://            String returnStr = getResult(urlStr, content, encodingString);\nexamples/MoGuBlog/mogu_utils/src/main/java/com/moxi/mogublog/utils/IpUtils.java:225://            if (returnStr != null) {\nexamples/MoGuBlog/mogu_utils/src/main/java/com/moxi/mogublog/utils/IpUtils.java:227://                log.info(\"调用IP解析接口返回的内容:\" + returnStr);\nexamples/MoGuBlog/mogu_utils/src/main/java/com/moxi/mogublog/utils/IpUtils.java:228://                String[] temp = returnStr.split(\",\");\nexamples/MoGuBlog/mogu_utils/src/main/java/com/moxi/mogublog/utils/IpUtils.java:247://                Map<String, Object> map = JsonUtils.jsonToMap(returnStr);\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/config/YudaoWebSecurityConfigurerAdapter.java:177:                urls.addAll(convertList(entry.getKey().getPathPatternsCondition().getPatterns(), PathPattern::getPatternString));\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-biz-tenant/src/main/java/cn/iocoder/yudao/framework/tenant/config/YudaoTenantAutoConfiguration.java:151:                        convertList(entry.getKey().getPathPatternsCondition().getPatterns(), PathPattern::getPatternString));\n"
+    },
+    {
+      "n": 78,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-auth",
+        "pattern": "SaLoginModel|StpUtil.login|token"
+      },
+      "result": "examples/PassJava-Platform/passjava-jwt/pom.xml:31:            <groupId>io.jsonwebtoken</groupId>\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:4:import io.jsonwebtoken.Claims;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:5:import io.jsonwebtoken.Jwts;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:6:import io.jsonwebtoken.SignatureAlgorithm;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:26:    private static final String ACCESS_TOKEN = \"access_token\";\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:27:    private static final String REFRESH_TOKEN = \"refresh_token\";\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:37:     * 生成 token 令牌\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:40:     * @return 令token牌\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:44:        Map<String, Object> tokenMap = buildToken(userId, username);\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:45:        cacheToken(userId, tokenMap);\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:46:        return tokenMap;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:49:    private void cacheToken(String userId, Map<String, Object> tokenMap) {\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:50:        s"
+    },
+    {
+      "n": 79,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-auth",
+        "pattern": "class.*LoginService"
+      },
+      "result": "examples/RuoYi-Cloud/ruoyi-auth/src/main/java/com/ruoyi/auth/service/SysLoginService.java:28:public class SysLoginService\nexamples/paascloud-master/paascloud-provider/paascloud-provider-uac/src/main/java/com/paascloud/provider/service/impl/UacLoginServiceImpl.java:44:public class UacLoginServiceImpl implements UacLoginService {\nexamples/RuoYi-Cloud-Plus/ruoyi-auth/src/main/java/org/dromara/auth/service/SysLoginService.java:56:public class SysLoginService {\nexamples/RuoYi-Cloud-Plus/ruoyi-auth/src/main/java/org/dromara/auth/service/SysLoginService.java:56:public class SysLoginService {\n"
+    },
+    {
+      "n": 80,
+      "tool": "read_source",
+      "args": {
+        "end": 160,
+        "path": "RuoYi-Cloud-Plus/ruoyi-auth/src/main/java/org/dromara/auth/service/SysLoginService.java",
+        "start": 50
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-auth/src/main/java/org/dromara/auth/service/SysLoginService.java (L50-160, 共265行)\n  50 |  *\n  51 |  * @author ruoyi\n  52 |  */\n  53 | @RequiredArgsConstructor\n  54 | @Service\n  55 | @Slf4j\n  56 | public class SysLoginService {\n  57 | \n  58 |     @DubboReference\n  59 |     private RemoteUserService remoteUserService;\n  60 |     @DubboReference\n  61 |     private RemoteTenantService remoteTenantService;\n  62 |     @DubboReference\n  63 |     private RemoteSocialService remoteSocialService;\n  64 | \n  65 |     @Autowired\n  66 |     private UserPasswordProperties userPasswordProperties;\n  67 |     @Autowired\n  68 |     private final CaptchaProperties captchaProperties;\n  69 | \n  70 |     /**\n  71 |      * 绑定第三方用户\n  72 |      *\n  73 |      * @param authUserData 授权响应实体\n  74 |      */\n  75 |     @Lock4j\n  76 |     public void socialRegister(AuthUser authUserData) {\n  77 |         String authId = authUserData.getSource() + authUserData.getUuid();\n  78 |         // 第三方用户信息\n  79 |         RemoteSocialBo bo = BeanUtil.toBean(authUserData, RemoteSocialBo.class);\n  80 |         BeanUtil.copyProperties(authUserData.getToken(), bo);\n  81 |         Long userId = LoginHelper.getUserId();\n  82 |         bo.setUserId(userId);\n  83 |         bo.setAuthId(authId);\n  84 |         bo.setOpenId(authUserData.getUuid());\n  85 |         bo.setUserName(authUserData.getUsername());\n  86 |         bo.setNickName(authUserData.getNickname());\n  87 |         List<RemoteSocialVo> checkList = remoteSocialService.selectByAuthId(authId);\n  88 |         if (CollUtil.isNotEmpty(checkList)) {\n  89 |             throw new ServiceException(\"此三方账号已经被绑定!\");\n  90 |         }\n  91 |         // 查询是否已经绑定用户\n  92 |         RemoteSocialBo params = new RemoteSocialBo();\n  93 |         params.setUserId(userId);\n  94 |         params.setSource(bo.getSource());\n  95 |         List<RemoteSocialVo> list = remoteSocialService.queryList(params);\n  96 |         if (CollUtil.isEmpty(list)) {\n  97 |       "
+    },
+    {
+      "n": 81,
+      "tool": "send_http",
+      "args": {
+        "body": "",
+        "headers_json": "{\"Authorization\": \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJyd0pEYXZNbmRzNEhybXY2ajlwM1hBNkdYM2ZLdTRSYSIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiIsImRlcHRJZCI6MTAzLCJkZXB0TmFtZSI6IuebuOW9l+agvOS4qui/kemXqOe6qOmXqOWkqeKAlOKAlCIsImRlcHRDYXRlZ29yeSI6IiJ9.HsHwYBEH7ArnF5Ks1QVxjmTpNDjEJ0CElLsvF5tyfH4\"}",
+        "method": "GET",
+        "url": "http://localhost:8080/workflow/definition/list?pageNum=1&pageSize=5"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":404,\"msg\":\"请求地址不存在\",\"data\":null}"
+    },
+    {
+      "n": 82,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/script",
+        "pattern": "ruoyi-workflow"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/.run/ruoyi-workflow.run.xml:2:  <configuration default=\"false\" name=\"ruoyi-workflow\" type=\"docker-deploy\" factoryName=\"dockerfile\" server-name=\"Docker\">\nexamples/RuoYi-Cloud-Plus/.run/ruoyi-workflow.run.xml:5:        <option name=\"imageTag\" value=\"ruoyi/ruoyi-workflow:2.6.1\" />\nexamples/RuoYi-Cloud-Plus/.run/ruoyi-workflow.run.xml:7:        <option name=\"sourceFilePath\" value=\"ruoyi-modules/ruoyi-workflow/Dockerfile\" />\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/.flattened-pom.xml:20:    <module>ruoyi-workflow</module>\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/pom.xml:16:        <module>ruoyi-workflow</module>\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/pom.xml:12:    <artifactId>ruoyi-workflow</artifactId>\nexamples/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-workflow/src/main/resources/application.yml:9:    name: ruoyi-workflow\nexamples/RuoYi-Cloud-Plus/script/config/nacos/ruoyi-gateway.yml:61:            - id: ruoyi-workflow\nexamples/RuoYi-Cloud-Plus/script/config/nacos/ruoyi-gateway.yml:62:              uri: lb://ruoyi-workflow\nexamples/RuoYi-Cloud-Plus/script/config/nacos/ruoyi-gateway.yml:69:              uri: lb://ruoyi-workflow\nexamples/RuoYi-Cloud-Plus/script/config/nacos/ruoyi-gateway-mvc.yml:60:            - id: ruoyi-workflow\nexamples/RuoYi-Cloud-Plus/script/config/nacos/ruoyi-gateway-mvc.yml:61:              uri: lb://ruoyi-workflow\nexamples/RuoYi-Cloud-Plus/script/config/nacos/ruoyi-gateway-mvc.yml:68:              uri: lb://ruoyi-workflow\nexamples/RuoYi-Cloud-Plus/script/docker/docker-compose.yml:264:  ruoyi-workflow:\nexamples/RuoYi-Cloud-Plus/script/docker/docker-compose.yml:265:    image: ruoyi/ruoyi-workflow:2.6.1\nexamples/RuoYi-Cloud-Plus/script/docker/docker-compose.yml:266:    container_name: ruoyi-workflow\nexamples/RuoYi-Cloud-Plus/script/docker/docker-compose.yml:274:      - /docker/ruoyi-workflow/logs/:/ruoyi/workflow/logs\nexamples/RuoYi-Cloud-Plus/script/sql/ry-config.sql:37:(10, 'ruoyi-workflow.yml', 'DEFAULT_GROUP',"
+    },
+    {
+      "n": 83,
+      "tool": "read_source",
+      "args": {
+        "end": 80,
+        "path": "RuoYi-Cloud-Plus/script/config/nacos/ruoyi-gateway-mvc.yml",
+        "start": 40
+      },
+      "result": "RuoYi-Cloud-Plus/script/config/nacos/ruoyi-gateway-mvc.yml (L40-80, 共84行)\n  40 |               uri: lb://ruoyi-gen\n  41 |               predicates:\n  42 |                 - Path=/tool/**\n  43 |               filters:\n  44 |                 - StripPrefix=1\n  45 |             # 系统模块\n  46 |             - id: ruoyi-system\n  47 |               uri: lb://ruoyi-system\n  48 |               predicates:\n  49 |                 - Path=/system/**,/monitor/**\n  50 |               filters:\n  51 |                 - StripPrefix=1\n  52 |             # 资源服务\n  53 |             - id: ruoyi-resource\n  54 |               uri: lb://ruoyi-resource\n  55 |               predicates:\n  56 |                 - Path=/resource/**\n  57 |               filters:\n  58 |                 - StripPrefix=1\n  59 |             # workflow服务\n  60 |             - id: ruoyi-workflow\n  61 |               uri: lb://ruoyi-workflow\n  62 |               predicates:\n  63 |                 - Path=/workflow/**\n  64 |               filters:\n  65 |                 - StripPrefix=1\n  66 |             # warm-flow服务\n  67 |             - id: warm-flow\n  68 |               uri: lb://ruoyi-workflow\n  69 |               predicates:\n  70 |                 - Path=/warm-flow-ui/**,/warm-flow/**\n  71 |             # 演示服务\n  72 |             - id: ruoyi-demo\n  73 |               uri: lb://ruoyi-demo\n  74 |               predicates:\n  75 |                 - Path=/demo/**\n  76 |               filters:\n  77 |                 - StripPrefix=1\n  78 |             # MQ演示服务\n  79 |             - id: ruoyi-test-mq\n  80 |               uri: lb://ruoyi-test-mq"
+    },
+    {
+      "n": 84,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-auth",
+        "pattern": "clientId|clientIdStr"
+      },
+      "result": "examples/SiteWhere/service-command-delivery/src/main/java/com/sitewhere/commands/configuration/destinations/mqtt/MqttConfiguration.java:57:    private String clientId;\nexamples/SiteWhere/service-command-delivery/src/main/java/com/sitewhere/commands/configuration/destinations/mqtt/MqttConfiguration.java:82:\tthis.clientId = configurableString(\"clientId\", json, null);\nexamples/SiteWhere/service-command-delivery/src/main/java/com/sitewhere/commands/configuration/destinations/mqtt/MqttConfiguration.java:201:\treturn clientId;\nexamples/SiteWhere/service-command-delivery/src/main/java/com/sitewhere/commands/configuration/destinations/mqtt/MqttConfiguration.java:204:    public void setClientId(String clientId) {\nexamples/SiteWhere/service-command-delivery/src/main/java/com/sitewhere/commands/configuration/destinations/mqtt/MqttConfiguration.java:205:\tthis.clientId = clientId;\nexamples/SiteWhere/service-event-sources/src/main/java/com/sitewhere/sources/configuration/eventsource/mqtt/MqttConfiguration.java:66:    private String clientId;\nexamples/SiteWhere/service-event-sources/src/main/java/com/sitewhere/sources/configuration/eventsource/mqtt/MqttConfiguration.java:103:\tthis.clientId = configurableString(\"clientId\", json, null);\nexamples/SiteWhere/service-event-sources/src/main/java/com/sitewhere/sources/configuration/eventsource/mqtt/MqttConfiguration.java:222:\treturn clientId;\nexamples/SiteWhere/service-event-sources/src/main/java/com/sitewhere/sources/configuration/eventsource/mqtt/MqttConfiguration.java:225:    public void setClientId(String clientId) {\nexamples/SiteWhere/service-event-sources/src/main/java/com/sitewhere/sources/configuration/eventsource/mqtt/MqttConfiguration.java:226:\tthis.clientId = clientId;\nexamples/SiteWhere/service-outbound-connectors/src/main/java/com/sitewhere/connectors/configuration/connector/MqttOutboundConnectorConfiguration.java:68:    private String clientId;\nexamples/SiteWhere/service-outbound-connectors/src/main/java/com/sitewhere/connect"
+    },
+    {
+      "n": 85,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken",
+        "pattern": "StpUtil|token"
+      },
+      "result": "examples/PassJava-Platform/passjava-jwt/pom.xml:31:            <groupId>io.jsonwebtoken</groupId>\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:4:import io.jsonwebtoken.Claims;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:5:import io.jsonwebtoken.Jwts;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:6:import io.jsonwebtoken.SignatureAlgorithm;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:26:    private static final String ACCESS_TOKEN = \"access_token\";\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:27:    private static final String REFRESH_TOKEN = \"refresh_token\";\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:37:     * 生成 token 令牌\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:40:     * @return 令token牌\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:44:        Map<String, Object> tokenMap = buildToken(userId, username);\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:45:        cacheToken(userId, tokenMap);\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:46:        return tokenMap;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:49:    private void cacheToken(String userId, Map<String, Object> tokenMap) {\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:50:        s"
+    },
+    {
+      "n": 86,
+      "tool": "read_source",
+      "args": {
+        "end": 120,
+        "path": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/utils/LoginHelper.java",
+        "start": 1
+      },
+      "result": "RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-satoken/src/main/java/org/dromara/common/satoken/utils/LoginHelper.java (L1-120, 共217行)\n   1 | package org.dromara.common.satoken.utils;\n   2 | \n   3 | import cn.dev33.satoken.session.SaSession;\n   4 | import cn.dev33.satoken.stp.StpUtil;\n   5 | import cn.dev33.satoken.stp.parameter.SaLoginParameter;\n   6 | import cn.hutool.core.collection.CollUtil;\n   7 | import cn.hutool.core.convert.Convert;\n   8 | import cn.hutool.core.util.ObjectUtil;\n   9 | import lombok.AccessLevel;\n  10 | import lombok.NoArgsConstructor;\n  11 | import org.dromara.common.core.constant.SystemConstants;\n  12 | import org.dromara.common.core.constant.TenantConstants;\n  13 | import org.dromara.common.core.enums.UserType;\n  14 | import org.dromara.system.api.model.LoginUser;\n  15 | \n  16 | import java.util.Set;\n  17 | \n  18 | /**\n  19 |  * 登录鉴权助手\n  20 |  * <p>\n  21 |  * user_type 为 用户类型 同一个用户表 可以有多种用户类型 例如 pc,app\n  22 |  * deivce 为 设备类型 同一个用户类型 可以有 多种设备类型 例如 web,ios\n  23 |  * 可以组成 用户类型与设备类型多对多的 权限灵活控制\n  24 |  * <p>\n  25 |  * 多用户体系 针对 多种用户类型 但权限控制不一致\n  26 |  * 可以组成 多用户类型表与多设备类型 分别控制权限\n  27 |  *\n  28 |  * @author Lion Li\n  29 |  */\n  30 | @NoArgsConstructor(access = AccessLevel.PRIVATE)\n  31 | public class LoginHelper {\n  32 | \n  33 |     public static final String LOGIN_USER_KEY = \"loginUser\";\n  34 |     public static final String TENANT_KEY = \"tenantId\";\n  35 |     public static final String USER_KEY = \"userId\";\n  36 |     public static final String USER_NAME_KEY = \"userName\";\n  37 |     public static final String DEPT_KEY = \"deptId\";\n  38 |     public static final String DEPT_NAME_KEY = \"deptName\";\n  39 |     public static final String DEPT_CATEGORY_KEY = \"deptCategory\";\n  40 |     public static final String CLIENT_KEY = \"clientid\";\n  41 | \n  42 |     /**\n  43 |      * 登录系统 基于 设备类型\n  44 |      * 针对相同用户体系不同设备\n  45 |      *\n  46 |      * @param loginUser 登录用户信息\n  47 |      * @param model     配置参数\n  48 |      */\n  49 |     public static void login(LoginUser"
+    },
+    {
+      "n": 87,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "RuoYi-Cloud-Plus",
+        "pattern": "rnStr|randomStr"
+      },
+      "result": "examples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/text/Convert.java:965:        String returnString = new String(c);\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/text/Convert.java:967:        return returnString;\nexamples/zlt-microservices-platform/zlt-demo/rocketmq-demo/rocketmq-transactional/src/main/java/com/rocketmq/demo/controller/OrderController.java:31:        order.setOrderNo(RandomUtil.randomString(4));\nexamples/zlt-microservices-platform/zlt-demo/rocketmq-demo/rocketmq-transactional/src/main/java/com/rocketmq/demo/controller/OrderController.java:49:        order.setOrderNo(RandomUtil.randomString(4));\nexamples/zlt-microservices-platform/zlt-demo/rocketmq-demo/rocketmq-transactional/src/main/java/com/rocketmq/demo/controller/OrderController.java:68:        order.setOrderNo(RandomUtil.randomString(4));\nexamples/zlt-microservices-platform/zlt-uaa/src/main/java/com/central/oauth/service/impl/ValidateCodeServiceImpl.java:35:     * 保存用户验证码，和randomStr绑定\nexamples/MoGuBlog/mogu_utils/src/main/java/com/moxi/mogublog/utils/IpUtils.java:223://            String returnStr = getResult(urlStr, content, encodingString);\nexamples/MoGuBlog/mogu_utils/src/main/java/com/moxi/mogublog/utils/IpUtils.java:225://            if (returnStr != null) {\nexamples/MoGuBlog/mogu_utils/src/main/java/com/moxi/mogublog/utils/IpUtils.java:227://                log.info(\"调用IP解析接口返回的内容:\" + returnStr);\nexamples/MoGuBlog/mogu_utils/src/main/java/com/moxi/mogublog/utils/IpUtils.java:228://                String[] temp = returnStr.split(\",\");\nexamples/MoGuBlog/mogu_utils/src/main/java/com/moxi/mogublog/utils/IpUtils.java:247://                Map<String, Object> map = JsonUtils.jsonToMap(returnStr);\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/service/impl/CaptchaServiceImpl.java:129:        return sendMobileByCode(RandomUtil.randomString(6), email, templateCode, \"邮件验证码 cacheKey="
+    },
+    {
+      "n": 88,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:9205/actuator/env",
+        "headers_json": "{\"Authorization\": \"Basic cnVveWk6MTIzNDU2\"}"
+      },
+      "result": "HTTP 200\nContent-Type: application/vnd.spring-boot.actuator.v3+json\n\n{\"activeProfiles\":[\"dev\"],\"defaultProfiles\":[\"default\"],\"propertySources\":[{\"name\":\"server.ports\",\"properties\":{\"local.server.port\":{\"value\":\"******\"}}},{\"name\":\"springCloudBusOverridesProperties\",\"properties\":{\"spring.cloud.function.definition\":{\"value\":\"******\"}}},{\"name\":\"servletContextInitParams\",\"properties\":{}},{\"name\":\"migrate-systemProperties\",\"properties\":{\"spring.data.redis.password\":{\"value\":\"******\",\"origin\":\"\\\"spring.redis.password\\\" from property source \\\"systemProperties\\\"\"},\"spring.data.redis.port\":{\"value\":\"******\",\"origin\":\"\\\"spring.redis.port\\\" from property source \\\"systemProperties\\\"\"},\"spring.data.redis.host\":{\"value\":\"******\",\"origin\":\"\\\"spring.redis.host\\\" from property source \\\"systemProperties\\\"\"}}},{\"name\":\"systemProperties\",\"properties\":{\"datasource.workflow.password\":{\"value\":\"******\"},\"mybatis-plus.enableLogicDelete\":{\"value\":\"******\"},\"java.specification.version\":{\"value\":\"******\"},\"spring.cloud.bus.id\":{\"value\":\"******\"},\"spring.redis.host\":{\"value\":\"******\"},\"sun.jnu.encoding\":{\"value\":\"******\"},\"spring.cloud.nacos.config.namespace\":{\"value\":\"******\"},\"spring.data.redis.database\":{\"value\":\"******\"},\"sun.arch.data.model\":{\"value\":\"******\"},\"warm-flow.enabled\":{\"value\":\"******\"},\"sun.font.fontmanager\":{\"value\":\"******\"},\"java.vendor.url\":{\"value\":\"******\"},\"spring.cloud.function.configuration.default.copy-input-headers\":{\"value\":\"******\"},\"seata.enabled\":{\"value\":\"******\"},\"APPLICATION_NAME\":{\"value\":\"******\"},\"sun.boot.library.path\":{\"value\":\"******\"},\"sun.java.command\":{\"value\":\"******\"},\"jdk.debug\":{\"value\":\"******\"},\"spring.cloud.service-registry.auto-registration.enabled\":{\"value\":\"******\"},\"spring.application.name\":{\"value\":\"******\"},\"spring.redis.port\":{\"value\":\"******\"},\"java.specification.vendor\":{\"value\":\"******\"},\"java.version.date\":{\"value\":\"******\"},\"java.home\":{\"value\":\"******\"},\"datasource.workflow.url\":{\"value\":\"******\"},\"file.separator\":{\"value\":\"****"
+    },
+    {
+      "n": 89,
+      "tool": "redis_cmd",
+      "args": {
+        "cmd_str": "KEYS satoken*"
+      },
+      "result": "NOAUTH Authentication required."
+    },
+    {
+      "n": 90,
+      "tool": "redis_cmd",
+      "args": {
+        "cmd_str": "AUTH ruoyi123"
+      },
+      "result": "WRONGPASS invalid username-password pair or user is disabled."
+    },
+    {
+      "n": 91,
+      "tool": "send_http",
+      "args": {
+        "body": "{\"id\":2098658892962639874,\"tenantId\":\"394190\",\"flowName\":\"<<SINK_REACHED>>\"}",
+        "headers_json": "{\"Content-Type\": \"application/json\", \"Authorization\": \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJyd0pEYXZNbmRzNEhybXY2ajlwM1hBNkdYM2ZLdTRSYSIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiIsImRlcHRJZCI6MTAzLCJkZXB0TmFtZSI6IuebuOW9l+agvOS4qui/kemXqOe6qOmXqOWkqeKAlOKAlCIsImRlcHRDYXRlZ29yeSI6IiJ9.HsHwYBEH7ArnF5Ks1QVxjmTpNDjEJ0CElLsvF5tyfH4\"}",
+        "method": "PUT",
+        "url": "http://localhost:9205/definition"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":401,\"msg\":\"认证失败，无法访问系统资源\",\"data\":null}"
+    },
+    {
+      "n": 92,
+      "tool": "send_http",
+      "args": {
+        "body": "{\"clientId\":\"428a8310cd442757ae699df5d894f051\",\"grantType\":\"password\",\"tenantId\":\"000000\",\"username\":\"admin\",\"password\":\"admin123\"}",
+        "headers_json": "{\"Content-Type\": \"application/json\"}",
+        "method": "POST",
+        "url": "http://localhost:8080/login"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":200,\"msg\":\"操作成功\",\"data\":{\"scope\":null,\"openid\":null,\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJFZHU3aGU0UHpmY1FIWUY4NFZ0WjFvSnI0V3JMZk1KTyIsImNsaWVudGlkIjoiNDI4YTgzMTBjZDQ0Mjc1N2FlNjk5ZGY1ZDg5NGYwNTEiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiIsImRlcHRJZCI6MTAzLCJkZXB0TmFtZSI6IsOnXHUwMGEw4oCdw6VcdTAwOGbigJjDqcaSwqjDqeKAlMKoIiwiZGVwdENhdGVnb3J5IjoiIn0.8hOABQFhWBE_ojck9uhkyFyn3RJjXT-tp7RBlsbLUCk\",\"refresh_token\":null,\"expire_in\":604800,\"refresh_expire_in\":null,\"client_id\":\"428a8310cd442757ae699df5d894f051\"}}"
+    },
+    {
+      "n": 93,
+      "tool": "send_http",
+      "args": {
+        "body": "{\"id\":2098658892962639874,\"tenantId\":\"394190\",\"flowName\":\"<<SINK_REACHED>>\"}",
+        "headers_json": "{\"Content-Type\": \"application/json\", \"Authorization\": \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJFZHU3aGU0UHpmY1FIWUY4NFZ0WjFvSnI0V3JMZk1KTyIsImNsaWVudGlkIjoiNDI4YTgzMTBjZDQ0Mjc1N2FlNjk5ZGY1ZDg5NGYwNTEiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiIsImRlcHRJZCI6MTAzLCJkZXB0TmFtZSI6IuebuOW9l+agvOS4qui/kemXqOe6qOmXqOWkqeKAlOKAlCIsImRlcHRDYXRlZ29yeSI6IiJ9.8hOABQFhWBE_ojck9uhkyFyn3RJjXT-tp7RBlsbLUCk\"}",
+        "method": "PUT",
+        "url": "http://localhost:9205/definition"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":401,\"msg\":\"认证失败，无法访问系统资源\",\"data\":null}"
+    },
+    {
+      "n": 94,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:9210/actuator",
+        "headers_json": "{\"Authorization\": \"Basic cnVveWk6MTIzNDU2\"}"
+      },
+      "result": "HTTP ERROR: <urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "n": 95,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-ruoyi-cloud-plus-ruoyi-auth",
+        "tail": 50
+      },
+      "result": "\u001b[36m2026-09-12 15:57:04\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteClientService],MethodName=[queryByClientId],SpendTime=[4ms]\n\u001b[36m2026-09-12 15:57:04\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务调用: Client[consumer],InterfaceName=[RemoteUserService],MethodName=[getUserInfo]\n\u001b[36m2026-09-12 15:57:04\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteUserService],MethodName=[getUserInfo],SpendTime=[21ms]\n\u001b[36m2026-09-12 15:57:04\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.log.event.LogEventListener\n\u001b[0;39m - [127.0.0.1]内网IP[admin][Success][Login successful]\n\u001b[36m2026-09-12 15:57:04\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务调用: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLogininfor]\n\u001b[36m2026-09-12 15:57:04\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLogininfor],SpendTime=[4ms]\n\u001b[36m2026-09-12 15:57:04\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务调用: Client[consumer],InterfaceName=[RemoteUserService],MethodName=[recordLoginInfo]\n\u001b[36m2026-09-12 15:57:04\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteUserService],MethodName=[recordLoginInfo],SpendTime=[5ms]\n\u001b[36m2026-09-12 15:57:04\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.auth.listener.UserActionListener\n\u001b[0;39m - user doLogin, useId:sys_user:1, token:***vF5tyfH4\n\u001b[36m2026-09-12 15:57:04"
+    },
+    {
+      "n": 96,
+      "tool": "send_http",
+      "args": {
+        "body": "{}",
+        "headers_json": "{\"Content-Type\": \"application/json\"}",
+        "method": "PUT",
+        "url": "http://localhost:9205/definition"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":401,\"msg\":\"认证失败，无法访问系统资源\",\"data\":null}"
+    },
+    {
+      "n": 97,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-ruoyi-cloud-plus-ruoyi-workflow",
+        "tail": 15
+      },
+      "result": "\u001b[36m2026-09-12 07:30:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务调用: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLog]\n\u001b[36m2026-09-12 07:30:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLog],SpendTime=[3ms]\n\u001b[36m2026-09-12 07:30:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[1;31mERROR\u001b[0;39m \u001b[1;35mo.d.c.w.h.GlobalExceptionHandler\n\u001b[0;39m - 流程任务不存在或任务已审批！\n\u001b[36m2026-09-12 07:58:25\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[1;31mERROR\u001b[0;39m \u001b[1;35mo.d.c.s.h.SaTokenExceptionHandler\n\u001b[0;39m - 请求地址'/definition',认证失败'token 无效：eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJyd0pEYXZNbmRzNEhybXY2ajlwM1hBNkdYM2ZLdTRSYSIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiIsImRlcHRJZCI6MTAzLCJkZXB0TmFtZSI6IuebuOW9l+agvOS4qui/kemXqOe6qOmXqOWkqeKAlOKAlCIsImRlcHRDYXRlZ29yeSI6IiJ9.HsHwYBEH7ArnF5Ks1QVxjmTpNDjEJ0CElLsvF5tyfH4',无法访问系统资源\n\u001b[36m2026-09-12 08:09:51\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[1;31mERROR\u001b[0;39m \u001b[1;35mo.d.c.s.h.SaTokenExceptionHandler\n\u001b[0;39m - 请求地址'/definition',认证失败'token 无效：eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJyd0pEYXZNbmRzNEhybXY2ajlwM1hBNkdYM2ZLdTRSYSIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiIsImRlcHRJZCI6MTAzLCJkZXB0TmFtZSI6IuebuOW9l+agvOS4qui/kemXqOe6qOmXqOWkqeKAlOKAlCIsImRlcHRDYXRlZ29yeSI6IiJ9.HsHwYBEH7ArnF5Ks1QVxjmTpNDjEJ0CElLsvF5tyfH4',无法访问系统资源\n\u001b[36m2026-09-12 08:10:02\u001b[0;39m \u001b[32m[XNIO-1 task-3]\u001b[0;39m \u001b[1;31mERROR\u001b[0;39m \u001b[1;35mo.d.c.s.h.SaTokenExceptionHandler\n\u001b[0;39m - 请求地址'/definition',认证失败'token 无效：eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb"
+    },
+    {
+      "n": 98,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-ruoyi-cloud-plus-ruoyi-auth",
+        "tail": 200
+      },
+      "result": "m2026-09-12 15:26:26\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteUserService],MethodName=[getUserInfo],SpendTime=[25ms]\n\u001b[36m2026-09-12 15:26:27\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.log.event.LogEventListener\n\u001b[0;39m - [127.0.0.1]内网IP[admin][Success][Login successful]\n\u001b[36m2026-09-12 15:26:27\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务调用: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLogininfor]\n\u001b[36m2026-09-12 15:26:27\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteLogService],MethodName=[saveLogininfor],SpendTime=[4ms]\n\u001b[36m2026-09-12 15:26:27\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务调用: Client[consumer],InterfaceName=[RemoteUserService],MethodName=[recordLoginInfo]\n\u001b[36m2026-09-12 15:26:27\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.c.d.filter.DubboRequestFilter\n\u001b[0;39m - DUBBO - 服务响应: Client[consumer],InterfaceName=[RemoteUserService],MethodName=[recordLoginInfo],SpendTime=[7ms]\n\u001b[36m2026-09-12 15:26:27\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.auth.listener.UserActionListener\n\u001b[0;39m - user doLogin, useId:sys_user:1, token:***hmfl7uP8\n\u001b[36m2026-09-12 15:26:27\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[34mINFO \u001b[0;39m \u001b[1;35mo.d.auth.listener.UserActionListener\n\u001b[0;39m - user doLogout, useId:sys_user:1, token:***iNxFgwUg\n\u001b[36m2026-09-12 15:26:32\u001b[0;39m \u001b[32m[schedule-pool-4]\u001b[0;39m \u001b[31mWARN \u001b[0;39m \u001b[1;35mo.d.r.api.RemoteMessageServiceStub\n\u001b[0;39m - 推送功能未开启或服务未找到\n\u001b[36m2026-09-12 15:50:48\u001b[0;39m \u001b[32m[XNIO-1 task-2]\u001b[0;39m \u001b[1;31mERROR\u001b[0;39m \u001b[1;35mo.d.c.w.h.GlobalExceptionHandler\n\u001b[0;39m - 参数校验异常\n\u001b[36m2026-09-12 15:56:"
+    },
+    {
+      "n": 99,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:9205/actuator",
+        "headers_json": "{\"Authorization\": \"Basic cnVveWk6MTIzNDU2\"}"
+      },
+      "result": "HTTP 200\nContent-Type: application/vnd.spring-boot.actuator.v3+json\n\n{\"_links\":{\"self\":{\"href\":\"http://localhost:9205/actuator\",\"templated\":false},\"nacosconfig\":{\"href\":\"http://localhost:9205/actuator/nacosconfig\",\"templated\":false},\"nacosdiscovery\":{\"href\":\"http://localhost:9205/actuator/nacosdiscovery\",\"templated\":false},\"beans\":{\"href\":\"http://localhost:9205/actuator/beans\",\"templated\":false},\"caches\":{\"href\":\"http://localhost:9205/actuator/caches\",\"templated\":false},\"caches-cache\":{\"href\":\"http://localhost:9205/actuator/caches/{cache}\",\"templated\":true},\"health\":{\"href\":\"http://localhost:9205/actuator/health\",\"templated\":false},\"health-path\":{\"href\":\"http://localhost:9205/actuator/health/{*path}\",\"templated\":true},\"info\":{\"href\":\"http://localhost:9205/actuator/info\",\"templated\":false},\"conditions\":{\"href\":\"http://localhost:9205/actuator/conditions\",\"templated\":false},\"configprops\":{\"href\":\"http://localhost:9205/actuator/configprops\",\"templated\":false},\"configprops-prefix\":{\"href\":\"http://localhost:9205/actuator/configprops/{prefix}\",\"templated\":true},\"env\":{\"href\":\"http://localhost:9205/actuator/env\",\"templated\":false},\"env-toMatch\":{\"href\":\"http://localhost:9205/actuator/env/{toMatch}\",\"templated\":true},\"integrationgraph\":{\"href\":\"http://localhost:9205/actuator/integrationgraph\",\"templated\":false},\"logfile\":{\"href\":\"http://localhost:9205/actuator/logfile\",\"templated\":false},\"loggers-name\":{\"href\":\"http://localhost:9205/actuator/loggers/{name}\",\"templated\":true},\"loggers\":{\"href\":\"http://localhost:9205/actuator/loggers\",\"templated\":false},\"threaddump\":{\"href\":\"http://localhost:9205/actuator/threaddump\",\"templated\":false},\"metrics-requiredMetricName\":{\"href\":\"http://localhost:9205/actuator/metrics/{requiredMetricName}\",\"templated\":true},\"metrics\":{\"href\":\"http://localhost:9205/actuator/metrics\",\"templated\":false},\"sbom\":{\"href\":\"http://localhost:9205/actuator/sbom\",\"templated\":false},\"sbom-id\":{\"href\":\"http://localhost:9205/actuator/sbom/{id}\",\"templated\":true},\""
+    },
+    {
+      "n": 100,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:9205/actuator/nacosconfig",
+        "headers_json": "{\"Authorization\": \"Basic cnVveWk6MTIzNDU2\"}"
+      },
+      "result": "HTTP 200\nContent-Type: application/vnd.spring-boot.actuator.v3+json\n\n{\"NacosConfigProperties\":{\"serverAddr\":\"127.0.0.1:8848\",\"username\":\"nacos\",\"password\":\"nacos\",\"encode\":null,\"group\":\"DEFAULT_GROUP\",\"prefix\":null,\"fileExtension\":\"properties\",\"timeout\":3000,\"maxRetry\":null,\"configLongPollTimeout\":null,\"configRetryTime\":null,\"enableRemoteSyncConfig\":false,\"endpoint\":null,\"namespace\":\"dev\",\"accessKey\":null,\"secretKey\":null,\"ramRoleName\":null,\"contextPath\":null,\"clusterName\":null,\"name\":null,\"sharedConfigs\":null,\"extensionConfigs\":null,\"refreshEnabled\":true,\"sharedDataids\":null,\"refreshableDataids\":null,\"extConfig\":null,\"configServiceProperties\":{\"encode\":\"\",\"secretKey\":\"\",\"configLongPollTimeout\":\"\",\"enabled\":\"true\",\"maxRetry\":\"\",\"password\":\"nacos\",\"configRetryTime\":\"\",\"endpoint\":\"\",\"serverAddr\":\"127.0.0.1:8848\",\"accessKey\":\"\",\"enableRemoteSyncConfig\":\"false\",\"clusterName\":\"\",\"namespace\":\"dev\",\"ramRoleName\":\"\",\"username\":\"nacos\",\"group\":\"DEFAULT_GROUP\"}},\"RefreshHistory\":[],\"Sources\":[{\"lastSynced\":\"2026-09-12 06:12:05\",\"dataId\":\"datasource.yml\"},{\"lastSynced\":\"2026-09-12 06:12:05\",\"dataId\":\"application-common.yml\"},{\"lastSynced\":\"2026-09-12 06:12:04\",\"dataId\":\"ruoyi-workflow.yml\"}]}"
+    }
+  ],
+  "final_text": "budget_exceeded"
+}
