@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from api_discovery import discover_api_entries, _parse_java_file, _extract_entries_from_class
+from scripts.analysis.api_discovery import discover_api_entries, _parse_java_file, _extract_entries_from_class
 from expected_path import APIEntry
 
 

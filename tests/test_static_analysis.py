@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from path_generator import CallGraph, CallGraphNode, CallGraphEdge, PathGenerator
 from expected_path import APIEntry, LogSink, ExpectedPathSet
-from joern_adapter import JoernAdapter, JoernConfig, load_call_graph_from_json
-from codeql_adapter import CodeQLAdapter, CodeQLConfig, TaintResult
+from scripts.analysis.joern_adapter import JoernAdapter, JoernConfig, load_call_graph_from_json
+from scripts.analysis.codeql_adapter import CodeQLAdapter, CodeQLConfig, TaintResult
 from static_analysis import StaticAnalysisResult
 
 
@@ -307,7 +307,7 @@ def test_docker_joern_availability():
     print("TEST 4: Docker Joern 可用性")
     print("=" * 60)
 
-    from joern_adapter import JoernDockerAdapter, JoernConfig
+    from scripts.analysis.joern_adapter import JoernDockerAdapter, JoernConfig
     adapter = JoernDockerAdapter(config=JoernConfig())
 
     if adapter.is_available():

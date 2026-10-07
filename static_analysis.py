@@ -26,11 +26,11 @@ from typing import Optional
 
 from path_generator import CallGraph, PathGenerator
 from expected_path import APIEntry, LogSink, ExpectedPathSet
-from joern_adapter import (
+from scripts.analysis.joern_adapter import (
     JoernAdapter, JoernConfig, JoernDockerAdapter,
     generate_call_graph_from_source, load_call_graph_from_json,
 )
-from codeql_adapter import (
+from scripts.analysis.codeql_adapter import (
     CodeQLAdapter, CodeQLConfig, TaintResult,
     mark_taint_on_call_graph, load_taint_from_csv,
 )

@@ -24,12 +24,12 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from api_discovery import discover_api_entries
-from codeql_adapter import CodeQLAdapter, CodeQLConfig
+from scripts.analysis.api_discovery import discover_api_entries
+from scripts.analysis.codeql_adapter import CodeQLAdapter, CodeQLConfig
 from demo_fuzz import execute_with_trace, check_container_log_after_line, get_container_log_line_count
 from expected_path import APIEntry, ExpectedPath, PathNode, PathSource, LogSink
 from fuzzer import Fuzzer
-from joern_adapter import JoernAdapter, JoernConfig, load_call_graph_from_json
+from scripts.analysis.joern_adapter import JoernAdapter, JoernConfig, load_call_graph_from_json
 from llm import LLM
 from path_generator import CallGraph, CallGraphNode, CallGraphEdge, PathGenerator
 from pipeline import Pipeline

@@ -20,6 +20,7 @@ import re
 import subprocess
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 import requests
@@ -154,6 +155,10 @@ def _looks_like_base64_aes(value: str) -> bool:
 
 def tool_send_http(method: str, url: str, headers_json: str, body: str) -> str:
     """发送 HTTP 请求 (fuzz 的主动作)。"""
+    # urllib 会拒绝 URL 中的尖括号/空格等非法字符，而 agent 经常把
+    # <<SINK_REACHED>> 直接放进 query 参数。编码后由服务端正常解码，避免
+    # 请求在进入 Spring Controller 之前就被 Tomcat 以 HTTP 400 拒绝。
+    url = urllib.parse.quote(url, safe=":/?&=#%+;,[]@")
     headers = json.loads(headers_json) if headers_json else {}
     # 工具层规范化: 通配符 Content-Type 会被 Spring 拒收 (IllegalArgumentException),
     # 这是 HTTP 客户端的正确性修复, 与 agent 策略无关
@@ -381,11 +386,11 @@ class SinkAgent:
                     args = json.loads(tc["function"]["arguments"] or "{}")
                 except json.JSONDecodeError:
                     args = {}
-                self.tool_call_count += 1
-                if self.tool_call_count > self.max_tool_calls:
+                if self.tool_call_count >= self.max_tool_calls:
                     tool_results.append({"role": "tool", "tool_call_id": tc["id"],
                                          "content": "BUDGET EXCEEDED: 工具调用预算已用尽, 请立即总结当前证据并给出结论。"})
                     continue
+                self.tool_call_count += 1
                 if self.verbose:
                     brief = {k: (v[:80] + "..." if isinstance(v, str) and len(v) > 80 else v)
                              for k, v in args.items()}
@@ -398,7 +403,7 @@ class SinkAgent:
                 tool_results.append({"role": "tool", "tool_call_id": tc["id"], "content": result[:MAX_TOOL_RESULT_CHARS]})
 
             self.messages.extend(tool_results)
-            if self.tool_call_count > self.max_tool_calls:
+            if self.tool_call_count >= self.max_tool_calls:
                 # 强制结束: 不再发起新一轮 API 请求
                 return False, "budget_exceeded"
             data = self._api(payload)
@@ -411,14 +416,17 @@ class SinkAgent:
         reached = "<<SINK_REACHED>>" in text
         return reached, text
 
-    def run(self, task_desc: str, container: str = "", max_turns: int = 15) -> dict:
+    def run(self, task_desc: str, container: str = "", max_turns: int = 15,
+            log_match: str = "") -> dict:
         system_prompt = SYSTEM_PROMPT.replace("{task}", task_desc)
         self.messages = [{"role": "user", "content": system_prompt}]
         self._container = container
+        self._log_match = log_match
         # harness 基线: 记录运行开始时的 marker 命中数, 只统计新增命中
         self._baseline_hits = self._count_sink_hits()
         t0 = time.time()
         text = ""
+        completed_turns = 0
         for turn_i in range(1, max_turns + 1):
             print(f"  ── turn {turn_i} ──")
             try:
@@ -427,35 +435,45 @@ class SinkAgent:
                 print(f"  ⚠ API 异常: {e}")
                 time.sleep(2)
                 continue
+            completed_turns = turn_i
             print(f"    💭 {text[:400]}")
             elapsed = time.time() - t0
             # harness 侧命中判定: 不管 agent 是否声称成功, 直接 grep 容器日志 (对比基线增量)
             if self._count_sink_hits() > self._baseline_hits:
-                print(f"  ✅ harness 判定 sink 命中 (本次运行新增 marker 命中)! 耗时 {elapsed:.1f}s, 工具调用 {self.tool_call_count} 次")
+                print(f"  ✅ harness 判定 sink 命中 (本次运行新增目标日志命中)! 耗时 {elapsed:.1f}s, 工具调用 {self.tool_call_count} 次")
                 return {"reached": True, "turns": turn_i, "tool_calls": self.tool_call_count,
                         "elapsed": elapsed, "tool_log": self.tool_log, "final_text": text}
             if reached:
                 print(f"  ⚠ agent 自称命中但 harness 日志检查未见新增标记, 继续观察...")
             if text == "budget_exceeded":
                 break
-        return {"reached": False, "turns": max_turns, "tool_calls": self.tool_call_count,
+        return {"reached": False, "turns": completed_turns, "tool_calls": self.tool_call_count,
                 "elapsed": time.time() - t0, "tool_log": self.tool_log, "final_text": text}
 
     def _count_sink_hits(self) -> int:
-        """统计容器日志/日志文件中 marker 出现次数 (整个日志, 含历史)。
-        宽容匹配: 应用 XSS 过滤器会剥部分尖括号, 所以 'SINK_REACHED' 字符串本体出现即算。"""
+        """统计目标 sink 日志命中次数 (整个日志, 含历史)。
+
+        默认仍按 marker 统计，兼容可控字符串参数的旧任务；如果任务提供
+        ``log_match``，则必须命中目标日志前缀。这样不会把通用的请求前置日志
+        (例如 ApiAccessLogInterceptor) 误判为 sink 命中。
+        """
         container = getattr(self, "_container", "")
         if not container:
             return 0
         if container.endswith(".log"):
             try:
                 with open(container) as f:
-                    return f.read().count("SINK_REACHED")
+                    text = f.read()
             except OSError:
                 return 0
-        r = subprocess.run(["docker", "logs", container],
-                           capture_output=True, text=True, timeout=60)
-        return (r.stdout + r.stderr).count("SINK_REACHED")
+        else:
+            r = subprocess.run(["docker", "logs", container],
+                               capture_output=True, text=True, timeout=60)
+            text = r.stdout + r.stderr
+        log_match = getattr(self, "_log_match", "")
+        if log_match:
+            return sum(1 for line in text.splitlines() if log_match in line)
+        return text.count("SINK_REACHED")
 
 SYSTEM_PROMPT = """你是一个 Java 微服务安全测试 agent, 目标是通过 HTTP 请求命中一条指定的日志 sink。
 
@@ -692,6 +710,73 @@ SINK_TASKS = {
         "hint_level": "hint",
         "container": "/tmp/pigboot.log",
     },
+    "yudao_pay_channel_not_found": {
+        "sink": "PayNotifyController.notifyOrder 中的 "
+                "log.error(\"[notifyOrder][渠道编号({}) 找不到对应的支付客户端]\", channelId) "
+                "(L75, 源码 examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/notify/PayNotifyController.java)。"
+                "触发条件: POST 支付回调接口时, channelId 在支付渠道配置中不存在。",
+        "api": "POST http://localhost:9213/admin-api/pay/notify/order/{channelId} (支付回调入口, admin-api 前缀)",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213, pay-server 独立部署)。"
+               "该接口标注 PermitAll/TenantIgnore, 可直接发送请求; 数据库为 ruoyi-vue-pro, 支付渠道表 pay_channel 已建空表。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        # channelId 是 Long，marker 无法进入目标日志参数；按目标日志前缀
+        # 判定，避免把 ApiAccessLogInterceptor 的请求参数日志算作命中。
+        "log_match": "[notifyOrder][渠道编号(",
+        # 已知静态可达性问题: PayChannelServiceImpl.getPayClient (L160-163) 在渠道
+        # 不存在时经 validPayChannel 抛 CHANNEL_NOT_FOUND (L146-147)，永远不会返回
+        # null；Controller L74 的 if (payClient == null) 分支 (含 L75 目标日志) 是
+        # 防御性代码，当前版本静态不可达。此任务保留用于验证 harness 精确判定，
+        # 预期 reached=False 为正确结果。
+        "static_unreachable_note": "getPayClient 渠道缺失时抛异常不返回 null, L75 不可达",
+    },
+    # ── yudao pay 第二批 (2026-09-27, pay-server 9213) ──
+    "yudao_pay_demo_order_duplicate_notify": {
+        "sink": "PayDemoOrderServiceImpl.updateDemoOrderPaid 中的 "
+                "log.warn(\"[updateDemoOrderPaid][order({}) 已支付，且支付单号相同({})，直接返回]\", order, payOrderId) "
+                "(L126, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoOrderServiceImpl.java)。"
+                "触发条件: 回调更新示例订单时, 该订单 pay_status=已支付 且请求的 payOrderId 与库中记录一致 (重复回调幂等分支)。",
+        "api": "POST http://localhost:9213/admin-api/pay/demo-order/update-paid "
+               "(body: {\"merchantOrderId\":\"<订单id>\",\"payOrderId\":\"<支付单id>\"}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_demo_order 表 (id/merchantOrderId 对应主键, pay_status/pay_order_id 字段); "
+               "订单创建 API: POST /admin-api/pay/demo-order/create (需登录, 慎用, 直接查现有记录即可)。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        # 日志参数是 order 对象与 payOrderId (数值), marker 放不进参数;
+        # 用目标日志前缀精确判定, 不依赖 marker。
+        "log_match": "[updateDemoOrderPaid][order(",
+    },
+    "yudao_pay_wallet_recharge_duplicate_notify": {
+        "sink": "PayWalletRechargeServiceImpl.updateWalletRechargerPaid 中的 "
+                "log.warn(\"[updateWalletRechargerPaid][recharge({}) 已支付，且支付单号相同({})，直接返回]\", recharge, payOrderId) "
+                "(L131, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值回调更新时, 充值单 pay_status=已支付 且请求的 payOrderId 与库中记录一致 (重复回调幂等分支)。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-paid "
+               "(body: {\"merchantOrderId\":\"<充值单id>\",\"payOrderId\":\"<支付单id>\"}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (id 对应 merchantOrderId, pay_status/pay_order_id 字段)。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        # 日志参数是 recharge 对象与 payOrderId (数值), marker 放不进参数;
+        # 用目标日志前缀精确判定。
+        "log_match": "[updateWalletRechargerPaid][recharge(",
+    },
+    "yudao_pay_demo_withdraw_duplicate_notify": {
+        "sink": "PayDemoWithdrawServiceImpl.updateDemoWithdrawTransferred 中的 "
+                "log.warn(\"[updateDemoWithdrawStatus][withdraw({}) 已结束，且转账单编号相同({})，直接返回]\", withdraw, payTransferId) "
+                "(L143, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoWithdrawServiceImpl.java)。"
+                "触发条件: 提现转账回调更新时, 提现单 status 已结束(成功10/关闭20) 且请求的 payTransferId 与库中记录一致 (重复回调幂等分支)。",
+        "api": "POST http://localhost:9213/admin-api/pay/demo-withdraw/update-transferred "
+               "(body: {\"merchantTransferId\":\"<提现单id>\",\"payTransferId\":\"<转账单id>\"}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_demo_withdraw 表 (id 对应 merchantTransferId, status/pay_transfer_id 字段; 状态枚举 WAITING=0/SUCCESS=10/CLOSED=20)。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        # 日志参数是 withdraw 对象与 payTransferId (数值), marker 放不进参数;
+        # 用目标日志前缀精确判定。
+        "log_match": "[updateDemoWithdrawStatus][withdraw(",
+    },
 }
 
 
@@ -737,7 +822,8 @@ def main():
     print(f"═══ SinkAgent: {args.sink} (hint={task['hint_level']}) ═══")
     print(f"模型: {os.environ.get('LLM_MODEL')}, max_turns: {args.max_turns}, max_tools: {args.max_tools}")
     agent = SinkAgent(verbose=args.verbose, max_tool_calls=args.max_tools)
-    result = agent.run(build_task_desc(task), container=task.get("container", ""), max_turns=args.max_turns)
+    result = agent.run(build_task_desc(task), container=task.get("container", ""),
+                       max_turns=args.max_turns, log_match=task.get("log_match", ""))
 
     print("\n═══ 结果 ═══")
     print(f"命中(harness判定): {result['reached']}")
