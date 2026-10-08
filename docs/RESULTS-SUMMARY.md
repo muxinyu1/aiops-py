@@ -98,3 +98,50 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 - ruoyi-workflow 服务从零部署 (镜像构建 + nacos 配置修复 + compose 服务定义), 根因: env_file 注入 `DUBBO_REGISTRY_ADDRESS=N/A` 覆盖 jar 内 registry 配置
 - pig-boot 单体启动参数: `-Dspring.datasource.druid.password=123456 -Dspring.data.redis.host=127.0.0.1 -Dspring.data.redis.password=password -Dspring.data.redis.database=5 -Dfile.local.base-path=/tmp/pigupload -Dserver.port=9999`
 - pig 登录: Basic `test:test` (captcha_flag=0), admin/123456; 登录失败会锁 (lock_flag=9 + redis 缓存), 解锁方法见记忆文件
+
+---
+
+## 九、Yudao 扩展实验 (2026-09-27 ~ 10-07)
+
+> 模型: 本地 vLLM `model` (10.1.0.180:8000, 需 `--enable-auto-tool-choice --tool-call-parser hermes`); 9-27~28 为 Paratera Qwen3.8-27B
+> 服务: pay-server (9213, 新部署) / trade-server (9212)
+
+### 9.1 pay 域 (4 个 sink 任务)
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| pay_channel_not_found | PayNotifyController L75「找不到支付客户端」 | v1 | ❌ 未执行 | LLM API 403 |
+| | | v2 | ❌ FAIL→误报 | 80/868s (harness 误判已修复) |
+| | | v3 | ❌ FAIL | 80/690s (服务错: trade 无 pay 模块) |
+| | | v4 | ⛔ 静态不可达 | 80/733s (阴性对照) |
+| demo_order_duplicate_notify | PayDemoOrderServiceImpl L126「已支付,支付单号相同」 | v1 | ✅ PASS | 33/369s |
+| wallet_recharge_duplicate_notify | PayWalletRechargeServiceImpl L131 同款幂等 | v1 | ✅ PASS | 30/378s |
+| demo_withdraw_duplicate_notify | PayDemoWithdrawServiceImpl L143 同款幂等 | v1 | ✅ PASS | 40/409s |
+
+**不可达家族结论**: 「找不到对应的支付客户端」5 处 (L75/L97/L119 + PayOrderServiceImpl L227/L246) 全部静态不可达 — `validPayChannel` 渠道缺失时直接抛 `CHANNEL_NOT_FOUND`, Controller 的 `if (payClient == null)` 是防御性死代码。运行时验证一致 (异常码 1007001000, 日志只到 L71 回调行)。
+
+### 9.2 mall/trade 域 (2026-10-07, D2)
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| mall_brokerage_withdraw_duplicate_notify | BrokerageWithdrawServiceImpl L248「已结束,转账单号相同」 | v1 | ✅ PASS | 33/960s |
+| mall_trade_order_paid_duplicate_notify | TradeOrderUpdateServiceImpl L292「已支付,支付单号相同」 | v1 | ✅ PASS | 60/1741s |
+
+**幂等/重复回调日志模式累计 5/5 全命中** (pay 3 + mall 2) — db_state 池中最高价值模式。
+
+### 9.3 harness/工具层修复 (同"公平性"口径)
+
+7. `send_http` 自动 URL 编码 (marker 放 query 不再触发 Tomcat 400)
+8. `_count_sink_hits` 支持 `log_match` 目标日志前缀精确判定 (消除前置访问日志误报, v2 教训)
+9. `turns` 记录实际完成轮次; 工具预算计数修正
+
+### 9.4 部署成果 (Yudao)
+
+- pay-server 从零部署: Dockerfile → 镜像 → compose (9213); 修复 PayProperties 必填校验
+- 补建表: pay_channel / pay_demo_order / pay_wallet_recharge / pay_demo_withdraw / trade_brokerage_withdraw / trade_order (yudao 主 SQL 不含 pay/mall 建表)
+- trade_order 表含大量营销列, 需 6 轮补列收敛; 建表技巧: MyBatis 报错信息给出完整 SELECT 列清单, 照抄即可
+
+### 9.5 已知未决 (D2 续行)
+
+- **system-server 登录 500**: host 网络下 8080 冲突已改端口 9214, 但登录链路的 tenant 校验 `TenantCommonApi#validTenant` 走 Feign→lb, 而注册名 (yudao-module-system-server→已改 system-server) 与 Feign 目标名对齐后 nacos 自注册仍未生效; feign url 直连/simple discovery/手动 nacos 注册均未奏效 (feign url 配置疑似未进入该请求路径)。待查 EnvLoadBalancerClientFactory 的实例来源
+- coupon L204 需要 promotion-server (Feign 依赖, 未部署); brokerage record 3 个前置重 (需分销配置+绑定关系); delivery calculator 3 个需运费模板

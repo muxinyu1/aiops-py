@@ -21,12 +21,14 @@ services:
       - --spring.config.location=optional:file:/tmp/trace-validation.yml,optional:file:/tmp/feign-direct.yml
       - --spring.cloud.bootstrap.enabled=false
       - --spring.cloud.nacos.config.enabled=false
-      - --spring.cloud.nacos.discovery.enabled=false
+      - --spring.cloud.nacos.discovery.enabled=true
+      - --spring.cloud.nacos.discovery.server-addr=127.0.0.1:8848
+      - --spring.cloud.nacos.discovery.username=nacos
+      - --spring.cloud.nacos.discovery.password=nacos
+      - --spring.cloud.nacos.discovery.namespace=dev
       - --spring.cloud.nacos.config.import-check.enabled=false
       - --spring.cloud.config.enabled=false
       - --spring.cloud.config.import-check.enabled=false
-      - --spring.cloud.discovery.enabled=false
-      - --spring.cloud.service-registry.auto-registration.enabled=false
       - --eureka.client.enabled=false
       - --seata.enabled=false
       - --spring.main.allow-bean-definition-overriding=true
@@ -36,11 +38,11 @@ services:
       - --springdoc.swagger-ui.enabled=false
       - --knife4j.enable=false
       - --spring.profiles.active=trace-validation,local,dev
-      - --server.port=8080
-      - --spring.application.name=yudao-module-system-server
+      - --server.port=9214
+      - --spring.application.name=system-server
       - --yudao.info.base-package=cn.iocoder.yudao
       - --yudao.info.version=trace-validation
-      - --yudao.web.admin-ui.url=http://127.0.0.1:8080
+      - --yudao.web.admin-ui.url=http://127.0.0.1:9214
       - --yudao.api-encrypt.enable=false
       - --yudao.api-encrypt.algorithm=AES
       - --yudao.api-encrypt.request-key=52549111389893486934626385991395
@@ -67,7 +69,7 @@ services:
       - --spring.redis.port=6379
       - --rocketmq.name-server=127.0.0.1:9876
     volumes:
-      - /tmp/feign-direct.yml:/tmp/feign-direct.yml:ro
+      - ./feign-direct.yml:/tmp/feign-direct.yml:ro
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
       - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
     depends_on:

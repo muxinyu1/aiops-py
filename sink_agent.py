@@ -777,6 +777,35 @@ SINK_TASKS = {
         # 用目标日志前缀精确判定。
         "log_match": "[updateDemoWithdrawStatus][withdraw(",
     },
+    # ── yudao mall/trade (9212, trade-server 已部署) ──
+    "yudao_mall_brokerage_withdraw_duplicate_notify": {
+        "sink": "BrokerageWithdrawServiceImpl.updateBrokerageWithdrawTransferred 中的 "
+                "log.warn(\"[updateBrokerageWithdrawTransferred][withdraw({}) 已结束，且转账单编号相同({})，直接返回]\", withdraw, payTransferId) "
+                "(L248, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java)。"
+                "触发条件: 佣金提现转账回调时, 提现单 status 已结束(成功11/失败21) 且请求的 payTransferId 与库中记录一致 (重复回调幂等分支)。",
+        "api": "POST http://localhost:9212/admin-api/trade/brokerage-withdraw/update-transferred "
+               "(body: {\"merchantTransferId\":\"<提现单id>\",\"payTransferId\":\"<转账单id>\"}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_brokerage_withdraw 表 (id 对应 merchantTransferId, status/pay_transfer_id 字段; 状态枚举 AUDITING=0/AUDIT_SUCCESS=10/WITHDRAW_SUCCESS=11/AUDIT_FAIL=20/WITHDRAW_FAIL=21)。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是 withdraw 对象与 payTransferId (数值), marker 放不进参数。
+        "log_match": "[updateBrokerageWithdrawTransferred][withdraw(",
+    },
+    "yudao_mall_trade_order_paid_duplicate_notify": {
+        "sink": "TradeOrderUpdateServiceImpl.updateOrderPaid 中的 "
+                "log.warn(\"[updateOrderPaid][order({}) 已支付，且支付单号相同({})，直接返回]\", order, payOrderId) "
+                "(L292, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/order/TradeOrderUpdateServiceImpl.java)。"
+                "触发条件: 交易订单支付回调时, 订单非待支付或已支付(pay_status=true) 且请求的 payOrderId 与库中记录一致 (重复回调幂等分支)。",
+        "api": "POST http://localhost:9212/app-api/trade/order/update-paid "
+               "(body: {\"merchantOrderId\":\"<订单id>\",\"payOrderId\":\"<支付单id>\"}, @PermitAll 免登录; 注意是 app-api 前缀)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_order 表 (id 对应 merchantOrderId, status/pay_status/pay_order_id 字段; TradeOrderStatusEnum 常见 0待支付/2已支付, 可读源码枚举确认)。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是 order 对象与 payOrderId (数值), marker 放不进参数。
+        "log_match": "[updateOrderPaid][order(",
+    },
 }
 
 
