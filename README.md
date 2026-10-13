@@ -34,7 +34,7 @@
 ```bash
 # 1. 配置 LLM (本地 vLLM)
 cat .env
-# LLM_BASE_URL="http://10.1.0.180:8000/v1"
+# LLM_BASE_URL="http://10.1.1.20:8000/v1"
 # LLM_MODEL="model"
 # ⚠ vLLM 启动必须带: --enable-auto-tool-choice --tool-call-parser hermes
 

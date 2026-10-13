@@ -162,4 +162,16 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 
 CRUD 成功分支模式 3/3 全命中。第 7 个候选 EsProductServiceImpl L203 (recommend) 在 mall-search 模块需 Elasticsearch，未部署。
 
-**累计验证**: 16 个真实业务 sink PASS (ruoyi-plus 10 + pig 5 + yudao pay/mall 5 + small-swarm 3，部分为概念家族计数) + 5 处静态不可达阴性对照。
+---
+
+## 十一、lamp-cloud 实验 (2026-10-14, D7)
+
+> 服务: lamp-oauth-server (9216, compose.real.yaml 补充 `--mybatis-plus.mapper-locations=classpath*:mapper_*/**/*.xml,classpath*:mapper_**/**/*Mapper.xml` 修复 Nacos 缺 `mysql.yml` 配置的问题)
+> 凭证: Authorization 传纯 base64 `lamp_web_pro:lamp_web_pro_secret` (无 Basic 前缀)，superAdmin 密码已重置为 123456
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| lamp_oauth_login_success | AbstractTokenGranter L425「登录成功」 | v1 | ✅ PASS | 40/381.8s |
+
+**累计验证**: 17 个真实业务 sink PASS (ruoyi-plus 10 + pig 5 + yudao pay/mall 5 + small-swarm 3 + lamp-cloud 1，部分为概念家族计数) + 5 处静态不可达阴性对照。
+

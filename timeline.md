@@ -10,7 +10,7 @@
 |------|------------|--------|------|
 | yudao | 117 | 5 PASS（pay 3 + mall 2）+ 5 静态不可达（pay 域） | trade/pay/system 已部署；**system 阻塞**（WebFrameworkUtils NPE，见 AGENTS.md §5.2） |
 | paascloud | 37 | 0 | 未部署（无 Dockerfile） |
-| lamp-cloud | 15 | 0 | oauth-server 已启动(9216)；**卡 mapper-locations**（见 AGENTS.md §5.1） |
+| lamp-cloud | 15 | 1 PASS（AbstractTokenGranter L425 登录成功） | oauth-server(9216) mapper-locations 修复并验证通过 |
 | pig | 15 | 5（file_not_exist / change_password / sms 两批） | 已部署 |
 | apollo | 11 | 0 | 未部署 |
 | ruoyi-plus | 10 | 10（含 workflow 6 条） | 已部署 |
@@ -82,3 +82,7 @@
 
 ### ruoyi-plus（9201/9205）
 - ✅ 10 个概念 sink 家族全部验证（menu 同级/根/路由名、mybatis 重复、wf 定义在用/同步/变量/孤儿/监听器）
+
+### lamp-cloud（9216, trace-real-lamp-cloud-lamp-oauth-server）
+- ✅ `lamp_oauth_login_success` — AbstractTokenGranter L425「登录成功」（40 调用/381.8s）
+

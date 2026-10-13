@@ -846,6 +846,20 @@ SINK_TASKS = {
         "container": "trace-real-mall-swarm-mall-demo",
         "log_match": "deleteBrand success",
     },
+    # ── lamp-cloud (lamp-oauth-server, 9216) ──
+    "lamp_oauth_login_success": {
+        "sink": "AbstractTokenGranter.buildResult 中的 "
+                "log.info(\"用户：{}  {} 登录成功\", defUser.getUsername(), defUser.getNickName()) "
+                "(L425, 源码 lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/AbstractTokenGranter.java)。"
+                "触发条件: 使用有效租户/客户端和密码登录成功。",
+        "api": "POST http://localhost:9216/anyTenant/login (JSON body: {\"grantType\":\"PASSWORD\",\"username\":\"superAdmin\",\"password\":\"123456\"})",
+        "env": "目标服务容器: trace-real-lamp-cloud-lamp-oauth-server (日志在此, 端口 9216)。"
+               "请求头必须包含 Authorization: bGFtcF93ZWJfcHJvOmxhbXBfd2ViX3Byb19zZWNyZXQ= (lamp 自定义凭证, 纯 base64, 无 Basic 前缀)。"
+               "数据库: trace-real-mysql, 库名 lamp_none, 用户表 def_user。",
+        "hint_level": "hint",
+        "container": "trace-real-lamp-cloud-lamp-oauth-server",
+        "log_match": "登录成功",
+    },
 }
 
 

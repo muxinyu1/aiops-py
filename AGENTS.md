@@ -20,7 +20,7 @@
 ## 2. 关键命令
 
 ```bash
-# LLM 配置在 .env（vLLM: http://10.1.0.180:8000/v1, model=model, 无需 key）
+# LLM 配置在 .env（vLLM: http://10.1.1.20:8000/v1, model=model, 无需 key）
 # ⚠ vLLM 启动必须带 --enable-auto-tool-choice --tool-call-parser hermes，否则工具调用 400
 
 source .env && set -a   # 或 set -a && source .env && set +a
@@ -54,7 +54,7 @@ git add -A && git commit
 
 ## 3. 环境速查
 
-LLM：vLLM `http://10.1.0.180:8000/v1`（`.env`）。单次调用 30-60s；偶发断连/Read timeout → 重跑即可，不是代码问题。
+LLM：vLLM `http://10.1.1.20:8000/v1`（`.env`）。单次调用 30-60s；偶发断连/Read timeout → 重跑即可，不是代码问题。
 
 | 服务 | 容器 | 端口 | 库/凭证 |
 |------|------|------|---------|
