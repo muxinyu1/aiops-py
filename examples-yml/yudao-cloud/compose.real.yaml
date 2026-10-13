@@ -10,7 +10,9 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=cn.iocoder.yudao"
+      SPRING_CLOUD_DISCOVERY_ENABLED: "true"
+      SPRING_CLOUD_SERVICE_REGISTRY_AUTO_REGISTRATION_ENABLED: "true"
+      JAVA_TOOL_OPTIONS: "-Djava.io.tmpdir=/tmp"
       OTEL_SERVICE_NAME: yudao-cloud-yudao-module-system-server
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
@@ -18,6 +20,7 @@ services:
       YUDAO_INFO_VERSION: trace-validation
     entrypoint: ["sh", "-c", "exec java $JAVA_TOOL_OPTIONS -jar /app/app.jar $0 $@"]
     command:
+      - --debug
       - --spring.config.location=optional:file:/tmp/trace-validation.yml,optional:file:/tmp/feign-direct.yml
       - --spring.cloud.bootstrap.enabled=false
       - --spring.cloud.nacos.config.enabled=false
@@ -34,9 +37,11 @@ services:
       - --spring.main.allow-bean-definition-overriding=true
       - --spring.main.allow-circular-references=true
       - --spring.autoconfigure.exclude=com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
+      - --yudao.security.mock-enable=false
       - --springdoc.api-docs.enabled=false
       - --springdoc.swagger-ui.enabled=false
       - --knife4j.enable=false
+      - --management.endpoints.web.exposure.include=beans
       - --spring.profiles.active=trace-validation,local,dev
       - --server.port=9214
       - --spring.application.name=system-server
@@ -69,6 +74,7 @@ services:
       - --spring.redis.port=6379
       - --rocketmq.name-server=127.0.0.1:9876
     volumes:
+      - ./trace-validation.yml:/tmp/trace-validation.yml:ro
       - ./feign-direct.yml:/tmp/feign-direct.yml:ro
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
       - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro

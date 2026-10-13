@@ -806,6 +806,46 @@ SINK_TASKS = {
         # 日志参数是 order 对象与 payOrderId (数值), marker 放不进参数。
         "log_match": "[updateOrderPaid][order(",
     },
+    # ── small-swarm (mall-swarm mall-demo, 9215) ──
+    "small_swarm_brand_create": {
+        "sink": "DemoController.createBrand 中的 "
+                "LOGGER.debug(\"createBrand success:{}\", pmsBrand) "
+                "(L45, 源码 mall-swarm/mall-demo/src/main/java/com/macro/mall/demo/controller/DemoController.java)。"
+                "触发条件: POST 创建品牌成功 (count==1 分支)。",
+        "api": "POST http://localhost:9215/brand/create "
+               "(body 需含 name/firstLetter/sort/showStatus/factoryStatus/brandStory/bigPic/pic/logo, factoryStatus 只能 0/1)。",
+        "env": "目标服务容器: trace-real-mall-swarm-mall-demo (日志在此, 端口 9215)。"
+               "数据库 mall 库 pms_brand 表。controller 日志级别已开 debug。",
+        "hint_level": "hint",
+        "container": "trace-real-mall-swarm-mall-demo",
+        # controller debug 日志, 用目标日志前缀精确判定。
+        "log_match": "createBrand success",
+    },
+    "small_swarm_brand_update": {
+        "sink": "DemoController.updateBrand 中的 "
+                "LOGGER.debug(\"updateBrand success:{}\", pmsBrandDto) "
+                "(L61, 源码 mall-swarm/mall-demo/src/main/java/com/macro/mall/demo/controller/DemoController.java)。"
+                "触发条件: POST 更新一个已存在的品牌成功 (count==1)。",
+        "api": "POST http://localhost:9215/brand/update/{id} "
+               "(id 用已存在品牌; body 同 create, 需 name/firstLetter/sort/showStatus/factoryStatus/logo 等)。",
+        "env": "目标服务容器: trace-real-mall-swarm-mall-demo (端口 9215)。"
+               "数据库 mall 库 pms_brand 表 (已有若干品牌, id 可查)。",
+        "hint_level": "hint",
+        "container": "trace-real-mall-swarm-mall-demo",
+        "log_match": "updateBrand success",
+    },
+    "small_swarm_brand_delete": {
+        "sink": "DemoController.deleteBrand 中的 "
+                "LOGGER.debug(\"deleteBrand success :id={}\", id) "
+                "(L75, 源码 mall-swarm/mall-demo/src/main/java/com/macro/mall/demo/controller/DemoController.java)。"
+                "触发条件: DELETE 一个已存在的品牌成功 (count==1)。注意接口是 GET 方法!",
+        "api": "GET http://localhost:9215/brand/delete/{id} (GET 方法删除; id 需已存在, 可先 create 一个)。",
+        "env": "目标服务容器: trace-real-mall-swarm-mall-demo (端口 9215)。"
+               "数据库 mall 库 pms_brand 表。",
+        "hint_level": "hint",
+        "container": "trace-real-mall-swarm-mall-demo",
+        "log_match": "deleteBrand success",
+    },
 }
 
 

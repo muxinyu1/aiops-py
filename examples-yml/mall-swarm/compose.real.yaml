@@ -1,17 +1,17 @@
-name: trace-real-mall-swarm-mall-admin
+name: trace-real-mall-swarm-mall-demo
 include:
   - ../_shared/real-deps.compose.yaml
 services:
   app:
-    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/mall-swarm-mall-admin:latest
-    container_name: trace-real-mall-swarm-mall-admin
+    image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/mall-swarm-mall-demo:latest
+    container_name: trace-real-mall-swarm-mall-demo
     network_mode: host
     restart: unless-stopped
     env_file:
       - ../common-real.env
     environment:
       JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.macro.mall -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=com.macro.mall.*"
-      OTEL_SERVICE_NAME: mall-swarm-mall-admin
+      OTEL_SERVICE_NAME: mall-swarm-mall-demo
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation
     volumes:
@@ -29,7 +29,8 @@ services:
       - --eureka.client.enabled=false
       - --spring.main.allow-bean-definition-overriding=true
       - --spring.profiles.active=trace-validation
-      - --server.port=8080
+      - --server.port=9215
+      - --logging.level.com.macro.mall=debug
       - --spring.application.name=mall-admin
       - --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/mall?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
       - --spring.datasource.username=root
