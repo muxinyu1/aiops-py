@@ -8,7 +8,7 @@
 
 | 项目 | db_state 池 | 已验证 | 状态 |
 |------|------------|--------|------|
-| yudao | 117 | 5 PASS（pay 3 + mall 2）+ 5 静态不可达（pay 域） | trade/pay/system 已部署；**system 阻塞**（WebFrameworkUtils NPE，见 AGENTS.md §5.2） |
+| yudao | 117 | 6 PASS（pay 3 + mall 3）+ 5 静态不可达（pay 域） | trade/pay/system 已部署；**system 阻塞**（WebFrameworkUtils NPE，见 AGENTS.md §5.2） |
 | paascloud | 37 | 0 | 未部署（无 Dockerfile） |
 | lamp-cloud | 15 | 1 PASS（AbstractTokenGranter L425 登录成功） | oauth-server(9216) mapper-locations 修复并验证通过 |
 | pig | 15 | 5（file_not_exist / change_password / sms 两批） | 已部署 |
@@ -16,7 +16,7 @@
 | ruoyi-plus | 10 | 10（含 workflow 6 条） | 已部署 |
 | small-swarm | 7 | 4（brand create/update/delete/delete_failed） | mall-demo 已部署(9215)；recommend 需 ES |
 | 其他散量 | 13 | 0 | — |
-| **合计** | **225** | **23** | |
+| **合计** | **225** | **24** | |
 
 ---
 
@@ -69,6 +69,7 @@
 ### yudao mall（9212, trace-real-yudao-cloud-trade-server）
 - ✅ `yudao_mall_brokerage_withdraw_duplicate_notify` — BrokerageWithdrawServiceImpl L248（33 调用/960.2s）
 - ✅ `yudao_mall_trade_order_paid_duplicate_notify` — TradeOrderUpdateServiceImpl L292（60 调用/1740.8s）
+- ✅ `yudao_mall_trade_order_mismatch` — TradeOrderUpdateServiceImpl L295（35 调用/373.3s）
 
 ### small-swarm（9215, trace-real-mall-swarm-mall-demo）
 - ✅ `small_swarm_brand_create` — DemoController L45（18 调用/322.7s）
