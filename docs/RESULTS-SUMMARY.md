@@ -1,13 +1,14 @@
-# SinkAgent 实验结果汇总 (截至 2026-09-13)
+# SinkAgent 实验结果汇总 (截至 2026-10-13)
 
-> 模型: Qwen3.8-27B (paratera 网关) | harness 判定: 服务日志中攻击标记 `SINK_REACHED` 相对基线增量 (不信 agent 自述)
+> 模型: 本地 vLLM `model` (10.1.0.180:8000, 2026-10-07 起；此前为 Qwen3.8-27B @ paratera) | harness 判定: 服务日志中攻击标记 `SINK_REACHED` 或任务 `log_match` 目标日志前缀相对基线增量 (不信 agent 自述)
 > 结果文件统一归档于 `logs/agent_runs/`
 
 ## 一、结果总览
 
-**累计 18 次运行: 14 次 PASS / 4 次 FAIL**
-- 首次运行成功率: 13 个 sink 任务中 9 个首跑即命中
-- 所有 FAIL 经基础设施修复或重试后均命中 (最终 13/13 sink 全部验证可触发)
+**累计 29 个 reached=True 结果文件**
+- 第一阶段 (ruoyi-plus + pig, 2026-09): 18 次运行 14 PASS，13/13 sink 最终全部可触发
+- 第二阶段 (yudao pay/mall + small-swarm, 2026-09-27 ~ 10-13): 新增 11 个 PASS
+- 另有 yudao pay「找不到支付客户端」家族 5 处确认为**静态不可达**（防御性死代码，见 9.1）
 
 ## 二、ruoyi-plus (10/10 sink 验证通过)
 
@@ -141,7 +142,24 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 - 补建表: pay_channel / pay_demo_order / pay_wallet_recharge / pay_demo_withdraw / trade_brokerage_withdraw / trade_order (yudao 主 SQL 不含 pay/mall 建表)
 - trade_order 表含大量营销列, 需 6 轮补列收敛; 建表技巧: MyBatis 报错信息给出完整 SELECT 列清单, 照抄即可
 
-### 9.5 已知未决 (D2 续行)
+### 9.5 已知未决 (D3 续行)
 
-- **system-server 登录 500**: host 网络下 8080 冲突已改端口 9214, 但登录链路的 tenant 校验 `TenantCommonApi#validTenant` 走 Feign→lb, 而注册名 (yudao-module-system-server→已改 system-server) 与 Feign 目标名对齐后 nacos 自注册仍未生效; feign url 直连/simple discovery/手动 nacos 注册均未奏效 (feign url 配置疑似未进入该请求路径)。待查 EnvLoadBalancerClientFactory 的实例来源
+- **system-server `get-permission-info` 500**: `WebFrameworkUtils.getLoginUserType` L115 NPE (静态 `properties==null`)。登录本身已通 (POST /admin-api/system/auth/login → 200)。**已修复**: host 网络下 8080 冲突改端口 9214; `SPRING_CLOUD_DISCOVERY_ENABLED=false` (common-real.env) 静默覆盖命令行参数是 nacos 自注册失败真根因, 已用 compose `environment:` 覆盖为 true, 自注册成功。**未决**: `webFrameworkUtils` bean 未创建 (`#restTemplate` 同类 matched 但静态字段仍 null); 已排除类重复/构造赋值/trace-agent/lazy-init/feign url/排除 security+tenant (引发 mzt-biz-log 连锁失败已回滚)。详见 AGENTS.md §5.2
 - coupon L204 需要 promotion-server (Feign 依赖, 未部署); brokerage record 3 个前置重 (需分销配置+绑定关系); delivery calculator 3 个需运费模板
+
+---
+
+## 十、small-swarm 实验 (2026-10-13, D3)
+
+> 服务: mall-demo (9215, 新部署独立镜像; 注意目标模块是 mall-demo 而非 mall-admin)
+> 需导入 `examples/mall-swarm/document/sql/mall.sql` (77 张表) + `--logging.level.com.macro.mall=debug` (DemoController 全是 LOGGER.debug)
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| small_swarm_brand_create | DemoController L45「createBrand success」 | v1 | ✅ PASS | 18/322.7s |
+| small_swarm_brand_update | DemoController L61「updateBrand success」 | v1 | ✅ PASS | 8/111.1s |
+| small_swarm_brand_delete | DemoController L75「deleteBrand success :id=」 | v1 | ✅ PASS | 13/668.7s (GET 方法删除) |
+
+CRUD 成功分支模式 3/3 全命中。第 7 个候选 EsProductServiceImpl L203 (recommend) 在 mall-search 模块需 Elasticsearch，未部署。
+
+**累计验证**: 16 个真实业务 sink PASS (ruoyi-plus 10 + pig 5 + yudao pay/mall 5 + small-swarm 3，部分为概念家族计数) + 5 处静态不可达阴性对照。

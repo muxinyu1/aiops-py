@@ -4,19 +4,19 @@
 >
 > 吞吐测算：单 sink 平均 ~7 分钟 Agent 运行（含 1.3 次重试系数）+ 环境预置，日均 2-3 小时运行量可覆盖 ~20 个/天，总量可行。瓶颈在**服务部署**与**不可达预筛**，不在跑数。
 
-## 当前进度基线（2026-10-07）
+## 当前进度基线（2026-10-13 更新）
 
 | 项目 | db_state 池 | 已验证 | 状态 |
 |------|------------|--------|------|
-| yudao | 117 | 3 PASS + 5 静态不可达（pay 域） | pay-server/trade/system 已部署 |
-| paascloud | 37 | 0 | 未部署 |
-| lamp-cloud | 15 | 0 | examples-yml 已有 compose |
+| yudao | 117 | 5 PASS（pay 3 + mall 2）+ 5 静态不可达（pay 域） | trade/pay/system 已部署；**system 阻塞**（WebFrameworkUtils NPE，见 AGENTS.md §5.2） |
+| paascloud | 37 | 0 | 未部署（无 Dockerfile） |
+| lamp-cloud | 15 | 0 | oauth-server 已启动(9216)；**卡 mapper-locations**（见 AGENTS.md §5.1） |
 | pig | 15 | 5（file_not_exist / change_password / sms 两批） | 已部署 |
 | apollo | 11 | 0 | 未部署 |
 | ruoyi-plus | 10 | 10（含 workflow 6 条） | 已部署 |
-| small-swarm | 7 | 0 | 未部署 |
+| small-swarm | 7 | 3（brand create/update/delete） | mall-demo 已部署(9215)；recommend 需 ES |
 | 其他散量 | 13 | 0 | — |
-| **合计** | **225** | **18** | |
+| **合计** | **225** | **23** | |
 
 ---
 
@@ -65,6 +65,16 @@
 - ✅ `yudao_pay_wallet_recharge_duplicate_notify` — PayWalletRechargeServiceImpl L131（30 调用/378.2s）
 - ✅ `yudao_pay_demo_withdraw_duplicate_notify` — PayDemoWithdrawServiceImpl L143（40 调用/408.6s）
 - ⛔ "找不到支付客户端"家族 ×5 — L75/L97/L119/L227/L246 静态不可达（validPayChannel 先抛异常）
+
+### yudao mall（9212, trace-real-yudao-cloud-trade-server）
+- ✅ `yudao_mall_brokerage_withdraw_duplicate_notify` — BrokerageWithdrawServiceImpl L248（33 调用/960.2s）
+- ✅ `yudao_mall_trade_order_paid_duplicate_notify` — TradeOrderUpdateServiceImpl L292（60 调用/1740.8s）
+
+### small-swarm（9215, trace-real-mall-swarm-mall-demo）
+- ✅ `small_swarm_brand_create` — DemoController L45（18 调用/322.7s）
+- ✅ `small_swarm_brand_update` — DemoController L61（8 调用/111.1s）
+- ✅ `small_swarm_brand_delete` — DemoController L75（13 调用/668.7s）
+- ⛔ `EsProductServiceImpl L203 recommend` — 需 Elasticsearch，未部署
 
 ### pig（9999, /tmp/pigboot.log）
 - ✅ pig_file_not_exist / pig_change_password_wrong / pig_sms_unregistered

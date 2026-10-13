@@ -66,5 +66,6 @@ bash scripts/ops/build_traced_images.sh
 ## 实验环境
 
 - 共享依赖: `trace-real-mysql` / `trace-real-redis` / `trace-real-nacos`
-- 已部署目标: ruoyi-plus(9201/9205), yudao trade(9212)/pay(9213)/system, pig(9999 宿主机)
-- LLM: Paratera `Qwen3.8-27B`（见 `.env`）
+- 已部署目标: ruoyi-plus(9201/9205), yudao trade(9212)/pay(9213)/system(9214), pig(9999 宿主机), mall-demo(9215), lamp-oauth(9216)
+- LLM: 本地 vLLM `http://10.1.0.180:8000/v1`，model=`model`（需 `--enable-auto-tool-choice --tool-call-parser hermes`）
+- 完整环境速查与当前阻塞点: 见 `README.md` 交接章节与 `AGENTS.md` §3/§5

@@ -135,21 +135,21 @@
 
 ## 6. 目标项目
 
-16 个 MVC 微服务项目（`examples/` 下）：
+20+ 个 MVC 微服务项目（`examples/` 下），已完成追踪改造并构建镜像的见 `scripts/ops/build_and_push_all_traced.sh`：
 
 | 项目 | 模块 | 包名 |
 |------|------|------|
 | pig | pig-auth | com.pig4cloud.pig.auth |
 | RuoYi-Cloud | ruoyi-auth | com.ruoyi.auth |
-| RuoYi-Cloud-Plus | ruoyi-auth | org.dromara.auth |
-| mall-swarm | mall-admin | com.macro.mall |
-| SpringBlade | blade-auth | org.springblade.auth |
-| youlai-mall | youlai-auth | com.youlai.auth |
+| RuoYi-Cloud-Plus | ruoyi-auth / ruoyi-workflow | org.dromara.* |
+| mall-swarm | mall-admin / mall-demo | com.macro.mall |
+| SpringBlade | blade-auth / blade-system | org.springblade.* |
+| youlai-mall | youlai-auth / mall-oms | com.youlai.* |
 | mall4cloud | mall4cloud-auth | com.mall4j.cloud.auth |
 | zlt-microservices-platform | zlt-uaa | com.central |
 | Apollo | apollo-adminservice | com.ctrip.framework.apollo.adminservice |
 | novel-cloud | novel-book-service | io.github.xxyopen.novel.book |
-| yudao-cloud | yudao-module-system-server | cn.iocoder.yudao.module.system |
+| yudao-cloud | system-server / trade-server / pay-server | cn.iocoder.yudao.module.* |
 | PiggyMetrics | account-service | com.piggymetrics.account |
 | MoGuBlog | mogu_admin | com.moxi.mogublog.admin |
 | Cloud-Platform | ace-admin | com.github.wxiaoqi.security |
@@ -161,6 +161,14 @@
 Docker Registry：`crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/`
 
 ## 7. 已完成工作
+
+### 7.0 Sink Agent 实验体系（当前主线，2026-09 起）
+
+- [x] `sink_agent.py` — Sink-directed LLM 灰盒 Agent（8 个工具，API-only 约束，harness 以 `log_match`/marker 双模式判定）
+- [x] 16 个真实业务 sink 验证通过（ruoyi-plus 10 + pig 5 + yudao pay/mall 幂等域 5 + small-swarm 3，部分为概念家族）
+- [x] 静态不可达家族识别（yudao pay「找不到支付客户端」5 处防御性死代码）
+- [x] 部署体系：26 个追踪镜像 + 9 个目标服务（详见 README「环境速查」）
+- 数据与结论见 `docs/RESULTS-SUMMARY.md` 与 `logs/agent_runs/`
 
 ### 7.1 预期路径系统（完整实现）
 
@@ -198,12 +206,11 @@ Docker Registry：`crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llm
 
 ## 8. 待完成工作
 
-- [ ] `fuzzer.py` — LLM 驱动的参数生成（需要完善 prompt 工程）
-- [ ] `pipeline.py` — 主控循环集成
-- [ ] `executor.py` — 完善请求执行 + trace 采集的完整流程
-- [ ] `llm.py` — 接入实际 LLM API
-- [ ] 多项目批量 Fuzz 验证
-- [ ] 全量镜像重建推送（`./build_mvc_traced_and_push.sh all`）
+- [ ] lamp-cloud 域打通（mapper-locations 配置缺失，见 AGENTS.md §5.1）
+- [ ] yudao system 域打通（WebFrameworkUtils 静态注入 NPE，见 AGENTS.md §5.2）
+- [ ] paascloud Dockerfile 从零编写（37 候选，最大未覆盖块）
+- [ ] 静态可达性预筛脚本（null-after-throw 死代码识别）
+- [ ] Elasticsearch 部署（mall-search recommend 候选）
 
 ## 9. 运行方式
 
@@ -216,7 +223,7 @@ cd trace-agent && mvn package -DskipTests  # 编译 trace-agent
 uv run pytest tests/ -v
 
 # 构建并推送所有镜像
-./build_mvc_traced_and_push.sh all
+bash scripts/ops/build_and_push_all_traced.sh
 
 # 启动单个项目验证
 cd examples-yml/PiggyMetrics && docker compose -f compose.real.yaml up -d
@@ -227,6 +234,7 @@ curl -X POST http://127.0.0.1:8080/ \
   -H "X-Return-Trace: true" \
   -d '{"username":"test","password":"pass"}'
 
-# E2E 测试
-uv run python test_path_e2e.py
+# 单元测试 (test_path_e2e 等已移入 tests/)
+uv run pytest tests/ -v
+```
 ```
