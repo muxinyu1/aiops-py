@@ -159,8 +159,9 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | small_swarm_brand_create | DemoController L45「createBrand success」 | v1 | ✅ PASS | 18/322.7s |
 | small_swarm_brand_update | DemoController L61「updateBrand success」 | v1 | ✅ PASS | 8/111.1s |
 | small_swarm_brand_delete | DemoController L75「deleteBrand success :id=」 | v1 | ✅ PASS | 13/668.7s (GET 方法删除) |
+| small_swarm_brand_delete_failed | DemoController L78「deleteBrand failed :id=」 | v1 | ✅ PASS | 16/466.2s |
 
-CRUD 成功分支模式 3/3 全命中。第 7 个候选 EsProductServiceImpl L203 (recommend) 在 mall-search 模块需 Elasticsearch，未部署。
+CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServiceImpl L203 (recommend) 在 mall-search 模块需 Elasticsearch，未部署。
 
 ---
 
@@ -173,5 +174,6 @@ CRUD 成功分支模式 3/3 全命中。第 7 个候选 EsProductServiceImpl L20
 |---|---|---|---|---|
 | lamp_oauth_login_success | AbstractTokenGranter L425「登录成功」 | v1 | ✅ PASS | 40/381.8s |
 
-**累计验证**: 17 个真实业务 sink PASS (ruoyi-plus 10 + pig 5 + yudao pay/mall 5 + small-swarm 3 + lamp-cloud 1，部分为概念家族计数) + 5 处静态不可达阴性对照。
+**累计验证**: 18 个真实业务 sink PASS (ruoyi-plus 10 + pig 5 + yudao pay/mall 5 + small-swarm 4 + lamp-cloud 1，部分为概念家族计数) + 5 处静态不可达阴性对照。
+
 

@@ -14,7 +14,7 @@
 | pig | 15 | 5（file_not_exist / change_password / sms 两批） | 已部署 |
 | apollo | 11 | 0 | 未部署 |
 | ruoyi-plus | 10 | 10（含 workflow 6 条） | 已部署 |
-| small-swarm | 7 | 3（brand create/update/delete） | mall-demo 已部署(9215)；recommend 需 ES |
+| small-swarm | 7 | 4（brand create/update/delete/delete_failed） | mall-demo 已部署(9215)；recommend 需 ES |
 | 其他散量 | 13 | 0 | — |
 | **合计** | **225** | **23** | |
 
@@ -74,6 +74,7 @@
 - ✅ `small_swarm_brand_create` — DemoController L45（18 调用/322.7s）
 - ✅ `small_swarm_brand_update` — DemoController L61（8 调用/111.1s）
 - ✅ `small_swarm_brand_delete` — DemoController L75（13 调用/668.7s）
+- ✅ `small_swarm_brand_delete_failed` — DemoController L78（16 调用/466.2s）
 - ⛔ `EsProductServiceImpl L203 recommend` — 需 Elasticsearch，未部署
 
 ### pig（9999, /tmp/pigboot.log）

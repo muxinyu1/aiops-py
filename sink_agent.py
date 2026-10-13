@@ -846,6 +846,18 @@ SINK_TASKS = {
         "container": "trace-real-mall-swarm-mall-demo",
         "log_match": "deleteBrand success",
     },
+    "small_swarm_brand_delete_failed": {
+        "sink": "DemoController.deleteBrand 中的 "
+                "LOGGER.debug(\"deleteBrand failed :id={}\", id) "
+                "(L78, 源码 mall-swarm/mall-demo/src/main/java/com/macro/mall/demo/controller/DemoController.java)。"
+                "触发条件: DELETE/GET 删除一个不存在的品牌 (count!=1 分支)。",
+        "api": "GET http://localhost:9215/brand/delete/{id} (GET 方法删除; id 需在 pms_brand 表中不存在)。",
+        "env": "目标服务容器: trace-real-mall-swarm-mall-demo (端口 9215)。"
+               "数据库 mall 库 pms_brand 表。",
+        "hint_level": "hint",
+        "container": "trace-real-mall-swarm-mall-demo",
+        "log_match": "deleteBrand failed",
+    },
     # ── lamp-cloud (lamp-oauth-server, 9216) ──
     "lamp_oauth_login_success": {
         "sink": "AbstractTokenGranter.buildResult 中的 "
