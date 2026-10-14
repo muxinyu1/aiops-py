@@ -10,7 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=io.github.xxyopen.novel -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=io.github.xxyopen.novel.*"
+      JAVA_TOOL_OPTIONS: "-Xms512m -Xmx1200m -XX:MaxMetaspaceSize=256m -javaagent:/opt/trace-agent.jar=packages=io.github.xxyopen.novel -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=io.github.xxyopen.novel.*"
       OTEL_SERVICE_NAME: novel-cloud-novel-book-service
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation,local,dev
@@ -32,6 +32,8 @@ services:
       - --server.port=8080
       - --spring.application.name=novel-book-service
       - --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/novel?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      - --spring.datasource.username=root
+      - --spring.datasource.password=123456
       - --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
       - --spring.data.redis.host=127.0.0.1
       - --spring.data.redis.port=6379

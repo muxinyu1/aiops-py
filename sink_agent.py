@@ -927,6 +927,19 @@ SINK_TASKS = {
         "container": "trace-real-mogublog-mogu-admin",
         "log_match": "管理员密码错误",
     },
+    # ── novel-cloud (novel-book-service, 8080) ──
+    "novel_jwt_parse_failed": {
+        "sink": "JwtUtils.parseToken 中的 "
+                "log.warn(\"JWT解析失败:{}\", token) "
+                "(L72, 源码 examples/novel-cloud/novel-core/novel-common/src/main/java/io/github/xxyopen/novel/common/auth/JwtUtils.java)。"
+                "触发条件: 请求经过 TokenParseInterceptor 拦截的接口时，请求头携带无法合法解析的 Authorization token。",
+        "api": "GET http://localhost:8080/api/front/book/content/{chapterId} (需携带 Authorization 请求头)",
+        "env": "目标服务容器: trace-real-novel-cloud-novel-book-service (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 novel。",
+        "hint_level": "hint",
+        "container": "trace-real-novel-cloud-novel-book-service",
+        "log_match": "JWT解析失败:",
+    },
 }
 
 

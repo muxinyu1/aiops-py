@@ -217,6 +217,20 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 | mogu_admin_login_password_error | LoginRestApi.login L120「管理员密码错误」 | v1 | ❌ FAIL (40/847.8s) | 预算超限 (尝试通过未部署的 mogu-picture 注册用户) |
 | | | v2 | ✅ PASS | 28/775.6s (自主定位已有管理员账号并传入错误密码触发命中) |
 
+---
+
+## 十五、novel-cloud 实验 (2026-10-14)
+
+> 服务: novel-book-service (8080, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/novel-cloud-novel-book-service:latest`)
+> 依赖: MySQL `novel` (表已就绪), Redis (trace-real-redis)
+> 拦截器机制: `TokenParseInterceptor` 拦截 `/api/front/book/content/*` 接口，调用 `JwtUtils.parseToken` 解析 JWT，格式异常时捕获并打印警告日志
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点与表名，无作弊参数
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| novel_jwt_parse_failed | JwtUtils.parseToken L72「JWT解析失败:」 | v1 | ✅ PASS | 40/995.4s |
+
+
 
 
 

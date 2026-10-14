@@ -95,3 +95,6 @@
 ### mogu-blog（8080, trace-real-mogublog-mogu-admin）
 - ✅ `mogu_admin_login_password_error` — LoginRestApi L120「管理员密码错误」（28 调用/775.6s, v2 PASS; v1 经历预算超限探索，v2 自主定位管理员账号并传入错误密码与攻击标记触发命中）
 
+### novel-cloud（8080, trace-real-novel-cloud-novel-book-service）
+- ✅ `novel_jwt_parse_failed` — JwtUtils L72「JWT解析失败:」（40 调用/995.4s, v1 PASS; 携带 Authorization 头部请求受拦截接口触发 JWT 校验失败分支）
+
