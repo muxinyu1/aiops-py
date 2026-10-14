@@ -104,3 +104,7 @@
 ### RuoYi-Cloud（8080, trace-real-ruoyi-cloud-ruoyi-auth）
 - ✅ `ruoyi_auth_token_parse_failed` — TokenService L113「获取用户信息异常」（15 调用/681.8s, v1 PASS; HeaderInterceptor 拦截携带非法 JWT 的 Authorization 请求头，解析抛异常进入 catch 命中目标日志）
 
+### zlt-microservices-platform（8080, trace-real-zlt-microservices-platform-zlt-uaa）
+- ✅ `zlt_sms_validate_code_not_expired` — ValidateCodeServiceImpl L62「用户:{}验证码未失效{}」（25 调用/426.2s, v1 PASS; Agent 自主阅读源码定位 Redis 键命名规范 `DEFAULT_CODE_KEY:{mobile}`，通过 redis_cmd 预置缓存状态，随后调用 GET /validata/smsCode/{mobile} 携带 <<SINK_REACHED>> 成功触发目标日志）
+
+

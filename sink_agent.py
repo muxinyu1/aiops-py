@@ -105,9 +105,14 @@ def _exec_mysql(sql: str) -> str:
 def tool_redis_cmd(cmd_str: str) -> str:
     """向 Redis 发送命令 (预置缓存状态)。"""
     container = os.environ.get("AGENT_REDIS_CONTAINER", "trace-real-redis")
+    password = os.environ.get("AGENT_REDIS_PASSWORD", "password")
     parts = cmd_str.split()
+    cmd = ["docker", "exec"]
+    if password:
+        cmd += ["-e", f"REDISCLI_AUTH={password}"]
+    cmd += [container, "redis-cli", "--raw", *parts]
     try:
-        r = subprocess.run(["docker", "exec", container, "redis-cli", "--raw", *parts],
+        r = subprocess.run(cmd,
                            capture_output=True, text=True, timeout=15)
         return _truncate((r.stdout or r.stderr or "(空)").strip())
     except subprocess.TimeoutExpired:
@@ -970,6 +975,19 @@ SINK_TASKS = {
         # 导致 PasswordTokenGranter 的 if (userInfo == null || userInfo.getUser() == null) 恒为 false；
         # 若下游离线则直接抛 Connection refused 异常转化为 500 跳过 fallback，因此该日志分支静态/动态皆不可达。
         "static_unreachable_note": "BladeBeanSerializerModifier 将 null 对象序列化为 {}, 经 Feign 反序列化后 userInfo.getUser() 永远不为 null; 下游离线时抛 500 异常, L82 静态/动态不可达",
+    },
+    # ── zlt-microservices-platform (zlt-uaa, 8080) ──
+    "zlt_sms_validate_code_not_expired": {
+        "sink": "ValidateCodeServiceImpl.sendSmsCode 中的 "
+                "log.error(\"用户:{}验证码未失效{}\", mobile, tempCode) "
+                "(L62, 源码 examples/zlt-microservices-platform/zlt-uaa/src/main/java/com/central/oauth/service/impl/ValidateCodeServiceImpl.java)。"
+                "触发条件: 请求发送短信验证码时，该手机号对应的验证码在缓存中未失效（已存在未过期的验证码）。",
+        "api": "GET http://localhost:8080/validata/smsCode/{mobile}",
+        "env": "目标服务容器: trace-real-zlt-microservices-platform-zlt-uaa (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 oauth-center。缓存: trace-real-redis (端口 6379)。",
+        "hint_level": "hint",
+        "container": "trace-real-zlt-microservices-platform-zlt-uaa",
+        "log_match": "验证码未失效",
     },
 }
 

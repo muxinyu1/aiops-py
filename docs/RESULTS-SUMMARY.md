@@ -257,8 +257,15 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 |---|---|---|---|---|
 | ruoyi_auth_token_parse_failed | TokenService.getLoginUser L113「获取用户信息异常」 | v1 | ✅ PASS | 15/681.8s |
 
+---
 
+## 十八、zlt-microservices-platform 实验 (2026-10-14)
 
+> 服务: zlt-uaa (8080, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/zlt-microservices-platform-zlt-uaa:latest`)
+> 依赖: MySQL `oauth-center` (表 `oauth_client_details`), Redis (trace-real-redis)
+> 机制: `ValidateCodeServiceImpl.sendSmsCode` 校验 Redis 中是否存在该手机号的未失效验证码；若 `tempCode != null` 则打印 `log.error("用户:{}验证码未失效{}", mobile, tempCode)`。Agent 自主探索代码发现 Redisson key 规范为 `DEFAULT_CODE_KEY:{mobile}`，并通过 `redis_cmd` 预置状态后发起 HTTP 请求成功命中。
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点 `GET /validata/smsCode/{mobile}`，无作弊参数。
 
-
-
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| zlt_sms_validate_code_not_expired | ValidateCodeServiceImpl.sendSmsCode L62「用户:{}验证码未失效{}」 | v1 | ✅ PASS | 25/426.2s |
