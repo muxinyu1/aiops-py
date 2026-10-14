@@ -92,3 +92,6 @@
 ### apollo（8080, trace-real-apollo-apollo-adminservice）
 - ✅ `apollo_delete_app` — AdminService L68「is deleting App:」（18 调用/180.6s, v1 PASS; Agent 自主调用 POST /apps 创建应用，随后 DELETE /apps 携带标记触发命中）
 
+### mogu-blog（8080, trace-real-mogublog-mogu-admin）
+- ✅ `mogu_admin_login_password_error` — LoginRestApi L120「管理员密码错误」（28 调用/775.6s, v2 PASS; v1 经历预算超限探索，v2 自主定位管理员账号并传入错误密码与攻击标记触发命中）
+

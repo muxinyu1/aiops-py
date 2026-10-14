@@ -204,6 +204,20 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 |---|---|---|---|---|
 | apollo_delete_app | AdminService.deleteApp L68「is deleting App:」 | v1 | ✅ PASS | 18/180.6s |
 
+---
+
+## 十四、MoGuBlog 实验 (2026-10-14)
+
+> 服务: mogu-admin (8080, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/mogublog-mogu_admin:latest`)
+> 依赖: MySQL `mogu_blog` (表已就绪), Redis `LOGIN_LIMIT` 频次控制
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点与表名，无作弊参数
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| mogu_admin_login_password_error | LoginRestApi.login L120「管理员密码错误」 | v1 | ❌ FAIL (40/847.8s) | 预算超限 (尝试通过未部署的 mogu-picture 注册用户) |
+| | | v2 | ✅ PASS | 28/775.6s (自主定位已有管理员账号并传入错误密码触发命中) |
+
+
 
 
 

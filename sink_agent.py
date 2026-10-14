@@ -914,6 +914,19 @@ SINK_TASKS = {
         "container": "trace-real-apollo-apollo-adminservice",
         "log_match": "is deleting App:",
     },
+    # ── mogu-blog (mogu-admin, 8080) ──
+    "mogu_admin_login_password_error": {
+        "sink": "LoginRestApi.login 中的 "
+                "log.error(\"管理员密码错误\") "
+                "(L120, 源码 examples/MoGuBlog/mogu_admin/src/main/java/com/moxi/mogublog/admin/restapi/LoginRestApi.java)。"
+                "触发条件: 使用已存在的管理员账号登录，但输入错误的密码。",
+        "api": "POST http://localhost:8080/auth/login (参数: username=<管理员账号>, password=<不匹配的错误密码>，支持 url query 或 form 表单)",
+        "env": "目标服务容器: trace-real-mogublog-mogu-admin (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 mogu_blog, 管理员表 t_admin (已存在管理员账号，可通过 query_db 查看)。",
+        "hint_level": "hint",
+        "container": "trace-real-mogublog-mogu-admin",
+        "log_match": "管理员密码错误",
+    },
 }
 
 
