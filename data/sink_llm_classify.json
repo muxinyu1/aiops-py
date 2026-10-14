@@ -21178,7 +21178,9 @@
     ],
     "raw_call": "log.error(\"用户登录失败, 账号:{}, IP:{}\", account, WebUtil.getIP())",
     "category": "cache_state",
-    "category_reason": "到达日志前必须通过 Redis 中存储的验证码校验，黑盒无法直接得知缓存中的验证码值。"
+    "category_reason": "到达日志前必须通过 Redis 中存储的验证码校验，黑盒无法直接得知缓存中的验证码值。",
+    "is_unreachable": true,
+    "unreachable_reason": "下游 blade-system 自定义 BladeBeanSerializerModifier 将 null 对象序列化为 {}，导致 Feign 反序列化后 userInfo.getUser() 为非空空对象 new User()，userInfo.getUser() == null 恒不成立；下游异常时又直接被捕获转化为 500 跳过 fallback，导致该登录失败日志静态与动态不可达。"
   },
   {
     "project": "springblade",
@@ -21204,7 +21206,9 @@
     ],
     "raw_call": "log.error(\"用户登录失败, 账号:{}, IP:{}\", account, WebUtil.getIP())",
     "category": "remote_service",
-    "category_reason": "日志触发条件依赖 userClient.userInfo 远程 Feign 调用返回的 UserInfo 是否为空，黑盒无法控制下游用户服务返回结果。"
+    "category_reason": "日志触发条件依赖 userClient.userInfo 远程 Feign 调用返回的 UserInfo 是否为空，黑盒无法控制下游用户服务返回结果。",
+    "is_unreachable": true,
+    "unreachable_reason": "下游 blade-system 自定义 BladeBeanSerializerModifier 将 null 对象序列化为 {}，导致 Feign 反序列化后 userInfo.getUser() 为非空空对象 new User()，userInfo.getUser() == null 恒不成立；下游异常时又直接被捕获转化为 500 跳过 fallback，导致该登录失败日志静态与动态不可达。"
   },
   {
     "project": "youlai",

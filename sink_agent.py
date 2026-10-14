@@ -953,6 +953,24 @@ SINK_TASKS = {
         "container": "trace-real-ruoyi-cloud-ruoyi-auth",
         "log_match": "获取用户信息异常",
     },
+    # ── SpringBlade (blade-auth, 8080) ──
+    "springblade_login_failed": {
+        "sink": "PasswordTokenGranter.grant 中的 "
+                "log.error(\"用户登录失败, 账号:{}, IP:{}\", account, WebUtil.getIP()) "
+                "(L82, 源码 examples/SpringBlade/blade-auth/src/main/java/org/springblade/auth/granter/PasswordTokenGranter.java)。"
+                "触发条件: 传入不存在的账号或错误密码导致登录失败。",
+        "api": "POST http://localhost:8080/token (表单参数 tenantId, account, password, grantType=password)",
+        "env": "目标服务容器: trace-real-springblade-blade-auth (8080) 与 trace-real-springblade-blade-system (8106)。",
+        "hint_level": "hint",
+        "container": "trace-real-springblade-blade-auth",
+        "log_match": "用户登录失败",
+        # 已知静态/框架语义不可达问题:
+        # 下游 blade-system 配置了 BladeBeanSerializerModifier 将 null 对象强制序列化为 {}，
+        # 经 Feign 反序列化后 userInfo.getUser() 得到非空空对象 new User()，
+        # 导致 PasswordTokenGranter 的 if (userInfo == null || userInfo.getUser() == null) 恒为 false；
+        # 若下游离线则直接抛 Connection refused 异常转化为 500 跳过 fallback，因此该日志分支静态/动态皆不可达。
+        "static_unreachable_note": "BladeBeanSerializerModifier 将 null 对象序列化为 {}, 经 Feign 反序列化后 userInfo.getUser() 永远不为 null; 下游离线时抛 500 异常, L82 静态/动态不可达",
+    },
 }
 
 
