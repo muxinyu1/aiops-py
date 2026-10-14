@@ -901,6 +901,19 @@ SINK_TASKS = {
         "container": "trace-real-lamp-cloud-lamp-oauth-server",
         "log_match": "登录成功",
     },
+    # ── apollo (apollo-adminservice, 8080) ──
+    "apollo_delete_app": {
+        "sink": "AdminService.deleteApp 中的 "
+                "logger.info(\"{} is deleting App:{}\", operator, appId) "
+                "(L68, 源码 examples/Apollo/apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/AdminService.java)。"
+                "触发条件: 删除一个已存在的 App (AppId 在数据库中存在)。",
+        "api": "DELETE http://localhost:8080/apps/{appId}?operator={operator} (需携带 operator 查询参数)",
+        "env": "目标服务容器: trace-real-apollo-apollo-adminservice (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 apolloconfigdb, app 表 (已有预置应用记录, 可直接查表或先 POST /apps 创建)。",
+        "hint_level": "hint",
+        "container": "trace-real-apollo-apollo-adminservice",
+        "log_match": "is deleting App:",
+    },
 }
 
 

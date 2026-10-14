@@ -89,3 +89,6 @@
 ### lamp-cloud（9216, trace-real-lamp-cloud-lamp-oauth-server）
 - ✅ `lamp_oauth_login_success` — AbstractTokenGranter L425「登录成功」（40 调用/381.8s）
 
+### apollo（8080, trace-real-apollo-apollo-adminservice）
+- ✅ `apollo_delete_app` — AdminService L68「is deleting App:」（18 调用/180.6s, v1 PASS; Agent 自主调用 POST /apps 创建应用，随后 DELETE /apps 携带标记触发命中）
+

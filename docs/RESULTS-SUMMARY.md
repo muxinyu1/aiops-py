@@ -192,5 +192,18 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 
 **累计验证**: 20 个真实业务 sink PASS (ruoyi-plus 10 + pig 6 + yudao pay/mall 6 + small-swarm 4 + lamp-cloud 1，部分为概念家族计数) + 5 处静态不可达阴性对照。
 
+---
+
+## 十三、Apollo 实验 (2026-10-14)
+
+> 服务: apollo-adminservice (8080, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/apollo-apollo-adminservice:latest`)
+> 依赖: MySQL `ApolloConfigDB` (表已就绪), `--eureka.client.enabled=false` + `--spring.cloud.zookeeper.enabled=false` 避免外部注册中心连接重试
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点与表名，无作弊参数
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| apollo_delete_app | AdminService.deleteApp L68「is deleting App:」 | v1 | ✅ PASS | 18/180.6s |
+
+
 
 
