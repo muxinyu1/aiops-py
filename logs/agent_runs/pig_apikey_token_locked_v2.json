@@ -1,0 +1,467 @@
+{
+  "reached": false,
+  "turns": 1,
+  "tool_calls": 50,
+  "elapsed": 519.3886737823486,
+  "tool_log": [
+    {
+      "n": 1,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigCustomOpaqueTokenIntrospector.java",
+        "start": 100,
+        "end": 200
+      },
+      "result": "pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigCustomOpaqueTokenIntrospector.java (L100-200, 共201行)\n 100 | \t\t\t\tlog.warn(\"用户账号 {} 已过期，拒绝访问\", userDetails.getUsername());\n 101 | \t\t\t\tthrow new InvalidBearerTokenException(token);\n 102 | \t\t\t}\n 103 | \t\t}\n 104 | \n 105 | \t\t// 注入客户端信息，方便上下文中获取\n 106 | \t\tPigUser pigUser = (PigUser) userDetails;\n 107 | \n 108 | \t\tObjects.requireNonNull(pigUser)\n 109 | \t\t\t.getAttributes()\n 110 | \t\t\t.put(SecurityConstants.CLIENT_ID, oldAuthorization.getRegisteredClientId());\n 111 | \t\treturn pigUser;\n 112 | \t}\n 113 | \n 114 | \t/**\n 115 | \t * 处理 API-KEY 类型的 token 1. 计算 SHA-256 哈希 2. 查询 API-KEY 记录 3. 校验状态、过期时间、IP白名单 4.\n 116 | \t * 加载用户信息并返回\n 117 | \t */\n 118 | \tprivate OAuth2AuthenticatedPrincipal handleApiKeyToken(String token) {\n 119 | \t\tString hash = sha256(token);\n 120 | \n 121 | \t\t// 优先从缓存获取，避免远程调用\n 122 | \t\tCacheManager cacheManager = SpringContextHolder.getBean(CacheManager.class);\n 123 | \t\tCache cache = cacheManager.getCache(CacheConstants.API_KEY_DETAILS);\n 124 | \t\tRemoteApiKeyService remoteApiKeyService = SpringContextHolder.getBean(RemoteApiKeyService.class);\n 125 | \t\tSysApiKey apiKey = null;\n 126 | \t\tif (cache != null && cache.get(hash) != null) {\n 127 | \t\t\tapiKey = cache.get(hash, SysApiKey.class);\n 128 | \t\t}\n 129 | \n 130 | \t\tif (apiKey == null) {\n 131 | \t\t\tR<SysApiKey> result = remoteApiKeyService.getByHash(hash);\n 132 | \t\t\tif (result == null || result.getData() == null) {\n 133 | \t\t\t\tthrow new InvalidBearerTokenException(\"Invalid API Key\");\n 134 | \t\t\t}\n 135 | \t\t\tapiKey = result.getData();\n 136 | \t\t\t// 回填缓存\n 137 | \t\t\tif (cache != null) {\n 138 | \t\t\t\tcache.put(hash, apiKey);\n 139 | \t\t\t}\n 140 | \t\t}\n 141 | \n 142 | \t\t// 校验过期时间\n 143 | \t\tif (apiKey.getExpiresAt() != null && apiKey.getExpiresAt().isBefore(LocalDateTime.now())) {\n 144 | \t\t\tthrow new InvalidBearerTokenException(\"API Key has expired\");\n 145 | \t\t}\n 146 | \n 147 | \t\t// 校验 IP 白名单\n 148 | \t\tif (apiKey.getAllowedIps() != null && !apiKey.getAllowe"
+    },
+    {
+      "n": 2,
+      "tool": "search_code",
+      "args": {
+        "pattern": "sk-",
+        "path_prefix": "pig"
+      },
+      "result": "examples/SpringBlade/pom.xml:63:                <artifactId>blade-desk-api</artifactId>\nexamples/SpringBlade/blade-service/blade-desk/pom.xml:29:            <artifactId>blade-desk-api</artifactId>\nexamples/SpringBlade/blade-service-api/pom.xml:18:        <module>blade-desk-api</module>\nexamples/SpringBlade/blade-service-api/blade-desk-api/pom.xml:12:    <artifactId>blade-desk-api</artifactId>\nexamples/pig/pig-visual/pig-quartz/src/main/java/com/pig4cloud/pig/daemon/quartz/controller/SysJobController.java:305:\t@GetMapping(\"/is-valid-task-name\")\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigCustomOpaqueTokenIntrospector.java:48:\t\t// API-KEY 前缀检测：sk- 开头走独立处理逻辑\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigCustomOpaqueTokenIntrospector.java:49:\t\tif (token.startsWith(\"sk-\")) {\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysApiKeyController.java:63:\t * 业务逻辑由 Service 完成：校验当前密码（防 CSRF）、数量上限（每用户最多 5 个）、 生成 sk- 前缀密钥并只存储 SHA-256 哈希。明文 Key\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysApiKeyController.java:66:\t * @return 明文 API Key，格式：sk-xxx\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysApiKeyServiceImpl.java:56:\tprivate static final String API_KEY_PREFIX = \"sk-\";\nexamples/java-microservice/src/main/java/com/example/microservice/controller/AppController.java:110:    // POST /api/orders/risk-eval —— 参数组合靶场端点\nexamples/java-microservice/src/main/java/com/example/microservice/controller/AppController.java:111:    @PostMapping(\"/orders/risk-eval\")\nexamples/paascloud-master/paascloud-common/paascloud-common-config/src/main/java/com/paascloud/config/properties/AsyncTaskProperties.java:31:\tprivate String threadNamePrefix = \"paascloud-task-executor-\";\nexamples/yudao-cloud/yudao-module-bpm/yudao-module-bpm-server/src/main/java/cn/iocoder/yudao/module"
+    },
+    {
+      "n": 3,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysApiKeyController.java",
+        "start": 1,
+        "end": 120
+      },
+      "result": "pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysApiKeyController.java (L1-120, 共171行)\n   1 | /*\n   2 | *\n   3 | *      Copyright (c) 2018-2025, lengleng All rights reserved.\n   4 | *\n   5 | *  Redistribution and use in source and binary forms, with or without\n   6 | *  modification, are permitted provided that the following conditions are met:\n   7 | *\n   8 | * Redistributions of source code must retain the above copyright notice,\n   9 | *  this list of conditions and the following disclaimer.\n  10 | *  Redistributions in binary form must reproduce the above copyright\n  11 | *  notice, this list of conditions and the following disclaimer in the\n  12 | *  documentation and/or other materials provided with the distribution.\n  13 | *  Neither the name of the pig4cloud.com developer nor the names of its\n  14 | *  contributors may be used to endorse or promote products derived from\n  15 | *  this software without specific prior written permission.\n  16 | *  Author: lengleng (wangiegie@gmail.com)\n  17 | *\n  18 | */\n  19 | \n  20 | package com.pig4cloud.pig.admin.controller;\n  21 | \n  22 | import com.baomidou.mybatisplus.core.toolkit.Wrappers;\n  23 | import com.baomidou.mybatisplus.extension.plugins.pagination.Page;\n  24 | import com.pig4cloud.pig.admin.api.dto.ApiKeyCreateDTO;\n  25 | import com.pig4cloud.pig.admin.api.entity.SysApiKey;\n  26 | import com.pig4cloud.pig.admin.service.SysApiKeyService;\n  27 | import com.pig4cloud.pig.common.core.constant.CacheConstants;\n  28 | import com.pig4cloud.pig.common.core.constant.enums.YesNoEnum;\n  29 | import com.pig4cloud.pig.common.core.util.R;\n  30 | import com.pig4cloud.pig.common.log.annotation.SysLog;\n  31 | import com.pig4cloud.pig.common.security.annotation.HasPermission;\n  32 | import com.pig4cloud.pig.common.security.annotation.Inner;\n  33 | import com.pig4cloud.pig.common.security.util.SecurityUtils;\n  34 | import io.swagger.v3.oas.annotations.security.SecurityRequirement;\n  35 | import io.swa"
+    },
+    {
+      "n": 4,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig/pig-upms",
+        "pattern": "lock"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/db/oracle.sql:316:CREATE TABLE qrtz_locks\nexamples/PassJava-Platform/renren-fast/db/postgresql.sql:333:CREATE TABLE qrtz_locks\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/utils/SnowflakeUtilV2.java:66:            throw new IllegalStateException(\"Invalid System Clock!\");\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/utils/SnowflakeUtilV2.java:99:    // Block and wait till next millisecond\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/utils/SnowflakeUtill.java:38:            throw new RuntimeException(\"Clock moved backwards.Refusing to generate id\");\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/RedissonTestController.java:29:    @GetMapping(\"test-lock\")\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/RedissonTestController.java:34:        RLock lock = redisson.getLock(\"WuKong-lock\");\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/RedissonTestController.java:37:        lock.lock(8, TimeUnit.SECONDS);\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/RedissonTestController.java:44:            lock.unlock();\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/RedissonTestController.java:49:        return \"test lock ok\";\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/TypeAppController.java:68:    @RequestMapping(\"/list-by-redis-lock\")\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/controller/TypeAppController.java:81:    @RequestMapping(\"/list-by-redis-distributed-lock\")\nexamples/PassJava-Platform/passjava-question/src/main/java/co"
+    },
+    {
+      "n": 5,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig",
+        "pattern": "lockFlag|lock_flag|/lock"
+      },
+      "result": "examples/zlt-microservices-platform/zlt-commons/zlt-redis-spring-boot-starter/src/main/java/com/central/common/redis/lock/RedisDistributedLock.java:33:    private ThreadLocal<String> lockFlag = new ThreadLocal<>();\nexamples/zlt-microservices-platform/zlt-commons/zlt-redis-spring-boot-starter/src/main/java/com/central/common/redis/lock/RedisDistributedLock.java:83:                lockFlag.set(uuid);\nexamples/zlt-microservices-platform/zlt-commons/zlt-redis-spring-boot-starter/src/main/java/com/central/common/redis/lock/RedisDistributedLock.java:110:                        , redisTemplate.getStringSerializer().serialize(lockFlag.get()));\nexamples/zlt-microservices-platform/zlt-commons/zlt-redis-spring-boot-starter/src/main/java/com/central/common/redis/lock/RedisDistributedLock.java:116:            lockFlag.remove();\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/feign/WareFeignService.java:24:    @RequestMapping(\"ware/waresku/lock/order\")\nexamples/gulimall-learning/gulimall-ware/src/main/java/io/niceseason/gulimall/ware/controller/WareSkuController.java:45:    @RequestMapping(\"/lock/order\")\nexamples/youlai-mall/mall-pms/pms-api/src/main/java/com/youlai/mall/pms/api/SkuFeignClient.java:33:    @PutMapping(\"/app-api/v1/skus/lock\")\nexamples/youlai-mall/mall-pms/pms-boot/src/main/java/com/youlai/mall/pms/controller/app/SkuController.java:48:    @PutMapping(\"/lock\")\nexamples/mall4cloud/mall4cloud-api/mall4cloud-api-product/src/main/java/com/mall4j/cloud/api/product/feign/SkuStockLockFeignClient.java:24:    @PostMapping(value = FeignInsideAuthConfig.FEIGN_INSIDE_URL_PREFIX + \"/skuStockLock/lock\")\nexamples/pig/db/pig.sql:180:INSERT INTO `sys_dict` VALUES (18, 'lock_flag', '用户状态', 'admin', ' ', '2023-02-01 16:55:31', NULL, NULL, '1', '0');\nexamples/pig/db/pig.sql:265:INSERT INTO `sys_dict_item` VALUES (58, 18, '0', '有效', 'lock_flag', '有效', NULL, 0, 'admin', ' ', '2023-02-01 16:56:00', NULL, NULL, '0');\nexamples/pig/db/pig.sql:266:INSERT I"
+    },
+    {
+      "n": 6,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig",
+        "pattern": "ApiKeyCreateDTO"
+      },
+      "result": "examples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysApiKeyController.java:24:import com.pig4cloud.pig.admin.api.dto.ApiKeyCreateDTO;\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysApiKeyController.java:70:\tpublic R<String> create(@Valid @RequestBody ApiKeyCreateDTO dto) {\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/SysApiKeyService.java:24:import com.pig4cloud.pig.admin.api.dto.ApiKeyCreateDTO;\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/SysApiKeyService.java:40:\tR<String> createApiKey(ApiKeyCreateDTO dto);\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysApiKeyServiceImpl.java:28:import com.pig4cloud.pig.admin.api.dto.ApiKeyCreateDTO;\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysApiKeyServiceImpl.java:68:\tpublic R<String> createApiKey(ApiKeyCreateDTO dto) {\nexamples/pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/dto/ApiKeyCreateDTO.java:36:public class ApiKeyCreateDTO {\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysApiKeyController.java:24:import com.pig4cloud.pig.admin.api.dto.ApiKeyCreateDTO;\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysApiKeyController.java:70:\tpublic R<String> create(@Valid @RequestBody ApiKeyCreateDTO dto) {\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/SysApiKeyService.java:24:import com.pig4cloud.pig.admin.api.dto.ApiKeyCreateDTO;\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/SysApiKeyService.java:40:\tR<String> createApiKey(ApiKeyCreateDTO dto);\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysApiKeyServiceImpl.java:28:import com.pig4cloud.pig.admin.api.dto.ApiKeyCreateDTO;\nexamples/pig/pig-upms/pig-upm"
+    },
+    {
+      "n": 7,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/entity/SysUser.java",
+        "start": 40,
+        "end": 160
+      },
+      "result": "pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/entity/SysUser.java (L40-160, 共211行)\n  40 |  */\n  41 | @Data\n  42 | @Schema(description = \"用户\")\n  43 | @EqualsAndHashCode(callSuper = true)\n  44 | public class SysUser extends Model<SysUser> implements Serializable {\n  45 | \n  46 | \t@Serial\n  47 | \tprivate static final long serialVersionUID = 1L;\n  48 | \n  49 | \t/**\n  50 | \t * 主键ID\n  51 | \t */\n  52 | \t@TableId(value = \"user_id\", type = IdType.ASSIGN_ID)\n  53 | \t@Schema(description = \"主键id\")\n  54 | \tprivate Long userId;\n  55 | \n  56 | \t/**\n  57 | \t * 用户名\n  58 | \t */\n  59 | \t@Schema(description = \"用户名\")\n  60 | \tprivate String username;\n  61 | \n  62 | \t/**\n  63 | \t * 密码\n  64 | \t */\n  65 | \t@Schema(description = \"密码\")\n  66 | \tprivate String password;\n  67 | \n  68 | \t/**\n  69 | \t * 随机盐\n  70 | \t */\n  71 | \t@JsonIgnore\n  72 | \t@Schema(description = \"随机盐\")\n  73 | \tprivate String salt;\n  74 | \n  75 | \t/**\n  76 | \t * 创建人\n  77 | \t */\n  78 | \t@TableField(fill = FieldFill.INSERT)\n  79 | \t@Schema(description = \"创建人\")\n  80 | \tprivate String createBy;\n  81 | \n  82 | \t/**\n  83 | \t * 修改人\n  84 | \t */\n  85 | \t@TableField(fill = FieldFill.UPDATE)\n  86 | \t@Schema(description = \"修改人\")\n  87 | \tprivate String updateBy;\n  88 | \n  89 | \t/**\n  90 | \t * 创建时间\n  91 | \t */\n  92 | \t@TableField(fill = FieldFill.INSERT)\n  93 | \t@Schema(description = \"创建时间\")\n  94 | \tprivate LocalDateTime createTime;\n  95 | \n  96 | \t/**\n  97 | \t * 修改时间\n  98 | \t */\n  99 | \t@TableField(fill = FieldFill.UPDATE)\n 100 | \t@Schema(description = \"修改时间\")\n 101 | \tprivate LocalDateTime updateTime;\n 102 | \n 103 | \t/**\n 104 | \t * 0-正常，1-删除\n 105 | \t */\n 106 | \t@TableLogic\n 107 | \t@TableField(fill = FieldFill.INSERT)\n 108 | \t@Schema(description = \"删除标记,1:已删除,0:正常\")\n 109 | \tprivate String delFlag;\n 110 | \n 111 | \t/**\n 112 | \t * 锁定标记\n 113 | \t */\n 114 | \t@Schema(description = \"锁定标记\")\n 115 | \tprivate String lockFlag;\n 116 | \n 117 | \t/**\n 118 | \t * 密码过期标记\n 119 | \t */\n 120 | \t@Schema(description = \"密码过期标记\")\n 121 | \tprivate"
+    },
+    {
+      "n": 8,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/dto/ApiKeyCreateDTO.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/dto/ApiKeyCreateDTO.java (L1-51, 共51行)\n   1 | /*\n   2 |  *\n   3 |  *      Copyright (c) 2018-2025, lengleng All rights reserved.\n   4 |  *\n   5 |  *  Redistribution and use in source and binary forms, with or without\n   6 |  *  modification, are permitted provided that the following conditions are met:\n   7 |  *\n   8 |  * Redistributions of source code must retain the above copyright notice,\n   9 |  *  this list of conditions and the following disclaimer.\n  10 |  *  Redistributions in binary form must reproduce the above copyright\n  11 |  *  notice, this list of conditions and the following disclaimer in the\n  12 |  *  documentation and/or other materials provided with the distribution.\n  13 |  *  Neither the name of the pig4cloud.com developer nor the names of its\n  14 |  *  contributors may be used to endorse or promote products derived from\n  15 |  *  this software without specific prior written permission.\n  16 |  *  Author: lengleng (wangiegie@gmail.com)\n  17 |  *\n  18 |  */\n  19 | \n  20 | package com.pig4cloud.pig.admin.api.dto;\n  21 | \n  22 | import io.swagger.v3.oas.annotations.media.Schema;\n  23 | import jakarta.validation.constraints.NotBlank;\n  24 | import lombok.Data;\n  25 | \n  26 | import java.time.LocalDateTime;\n  27 | \n  28 | /**\n  29 |  * 创建 API 密钥请求体\n  30 |  *\n  31 |  * @author lengleng\n  32 |  * @date 2026-03-23\n  33 |  */\n  34 | @Data\n  35 | @Schema(description = \"创建API密钥请求\")\n  36 | public class ApiKeyCreateDTO {\n  37 | \n  38 | \t@Schema(description = \"Key名称\")\n  39 | \tprivate String name;\n  40 | \n  41 | \t@Schema(description = \"IP白名单，多个以逗号分隔\")\n  42 | \tprivate String allowedIps;\n  43 | \n  44 | \t@Schema(description = \"过期时间\")\n  45 | \tprivate LocalDateTime expiresAt;\n  46 | \n  47 | \t@NotBlank(message = \"当前密码不能为空\")\n  48 | \t@Schema(description = \"当前登录用户密码（用于二次验证）\")\n  49 | \tprivate String password;\n  50 | \n  51 | }"
+    },
+    {
+      "n": 9,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysUserController.java",
+        "start": 55,
+        "end": 260
+      },
+      "result": "pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysUserController.java (L55-260, 共328行)\n  55 |  * @date 2026-02-10\n  56 |  */\n  57 | @RestController\n  58 | @AllArgsConstructor\n  59 | @RequestMapping(\"/user\")\n  60 | @Tag(description = \"user\", name = \"用户管理模块\")\n  61 | @SecurityRequirement(name = HttpHeaders.AUTHORIZATION)\n  62 | public class SysUserController {\n  63 | \n  64 | \tprivate final SysUserService userService;\n  65 | \n  66 | \t/**\n  67 | \t * 获取指定用户全部信息\n  68 | \t * @return 用户信息\n  69 | \t */\n  70 | \t@Inner\n  71 | \t@GetMapping(\"/info/{username}\")\n  72 | \tpublic R info(@PathVariable String username) {\n  73 | \t\tUserDTO userDTO = new UserDTO();\n  74 | \t\tuserDTO.setUsername(username);\n  75 | \t\treturn userService.getUserInfo(userDTO);\n  76 | \t}\n  77 | \n  78 | \t/**\n  79 | \t * 获取当前用户全部信息\n  80 | \t * @return 用户信息\n  81 | \t */\n  82 | \t@GetMapping(value = { \"/info\" })\n  83 | \tpublic R info() {\n  84 | \t\tString username = SecurityUtils.getUser().getUsername();\n  85 | \t\tUserDTO userDTO = new UserDTO();\n  86 | \t\tuserDTO.setUsername(username);\n  87 | \t\t// 获取用户信息，不返回数据库密码字段\n  88 | \t\tR<UserInfo> userInfoR = userService.getUserInfo(userDTO);\n  89 | \t\tif (userInfoR.getData() != null) {\n  90 | \t\t\tuserInfoR.getData().setPassword(null);\n  91 | \t\t}\n  92 | \t\treturn userInfoR;\n  93 | \t}\n  94 | \n  95 | \t/**\n  96 | \t * 通过ID查询用户信息\n  97 | \t * @param id ID\n  98 | \t * @return 用户信息\n  99 | \t */\n 100 | \t@GetMapping(\"/details/{id}\")\n 101 | \tpublic R user(@PathVariable Long id) {\n 102 | \t\treturn R.ok(userService.selectUserVoById(id));\n 103 | \t}\n 104 | \n 105 | \t/**\n 106 | \t * 查询用户信息\n 107 | \t * @param query 查询条件\n 108 | \t * @return 不为空返回用户名\n 109 | \t */\n 110 | \t@Inner(value = false)\n 111 | \t@GetMapping(\"/details\")\n 112 | \tpublic R getDetails(@ParameterObject SysUser query) {\n 113 | \t\tSysUser sysUser = userService.getOne(Wrappers.query(query), false);\n 114 | \t\treturn R.ok(sysUser == null ? null : CommonConstants.SUCCESS);\n 115 | \t}\n 116 | \n 117 | \t/**\n 118 | \t * 删除用户信息\n 119 | \t * @p"
+    },
+    {
+      "n": 10,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig",
+        "pattern": "SecurityConstants.FROM|FROM\\)|getHeader\\(.*FROM"
+      },
+      "result": "examples/RuoYi-Cloud/ruoyi-gateway/src/main/java/com/ruoyi/gateway/filter/AuthFilter.java:82:        removeHeader(mutate, SecurityConstants.FROM_SOURCE);\nexamples/RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/aspect/InnerAuthAspect.java:26:        String source = ServletUtils.getRequest().getHeader(SecurityConstants.FROM_SOURCE);\nexamples/RuoYi-Cloud/ruoyi-api/ruoyi-api-system/src/main/java/com/ruoyi/system/api/RemoteLogService.java:30:    public R<Boolean> saveLog(@RequestBody SysOperLog sysOperLog, @RequestHeader(SecurityConstants.FROM_SOURCE) String source) throws Exception;\nexamples/RuoYi-Cloud/ruoyi-api/ruoyi-api-system/src/main/java/com/ruoyi/system/api/RemoteLogService.java:40:    public R<Boolean> saveLogininfor(@RequestBody SysLogininfor sysLogininfor, @RequestHeader(SecurityConstants.FROM_SOURCE) String source);\nexamples/RuoYi-Cloud/ruoyi-api/ruoyi-api-system/src/main/java/com/ruoyi/system/api/RemoteUserService.java:33:    public R<LoginUser> getUserInfo(@PathVariable(\"username\") String username, @RequestHeader(SecurityConstants.FROM_SOURCE) String source);\nexamples/RuoYi-Cloud/ruoyi-api/ruoyi-api-system/src/main/java/com/ruoyi/system/api/RemoteUserService.java:43:    public R<Boolean> registerUserInfo(@RequestBody SysUser sysUser, @RequestHeader(SecurityConstants.FROM_SOURCE) String source);\nexamples/RuoYi-Cloud/ruoyi-api/ruoyi-api-system/src/main/java/com/ruoyi/system/api/RemoteUserService.java:53:    public R<Boolean> recordUserLogin(@RequestBody SysUser sysUser, @RequestHeader(SecurityConstants.FROM_SOURCE) String source);\nexamples/pig/pig-gateway/src/main/java/com/pig4cloud/pig/gateway/filter/PigRequestGlobalFilter.java:62:\t\t\thttpHeaders.remove(SecurityConstants.FROM);\nexamples/pig/pig-common/pig-common-feign/src/main/java/com/pig4cloud/pig/common/feign/interceptor/PigFeignInnerRequestInterceptor.java:27:\t\t\ttemplate.header(SecurityConstants.FROM, SecurityConstants.FROM_IN);\nexamples/pig/pig-common/pig-common-fe"
+    },
+    {
+      "n": 11,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig/pig-upms",
+        "pattern": "lockUser"
+      },
+      "result": "examples/pig/pig-auth/src/main/java/com/pig4cloud/pig/auth/support/handler/PigAuthenticationFailureEventHandler.java:147:\t\t\tuserService.lockUser(username);\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysUserController.java:229:\tpublic R lockUser(@PathVariable String username) {\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysUserController.java:230:\t\treturn userService.lockUser(username);\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/SysUserService.java:128:\tR<Boolean> lockUser(String username);\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysUserServiceImpl.java:561:\tpublic R<Boolean> lockUser(String username) {\nexamples/pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/feign/RemoteUserService.java:81:\tR<Boolean> lockUser(@PathVariable String username);\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysUserController.java:229:\tpublic R lockUser(@PathVariable String username) {\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysUserController.java:230:\t\treturn userService.lockUser(username);\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/SysUserService.java:128:\tR<Boolean> lockUser(String username);\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysUserServiceImpl.java:561:\tpublic R<Boolean> lockUser(String username) {\nexamples/pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/feign/RemoteUserService.java:81:\tR<Boolean> lockUser(@PathVariable String username);\n"
+    },
+    {
+      "n": 12,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-auth/src/main/java/com/pig4cloud/pig/auth/support/handler/PigAuthenticationFailureEventHandler.java",
+        "start": 80,
+        "end": 175
+      },
+      "result": "pig/pig-auth/src/main/java/com/pig4cloud/pig/auth/support/handler/PigAuthenticationFailureEventHandler.java (L80-175, 共194行)\n  80 | \t\tlog.info(\"登录失败，异常：{}\", exception.getLocalizedMessage());\n  81 | \n  82 | \t\t// 密码模式记录错误信息\n  83 | \t\tif (SecurityConstants.PASSWORD.equals(grantType)) {\n  84 | \t\t\tString username = request.getParameter(SecurityConstants.DETAILS_USERNAME);\n  85 | \n  86 | \t\t\t// 密码错误记录错误次数\n  87 | \t\t\tif (exception instanceof OAuth2AuthenticationException) {\n  88 | \t\t\t\trecordLoginFailureTimes(username);\n  89 | \t\t\t}\n  90 | \n  91 | \t\t\t// 记录登录失败错误信息\n  92 | \t\t\tsendFailureEventLog(request, exception, username);\n  93 | \t\t}\n  94 | \n  95 | \t\t// 写出错误信息\n  96 | \t\tsendErrorResponse(request, response, exception);\n  97 | \t}\n  98 | \n  99 | \t/**\n 100 | \t * 记录失败日志\n 101 | \t * @param request HttpServletRequest\n 102 | \t * @param exception 错误日志\n 103 | \t * @param username 用户名\n 104 | \t */\n 105 | \tprivate void sendFailureEventLog(HttpServletRequest request, AuthenticationException exception, String username) {\n 106 | \t\tSysLogDTO logVo = SysLogUtils.getSysLog();\n 107 | \t\tlogVo.setTitle(\"登录失败\");\n 108 | \t\tlogVo.setLogType(LogTypeEnum.ERROR.getType());\n 109 | \t\tlogVo.setException(exception.getLocalizedMessage());\n 110 | \t\t// 发送异步日志事件\n 111 | \t\tString startTimeStr = request.getHeader(CommonConstants.REQUEST_START_TIME);\n 112 | \t\tif (StrUtil.isNotBlank(startTimeStr)) {\n 113 | \t\t\tLong startTime = Long.parseLong(startTimeStr);\n 114 | \t\t\tLong endTime = System.currentTimeMillis();\n 115 | \t\t\tlogVo.setTime(endTime - startTime);\n 116 | \t\t}\n 117 | \t\tString header = request.getHeader(HttpHeaders.AUTHORIZATION);\n 118 | \t\tString clientId = WebUtils.extractClientId(header).orElse(null);\n 119 | \t\tlogVo.setServiceId(clientId);\n 120 | \t\tlogVo.setCreateBy(username);\n 121 | \t\tpublisher.publishEvent(new SysLogEvent(logVo));\n 122 | \t}\n 123 | \n 124 | \t/**\n 125 | \t * 记录登录失败次数，超过阈值时调用接口锁定用户。\n 126 | \t * <p>\n 127 | \t * 若系统参数 LOGIN_ERROR_TIMES {@literal <=} 0，则禁用锁定功能并清除已有失败计数 key。\n 128 | \t * </p>\n 129 | \t * @param "
+    },
+    {
+      "n": 13,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigInnerHeaderRemoveFilter.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigInnerHeaderRemoveFilter.java (L1-63, 共63行)\n   1 | package com.pig4cloud.pig.common.security.component;\n   2 | \n   3 | import cn.hutool.core.net.Ipv4Util;\n   4 | import cn.hutool.core.util.StrUtil;\n   5 | import cn.hutool.extra.servlet.JakartaServletUtil;\n   6 | import com.pig4cloud.pig.common.core.constant.SecurityConstants;\n   7 | import jakarta.servlet.FilterChain;\n   8 | import jakarta.servlet.ServletException;\n   9 | import jakarta.servlet.http.HttpServletRequest;\n  10 | import jakarta.servlet.http.HttpServletResponse;\n  11 | import lombok.extern.slf4j.Slf4j;\n  12 | import org.jetbrains.annotations.NotNull;\n  13 | import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;\n  14 | import org.springframework.http.HttpStatus;\n  15 | import org.springframework.web.filter.OncePerRequestFilter;\n  16 | \n  17 | import java.io.IOException;\n  18 | \n  19 | /**\n  20 |  * 避免前端请求伪造 inner header 直接进行服务调用，但又没有按要求配置nginx 过滤\n  21 |  * <p>\n  22 |  * 仅针对单体架构下生效，微服务架构下网关已经做了过滤\n  23 |  *\n  24 |  * @author lengleng\n  25 |  * @date 2025/09/26\n  26 |  */\n  27 | @Slf4j\n  28 | @ConditionalOnProperty(value = \"security.micro\", havingValue = \"false\")\n  29 | public class PigInnerHeaderRemoveFilter extends OncePerRequestFilter {\n  30 | \n  31 | \t/**\n  32 | \t * 执行过滤器内部处理逻辑\n  33 | \t * @param request HTTP请求对象\n  34 | \t * @param response HTTP响应对象\n  35 | \t * @param filterChain 过滤器链\n  36 | \t * @throws ServletException 如果发生servlet相关异常\n  37 | \t * @throws IOException 如果发生I/O异常\n  38 | \t */\n  39 | \t@Override\n  40 | \tprotected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response,\n  41 | \t\t\t@NotNull FilterChain filterChain) throws ServletException, IOException {\n  42 | \t\t// 获取客户端IP地址\n  43 | \t\tString clientIP = JakartaServletUtil.getClientIP(request);\n  44 | \n  45 | \t\t// 允许 127.0.0.1 请求直接通过\n  46 | \t\tif (Ipv4Util.LOCAL_IP.equals(clientIP)) {\n  47 | \t\t\tfilterChain"
+    },
+    {
+      "n": 14,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysUserServiceImpl.java",
+        "start": 505,
+        "end": 590
+      },
+      "result": "pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysUserServiceImpl.java (L505-590, 共805行)\n 505 | \t\t// 根据角色名称查询角色ID\n 506 | \t\tList<Long> roleIdList = roleCollList.stream().map(SysRole::getRoleId).toList();\n 507 | \t\tuserDTO.setRole(roleIdList);\n 508 | \t\t// 插入用户\n 509 | \t\tthis.saveUser(userDTO);\n 510 | \t}\n 511 | \n 512 | \t/**\n 513 | \t * 注册用户 赋予用户默认角色\n 514 | \t * @param userDto 用户信息\n 515 | \t * @return success/false\n 516 | \t */\n 517 | \t@Override\n 518 | \t@Transactional(rollbackFor = Exception.class)\n 519 | \tpublic R<Boolean> registerUser(RegisterUserDTO userDto) {\n 520 | \t\tString feignHeader = WebUtils.getRequest().getHeader(SecurityConstants.FROM);\n 521 | \t\t// 外部注册校验短信验证码,对 AI 的内部注册跳过验证码处理\n 522 | \t\tif (!SecurityConstants.FROM_IN.equals(feignHeader)) {\n 523 | \t\t\tif (StrUtil.isBlank(userDto.getCode())) {\n 524 | \t\t\t\treturn R.failed(MsgUtils.getMessage(UpmsErrorCodes.SYS_PARAM_ILLEGAL));\n 525 | \t\t\t}\n 526 | \t\t\tString codeObj = RedisUtils.get(\n 527 | \t\t\t\t\tCacheConstants.DEFAULT_CODE_KEY + LoginTypeEnum.SMS.getType() + StringPool.AT + userDto.getPhone());\n 528 | \t\t\tif (!StrUtil.equals(codeObj, userDto.getCode())) {\n 529 | \t\t\t\treturn R.failed(MsgUtils.getMessage(UpmsErrorCodes.SYS_APP_SMS_ERROR));\n 530 | \t\t\t}\n 531 | \t\t}\n 532 | \n 533 | \t\t// 判断用户名是否存在\n 534 | \t\tboolean usernameExists = this\n 535 | \t\t\t.exists(Wrappers.<SysUser>lambdaQuery().eq(SysUser::getUsername, userDto.getUsername()));\n 536 | \t\tif (usernameExists) {\n 537 | \t\t\tString message = MsgUtils.getMessage(UpmsErrorCodes.SYS_USER_USERNAME_EXISTING, userDto.getUsername());\n 538 | \t\t\treturn R.failed(message);\n 539 | \t\t}\n 540 | \n 541 | \t\t// 判断手机号是否存在\n 542 | \t\tboolean phoneExists = this.exists(Wrappers.<SysUser>lambdaQuery().eq(SysUser::getPhone, userDto.getPhone()));\n 543 | \t\tif (phoneExists) {\n 544 | \t\t\tString message = MsgUtils.getMessage(UpmsErrorCodes.SYS_USER_PHONE_EXISTING, userDto.getPhone());\n 545 | \t\t\treturn R.failed(message);\n 546 | \t\t}\n 547 | \n 548 | \t\t// 单独的用户避免越权\n 549 | \t\tUserDTO user = n"
+    },
+    {
+      "n": 15,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig/pig-common/pig-common-core",
+        "pattern": "String FROM|FROM_IN"
+      },
+      "result": "examples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/constant/SecurityConstants.java:28:    public static final String FROM_SOURCE = \"from-source\";\nexamples/PassJava-Platform/passjava-gateway/src/main/java/com/jackson0714/passjava/gateway/filter/JwtAuthCheckFilter.java:41:    public static final String FROM_SOURCE = \"from-source\";\nexamples/RuoYi-Cloud/ruoyi-common/ruoyi-common-core/src/main/java/com/ruoyi/common/core/constant/SecurityConstants.java:28:    public static final String FROM_SOURCE = \"from-source\";\nexamples/pig/pig-common/pig-common-core/src/main/java/com/pig4cloud/pig/common/core/constant/SecurityConstants.java:84:\tString FROM_IN = \"Y\";\nexamples/pig/pig-common/pig-common-core/src/main/java/com/pig4cloud/pig/common/core/constant/SecurityConstants.java:89:\tString FROM = \"from\";\nexamples/pig/pig-common/pig-common-core/src/main/java/com/pig4cloud/pig/common/core/constant/SecurityConstants.java:99:\tString HEADER_FROM_IN = FROM + \"=\" + FROM_IN;\nexamples/pig/pig-common/pig-common-feign/src/main/java/com/pig4cloud/pig/common/feign/interceptor/PigFeignInnerRequestInterceptor.java:27:\t\t\ttemplate.header(SecurityConstants.FROM, SecurityConstants.FROM_IN);\nexamples/pig/pig-common/pig-common-feign/src/main/java/com/pig4cloud/pig/common/feign/interceptor/PigFeignInnerRequestInterceptor.java:31:\t\ttemplate.header(SecurityConstants.FEIGN_USER_AGENT, SecurityConstants.FROM_IN);\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigSecurityInnerAspect.java:64:\t\tif (inner.value() && !StrUtil.equals(SecurityConstants.FROM_IN, header)) {\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/feign/PigOAuthRequestInterceptor.java:47:\t\tif (CollUtil.isNotEmpty(fromHeader) && fromHeader.contains(SecurityConstants.FROM_IN)) {\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysUserServiceImpl.java:522:\t\tif (!SecurityConsta"
+    },
+    {
+      "n": 16,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigSecurityInnerAspect.java",
+        "start": 30,
+        "end": 85
+      },
+      "result": "pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigSecurityInnerAspect.java (L30-75, 共75行)\n  30 | import org.springframework.core.annotation.AnnotationUtils;\n  31 | import org.springframework.security.access.AccessDeniedException;\n  32 | import org.springframework.web.context.request.RequestAttributes;\n  33 | import org.springframework.web.context.request.RequestContextHolder;\n  34 | \n  35 | import java.util.Objects;\n  36 | \n  37 | /**\n  38 |  * @author lengleng\n  39 |  * @date 2022-06-04\n  40 |  *\n  41 |  * 服务间接口不鉴权处理逻辑\n  42 |  */\n  43 | @Slf4j\n  44 | @Aspect\n  45 | @RequiredArgsConstructor\n  46 | public class PigSecurityInnerAspect implements Ordered {\n  47 | \n  48 | \tprivate final HttpServletRequest request;\n  49 | \n  50 | \t@SneakyThrows\n  51 | \t@Before(\"@within(inner) || @annotation(inner)\")\n  52 | \tpublic void around(JoinPoint point, Inner inner) {\n  53 | \t\tRequestAttributes attrs = RequestContextHolder.getRequestAttributes();\n  54 | \t\tif (Objects.isNull(attrs)) {\n  55 | \t\t\treturn;\n  56 | \t\t}\n  57 | \n  58 | \t\tString header = request.getHeader(SecurityConstants.FROM);\n  59 | \t\tif (inner == null) {\n  60 | \t\t\tClass<?> clazz = point.getTarget().getClass();\n  61 | \t\t\tinner = AnnotationUtils.findAnnotation(clazz, Inner.class);\n  62 | \t\t}\n  63 | \n  64 | \t\tif (inner.value() && !StrUtil.equals(SecurityConstants.FROM_IN, header)) {\n  65 | \t\t\tlog.warn(\"访问接口 {} 没有权限\", point.getSignature().getName());\n  66 | \t\t\tthrow new AccessDeniedException(\"Access is denied\");\n  67 | \t\t}\n  68 | \t}\n  69 | \n  70 | \t@Override\n  71 | \tpublic int getOrder() {\n  72 | \t\treturn Ordered.HIGHEST_PRECEDENCE + 1;\n  73 | \t}\n  74 | \n  75 | }"
+    },
+    {
+      "n": 17,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig/pig-common/pig-common-security",
+        "pattern": "class PigDefaultUserDetailsServiceImpl"
+      },
+      "result": "examples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/service/PigDefaultUserDetailsServiceImpl.java:46:public class PigDefaultUserDetailsServiceImpl implements PigUserDetailsService {\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/service/PigDefaultUserDetailsServiceImpl.java:46:public class PigDefaultUserDetailsServiceImpl implements PigUserDetailsService {\n"
+    },
+    {
+      "n": 18,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/service/PigDefaultUserDetailsServiceImpl.java",
+        "start": 30,
+        "end": 130
+      },
+      "result": "pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/service/PigDefaultUserDetailsServiceImpl.java (L30-91, 共91行)\n  30 | import org.springframework.cache.CacheManager;\n  31 | import org.springframework.context.annotation.Primary;\n  32 | import org.springframework.security.core.userdetails.UserDetails;\n  33 | import org.springframework.security.core.userdetails.UsernameNotFoundException;\n  34 | \n  35 | import java.util.Objects;\n  36 | import java.util.Optional;\n  37 | \n  38 | /**\n  39 |  * 用户详细信息 default\n  40 |  *\n  41 |  * @author lengleng\n  42 |  */\n  43 | @Slf4j\n  44 | @Primary\n  45 | @RequiredArgsConstructor\n  46 | public class PigDefaultUserDetailsServiceImpl implements PigUserDetailsService {\n  47 | \n  48 | \tprivate final RemoteUserService remoteUserService;\n  49 | \n  50 | \tprivate final CacheManager cacheManager;\n  51 | \n  52 | \t/**\n  53 | \t * 用户密码登录\n  54 | \t * @param username 用户名\n  55 | \t * @return\n  56 | \t * @throws UsernameNotFoundException\n  57 | \t */\n  58 | \t@Override\n  59 | \t@SneakyThrows\n  60 | \tpublic UserDetails loadUserByUsername(String username) {\n  61 | \t\tCache cache = cacheManager.getCache(CacheConstants.USER_DETAILS);\n  62 | \t\tif (Objects.nonNull(cache) && Objects.nonNull(cache.get(username))) {\n  63 | \t\t\treturn getUserDetails(Optional.ofNullable(cache.get(username, UserInfo.class)));\n  64 | \t\t}\n  65 | \n  66 | \t\tR<UserInfo> result = remoteUserService.info(username);\n  67 | \t\tOptional<UserInfo> userInfoOptional = RetOps.of(result).getData();\n  68 | \t\tuserInfoOptional.ifPresent(userInfo -> Objects.requireNonNull(cache).put(username, userInfo));\n  69 | \t\treturn getUserDetails(userInfoOptional);\n  70 | \t}\n  71 | \n  72 | \t/**\n  73 | \t * 通过用户实体查询\n  74 | \t * @param pigUser user\n  75 | \t * @return\n  76 | \t */\n  77 | \t@Override\n  78 | \tpublic UserDetails loadUserByUser(PigUser pigUser) {\n  79 | \t\t// 避免 C端用户通过接口调用B端接口的安全问题\n  80 | \t\tif (UserTypeEnum.TOB.getStatus().equals(pigUser.getUserType())) {\n  81 | \t\t\treturn loadUserByUse"
+    },
+    {
+      "n": 19,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig/pig-upms",
+        "pattern": "class UserDTO"
+      },
+      "result": "examples/mall4cloud/mall4cloud-user/src/main/java/com/mall4j/cloud/user/dto/UserDTO.java:12:public class UserDTO{\nexamples/pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/dto/UserDTO.java:36:public class UserDTO extends SysUser {\nexamples/pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/dto/UserDTO.java:36:public class UserDTO extends SysUser {\n"
+    },
+    {
+      "n": 20,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysUserServiceImpl.java",
+        "start": 100,
+        "end": 200
+      },
+      "result": "pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/service/impl/SysUserServiceImpl.java (L100-200, 共805行)\n 100 | \t * @return success/fail\n 101 | \t */\n 102 | \t@Override\n 103 | \t@Transactional(rollbackFor = Exception.class)\n 104 | \tpublic Boolean saveUser(UserDTO userDto) {\n 105 | \t\tSysUser sysUser = new SysUser();\n 106 | \t\tBeanUtils.copyProperties(userDto, sysUser);\n 107 | \t\tsysUser.setLockFlag(\n 108 | \t\t\t\tStrUtil.isBlank(userDto.getLockFlag()) ? UserStateEnum.NORMAL.getCode() : userDto.getLockFlag());\n 109 | \t\tsysUser.setCreateBy(userDto.getUsername());\n 110 | \t\tsysUser.setUpdateBy(userDto.getUsername());\n 111 | \t\tsysUser.setPassword(ENCODER.encode(userDto.getPassword()));\n 112 | \t\tsysUser.setPasswordModifyTime(LocalDateTime.now());\n 113 | \t\tbaseMapper.insert(sysUser);\n 114 | \t\t// 保存用户岗位信息\n 115 | \t\tOptional.ofNullable(userDto.getPost()).ifPresent(posts -> {\n 116 | \t\t\tposts.stream().map(postId -> {\n 117 | \t\t\t\tSysUserPost userPost = new SysUserPost();\n 118 | \t\t\t\tuserPost.setUserId(sysUser.getUserId());\n 119 | \t\t\t\tuserPost.setPostId(postId);\n 120 | \t\t\t\treturn userPost;\n 121 | \t\t\t}).forEach(sysUserPostMapper::insert);\n 122 | \t\t});\n 123 | \n 124 | \t\t// 如果角色为空，赋默认角色\n 125 | \t\tif (CollUtil.isEmpty(userDto.getRole())) {\n 126 | \t\t\t// 获取默认角色编码\n 127 | \t\t\tString defaultRole = ParamResolver.getStr(\"USER_DEFAULT_ROLE\");\n 128 | \t\t\t// 默认角色\n 129 | \t\t\tSysRole sysRole = sysRoleService\n 130 | \t\t\t\t.getOne(Wrappers.<SysRole>lambdaQuery().eq(SysRole::getRoleCode, defaultRole));\n 131 | \t\t\tuserDto.setRole(Collections.singletonList(sysRole.getRoleId()));\n 132 | \t\t}\n 133 | \n 134 | \t\t// 插入用户角色关系表\n 135 | \t\tuserDto.getRole().stream().map(roleId -> {\n 136 | \t\t\tSysUserRole userRole = new SysUserRole();\n 137 | \t\t\tuserRole.setUserId(sysUser.getUserId());\n 138 | \t\t\tuserRole.setRoleId(roleId);\n 139 | \t\t\treturn userRole;\n 140 | \t\t}).forEach(sysUserRoleMapper::insert);\n 141 | \n 142 | \t\t// 插入用户部门信息\n 143 | \t\tList<Long> deptIdList = CollUtil.isNotEmpty(userDto.getDeptIds()) ? userDto.getDeptIds("
+    },
+    {
+      "n": 21,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/dto/UserDTO.java",
+        "start": 30,
+        "end": 110
+      },
+      "result": "pig/pig-upms/pig-upms-api/src/main/java/com/pig4cloud/pig/admin/api/dto/UserDTO.java (L30-73, 共73行)\n  30 |  * @author lengleng\n  31 |  * @date 2017/11/5\n  32 |  */\n  33 | @Data\n  34 | @Schema(description = \"系统用户传输对象\")\n  35 | @EqualsAndHashCode(callSuper = true)\n  36 | public class UserDTO extends SysUser {\n  37 | \n  38 | \t/**\n  39 | \t * 角色ID\n  40 | \t */\n  41 | \t@Schema(description = \"角色id集合\")\n  42 | \tprivate List<Long> role;\n  43 | \n  44 | \t/**\n  45 | \t * 部门id\n  46 | \t */\n  47 | \t@Schema(description = \"部门id\")\n  48 | \tprivate Long deptId;\n  49 | \n  50 | \t/**\n  51 | \t * 部门id集合（支持多部门）\n  52 | \t */\n  53 | \t@Schema(description = \"部门id集合\")\n  54 | \tprivate List<Long> deptIds;\n  55 | \n  56 | \t/**\n  57 | \t * 岗位ID\n  58 | \t */\n  59 | \tprivate List<Long> post;\n  60 | \n  61 | \t/**\n  62 | \t * 新密码\n  63 | \t */\n  64 | \t@Schema(description = \"新密码\")\n  65 | \tprivate String newpassword1;\n  66 | \n  67 | \t/**\n  68 | \t * 验证码\n  69 | \t */\n  70 | \t@Schema(description = \"验证码\")\n  71 | \tprivate String code;\n  72 | \n  73 | }"
+    },
+    {
+      "n": 22,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig",
+        "pattern": "Xss|XSS|xss"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:40:    public FilterRegistrationBean xssFilterRegistration() {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:43:        registration.setFilter(new XssFilter());\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:45:        registration.setName(\"xssFilter\");\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:1:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:12: * HTML filtering utility for protecting against XSS (Cross Site Scripting).\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:37: * source, and our contact details, can be found at http://xss-html-filter.sf.net\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/SQLFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:16: * XSS过滤\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:28:\t\tXssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:30:\t\tchain.doFilter(xssRequest, response);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/re"
+    },
+    {
+      "n": 23,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-upms/pig-upms-biz/src/main/resources/mapper/SysUserMapper.xml",
+        "start": 40,
+        "end": 100
+      },
+      "result": "pig/pig-upms/pig-upms-biz/src/main/resources/mapper/SysUserMapper.xml (L40-100, 共170行)\n  40 |         </collection>\n  41 |     </resultMap>\n  42 | \n  43 |     <sql id=\"userColumns\">\n  44 |         u.user_id,\n  45 |         u.username,\n  46 |         u.password,\n  47 |         u.salt,\n  48 |         u.phone,\n  49 |         u.avatar,\n  50 |         u.name,\n  51 |         u.nickname,\n  52 |         u.email,\n  53 |         u.wx_openid,\n  54 |         u.qq_openid,\n  55 |         u.gitee_login,\n  56 |         u.osc_id,\n  57 |         u.wx_cp_userid,\n  58 |         u.wx_ding_userid,\n  59 |         u.del_flag,\n  60 |         u.lock_flag,\n  61 |         u.password_expire_flag,\n  62 |         u.password_modify_time,\n  63 |         u.dept_id,\n  64 |         u.create_by,\n  65 |         u.create_time,\n  66 |         u.update_time\n  67 |     </sql>\n  68 | \n  69 |     <select id=\"getUserVo\" resultMap=\"baseResultMap\">\n  70 |         SELECT\n  71 |         <include refid=\"userColumns\"/>\n  72 |         FROM sys_user u\n  73 |         WHERE u.del_flag = '0'\n  74 |         <if test=\"query.username != null and query.username != ''\">\n  75 |             AND u.username = #{query.username}\n  76 |         </if>\n  77 |         <if test=\"query.oscId != null and query.oscId != ''\">\n  78 |             AND u.osc_id = #{query.oscId}\n  79 |         </if>\n  80 |         <if test=\"query.phone != null and query.phone != ''\">\n  81 |             AND u.phone = #{query.phone}\n  82 |         </if>\n  83 |         <if test=\"query.giteeLogin != null and query.giteeLogin != ''\">\n  84 |             AND u.gitee_login = #{query.giteeLogin}\n  85 |         </if>\n  86 |         <if test=\"query.wxOpenid != null and query.wxOpenid != ''\">\n  87 |             AND u.wx_openid = #{query.wxOpenid}\n  88 |         </if>\n  89 |         <if test=\"query.wxCpUserid != null and query.wxCpUserid != ''\">\n  90 |             AND u.wx_cp_userid = #{query.wxCpUserid}\n  91 |         </if>\n  92 |         <if test=\"query.wxDingUserid != nul"
+    },
+    {
+      "n": 24,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT user_id, username, lock_flag, del_flag FROM pig.sys_user LIMIT 20"
+      },
+      "result": "user_id\tusername\tlock_flag\tdel_flag\n1\tadmin\t0\t0\n2\tlocked_user\t9\t0"
+    },
+    {
+      "n": 25,
+      "tool": "docker_ps",
+      "args": {},
+      "result": "trace-real-nacos\tUp 39 minutes (healthy)\tnacos/nacos-server:v2.2.3\ntrace-real-piggymetrics-registry\tUp 39 minutes (healthy)\tsqshq/piggymetrics-registry\ntrace-real-redis\tUp 39 minutes (healthy)\tredis:7-alpine\ntrace-real-rabbitmq\tUp 39 minutes (healthy)\trabbitmq:3-management\ntrace-real-mysql\tUp 39 minutes (healthy)\tmysql:8.0\ntrace-real-mongo\tUp 39 minutes (healthy)\tmongo:4.4\ntrace-real-piggymetrics-config\tUp 39 minutes (healthy)\tsqshq/piggymetrics-config\n"
+    },
+    {
+      "n": 26,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pig.sys_api_key LIMIT 10; SHOW TABLES FROM pig LIKE '%apikey%'"
+      },
+      "result": "id\tuser_id\tusername\tname\tapi_key_hash\tallowed_ips\texpires_at\tstatus\tlast_used_at\tdel_flag\tcreate_by\tupdate_by\tcreate_time\tupdate_time\n2\t2\tlocked_user\ttest-key\tb74c98f3b71c61ebcf5ffa06f80a90d666afabbe41e7dcf41b05e1e317819f56\tNULL\tNULL\t0\tNULL\t0\tNULL\tNULL\t2026-10-14 13:21:10\tNULL\n2110244525680160770\t1\tadmin\tmy-api-key\t567695f15ed34707f4ca73672e440ea5997150dd4d83dea079904d9d10f04778\tNULL\tNULL\t0\tNULL\t0\tadmin\tNULL\t2026-10-14 13:41:16\tNULL"
+    },
+    {
+      "n": 27,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9999/admin/oauth2/token",
+        "headers_json": "{\"Content-Type\": \"application/x-www-form-urlencoded\", \"Authorization\": \"Basic dGVzdDp0ZXN0\"}",
+        "body": "grant_type=password&scope=server&username=admin&password=admin"
+      },
+      "result": "HTTP 401\nContent-Type: application/json;charset=UTF-8\n\n{\"code\":1,\"msg\":\"用户帐号已被锁定\",\"data\":\"user_locked\",\"ok\":false}"
+    },
+    {
+      "n": 28,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig",
+        "pattern": "user_locked"
+      },
+      "result": "examples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/util/OAuth2ErrorCodesExpand.java:16:\tString USER_LOCKED = \"user_locked\";\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/util/OAuth2ErrorCodesExpand.java:16:\tString USER_LOCKED = \"user_locked\";\n"
+    },
+    {
+      "n": 29,
+      "tool": "redis_cmd",
+      "args": {
+        "cmd_str": "KEYS *user*"
+      },
+      "result": "NOAUTH Authentication required."
+    },
+    {
+      "n": 30,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig",
+        "pattern": "USER_LOCKED"
+      },
+      "result": "examples/pig/pig-auth/src/main/java/com/pig4cloud/pig/auth/support/base/OAuth2ResourceOwnerBaseAuthenticationProvider.java:284:\t\t\treturn new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodesExpand.USER_LOCKED, this.messages\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/util/OAuth2ErrorCodesExpand.java:16:\tString USER_LOCKED = \"user_locked\";\nexamples/pig/pig-auth/src/main/java/com/pig4cloud/pig/auth/support/base/OAuth2ResourceOwnerBaseAuthenticationProvider.java:284:\t\t\treturn new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodesExpand.USER_LOCKED, this.messages\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/util/OAuth2ErrorCodesExpand.java:16:\tString USER_LOCKED = \"user_locked\";\n"
+    },
+    {
+      "n": 31,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-auth/src/main/java/com/pig4cloud/pig/auth/support/base/OAuth2ResourceOwnerBaseAuthenticationProvider.java",
+        "start": 255,
+        "end": 300
+      },
+      "result": "pig/pig-auth/src/main/java/com/pig4cloud/pig/auth/support/base/OAuth2ResourceOwnerBaseAuthenticationProvider.java (L255-300, 共328行)\n 255 | \t\t\t\tObjects.requireNonNull(authorization.getAccessToken().getClaims()));\n 256 | \t}\n 257 | \n 258 | \t/**\n 259 | \t * 登录异常转换为oauth2异常\n 260 | \t * @param authentication 身份验证\n 261 | \t * @param authenticationException 身份验证异常\n 262 | \t * @return {@link OAuth2AuthenticationException}\n 263 | \t */\n 264 | \tprivate OAuth2AuthenticationException oAuth2AuthenticationException(Authentication authentication,\n 265 | \t\t\tAuthenticationException authenticationException) {\n 266 | \n 267 | \t\t// OAuth2AuthenticationException 直接返回\n 268 | \t\tif (authenticationException instanceof OAuth2AuthenticationException) {\n 269 | \t\t\treturn (OAuth2AuthenticationException) authenticationException;\n 270 | \t\t}\n 271 | \n 272 | \t\tif (authenticationException instanceof UsernameNotFoundException) {\n 273 | \t\t\treturn new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodesExpand.USERNAME_NOT_FOUND,\n 274 | \t\t\t\t\tthis.messages.getMessage(\"JdbcDaoImpl.notFound\", new Object[] { authentication.getName() },\n 275 | \t\t\t\t\t\t\t\"Username {0} not found\"),\n 276 | \t\t\t\t\t\"\"));\n 277 | \t\t}\n 278 | \t\tif (authenticationException instanceof BadCredentialsException) {\n 279 | \t\t\treturn new OAuth2AuthenticationException(\n 280 | \t\t\t\t\tnew OAuth2Error(OAuth2ErrorCodesExpand.BAD_CREDENTIALS, this.messages.getMessage(\n 281 | \t\t\t\t\t\t\t\"AbstractUserDetailsAuthenticationProvider.badCredentials\", \"Bad credentials\"), \"\"));\n 282 | \t\t}\n 283 | \t\tif (authenticationException instanceof LockedException) {\n 284 | \t\t\treturn new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodesExpand.USER_LOCKED, this.messages\n 285 | \t\t\t\t.getMessage(\"AbstractUserDetailsAuthenticationProvider.locked\", \"User account is locked\"), \"\"));\n 286 | \t\t}\n 287 | \t\tif (authenticationException instanceof DisabledException) {\n 288 | \t\t\treturn new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodesExpand.USER_DISABLE,\n 289 | \t\t"
+    },
+    {
+      "n": 32,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8848/nacos/v1/auth/login",
+        "body": "username=nacos&password=nacos"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"accessToken\":\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MTk3NDk0NH0.9Qi2skonCVVuFfbSU04dXWO-EUbDIfJrhPCkAPdSejMT87wWGKYZ2AaSyKQXIGPUC-OY2TazzfZI1HjHLWkiYg\",\"tokenTtl\":18000,\"globalAdmin\":true,\"username\":\"nacos\"}"
+    },
+    {
+      "n": 33,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8848/nacos/v1/cs/configs?search=accurate&dataId=&group=&appName=&tenant=&pageNo=1&pageSize=50&accessKey=&secretKey=",
+        "headers_json": "{\"Authorization\": \"Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MTk3NDk0NH0.9Qi2skonCVVuFfbSU04dXWO-EUbDIfJrhPCkAPdSejMT87wWGKYZ2AaSyKQXIGPUC-OY2TazzfZI1HjHLWkiYg\"}"
+      },
+      "result": "HTTP 200\nContent-Type: application/json;charset=UTF-8\n\n{\"totalCount\":6,\"pageNumber\":1,\"pagesAvailable\":1,\"pageItems\":[{\"id\":\"61\",\"dataId\":\"mogu-web-flow-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    {\\r\\n    \\\"clusterMode\\\": false,\\r\\n    \\\"controlBehavior\\\": 0,\\r\\n    \\\"count\\\": 100,\\r\\n    \\\"grade\\\": 1,\\r\\n    \\\"limitApp\\\": \\\"default\\\",\\r\\n    \\\"resource\\\": \\\"/index/getBlogByLevel\\\",\\r\\n    \\\"strategy\\\": 0\\r\\n    }\\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\"tenant\":\"\",\"appName\":\"\",\"type\":\"json\"},{\"id\":\"62\",\"dataId\":\"mogu-web-degrade-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    {\\r\\n    \\\"count\\\": 1,\\r\\n    \\\"grade\\\": 2,\\r\\n    \\\"resource\\\": \\\"/index/getBlogByLevel\\\",\\r\\n    \\\"timeWindow\\\": 5\\r\\n    }\\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\"tenant\":\"\",\"appName\":\"\",\"type\":\"json\"},{\"id\":\"63\",\"dataId\":\"mogu-picture-flow-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    {\\r\\n    \\\"clusterMode\\\": false,\\r\\n    \\\"controlBehavior\\\": 0,\\r\\n    \\\"count\\\": 100,\\r\\n    \\\"grade\\\": 1,\\r\\n    \\\"limitApp\\\": \\\"default\\\",\\r\\n    \\\"resource\\\": \\\"/file/getPicture\\\",\\r\\n    \\\"strategy\\\": 0\\r\\n    }\\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\"tenant\":\"\",\"appName\":\"\",\"type\":\"json\"},{\"id\":\"64\",\"dataId\":\"mogu-picture-degrade-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    {\\r\\n    \\\"count\\\": 1,\\r\\n    \\\"grade\\\": 2,\\r\\n    \\\"resource\\\": \\\"/index/getBlogByLevel\\\",\\r\\n    \\\"timeWindow\\\": 5\\r\\n    }\\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\"tenant\":\"\",\"appName\":\"\",\"type\":\"json\"},{\"id\":\"69\",\"dataId\":\"mogu-search-flow-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    {\\r\\n    \\\"clusterMode\\\": false,\\r\\n    \\\"controlBehavior\\\": 0,\\r\\n    \\\"count\\\": 100,\\r\\n    \\\"grade\\\": 1,\\r\\n    \\\"limitApp\\\": \\\"default\\\",\\r\\n    \\\"resource\\\": \\\"/search/addSolrIndexByUid\\\",\\r\\n    \\\"strategy\\\": 0\\r\\n    }\\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\"tenant\":\"\",\"appName\":\"\",\"type\":\"json\"},{\"id\":\"70\",\"dataId\":\"mogu-search-degrade-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    \\r\\n]\",\"md5\":null,\"encryptedDat"
+    },
+    {
+      "n": 34,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8848/nacos/v1/console/namespaces?accessToken=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MTk3NDk0NH0.9Qi2skonCVVuFfbSU04dXWO-EUbDIfJrhPCkAPdSejMT87wWGKYZ2AaSyKQXIGPUC-OY2TazzfZI1HjHLWkiYg"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":200,\"message\":null,\"data\":[{\"namespace\":\"\",\"namespaceShowName\":\"public\",\"namespaceDesc\":null,\"quota\":200,\"configCount\":6,\"type\":0},{\"namespace\":\"dev\",\"namespaceShowName\":\"dev\",\"namespaceDesc\":\"开发环境\",\"quota\":200,\"configCount\":13,\"type\":2},{\"namespace\":\"prod\",\"namespaceShowName\":\"prod\",\"namespaceDesc\":\"生产环境\",\"quota\":200,\"configCount\":8,\"type\":2},{\"namespace\":\"test\",\"namespaceShowName\":\"test\",\"namespaceDesc\":\"test\",\"quota\":200,\"configCount\":0,\"type\":2}]}"
+    },
+    {
+      "n": 35,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8848/nacos/v1/cs/configs?search=blur&dataId=&group=&appName=&tenant=dev&pageNo=1&pageSize=50&accessKey=&secretKey=",
+        "headers_json": "{\"Authorization\": \"Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MTk3NDk0NH0.9Qi2skonCVVuFfbSU04dXWO-EUbDIfJrhPCkAPdSejMT87wWGKYZ2AaSyKQXIGPUC-OY2TazzfZI1HjHLWkiYg\"}"
+      },
+      "result": "HTTP 200\nContent-Type: application/json;charset=UTF-8\n\n{\"totalCount\":13,\"pageNumber\":1,\"pagesAvailable\":1,\"pageItems\":[{\"id\":\"38\",\"dataId\":\"mogu-admin-dev.yaml\",\"group\":\"dev\",\"content\":\"#app\\nserver:\\n  port: 8601\\n\\ndata:\\n  # 门户页面  如果没有域名，使用 http://localhost:9527/#/\\n  webSite:\\n    url: http://demoweb.moguit.cn/#/\\n  web:\\n    # mogu_web网址，用于第三方登录回调【参考: http://www.moguit.cn/#/info?blogUid=8cbadb54967257f12d6cc7eb1a58a361】\\n    url: http://127.0.0.1:8603\\n    # 邮件发送时的LOGO\\n    logo: https://gitee.com/moxi159753/wx_picture/raw/master/picture/2.png\\n    # 项目英文名\\n    project_name_en: moguBlog\\n    #项目名称\\n    project_name: 蘑菇博客\\n\\n#阿里大于\\ntemplateCode: SMS_XXXXXX #短信模板编号\\nsignName: 蘑菇博客\\n\\n# 邮箱验证\\nmoguBlog:\\n  email: mogublog@163.com\\n\\n# 日志收集线程数\\nlog:\\n  thread:\\n    corePoolSize: 5\\n    maxPoolSize: 15\\n\\n#spring\\nspring:\\n  jackson:\\n    serialization:\\n      INDENT_OUTPUT: true\\n    date-format: yyyy-MM-dd HH:mm:ss\\n    time-zone: Asia/Shanghai\\n  jmx:\\n    default-domain: mogu-admin\\n  thymeleaf:\\n    cache: true   #关闭缓存\\n  application:\\n    name: mogu-admin\\n  security:\\n    user:\\n      name: user\\n      password: password123\\n\\n  # sleuth 配置\\n  sleuth:\\n    web:\\n      client:\\n        enabled: true\\n    sampler:\\n      probability: 1.0 # 采样比例为: 0.1(即10%),设置的值介于0.0到1.0之间，1.0则表示全部采集。\\n  # zipkin 配置\\n  zipkin:\\n    base-url: http://localhost:9411  # 指定了Zipkin服务器的地址\\n\\n  # DATABASE CONFIG\\n  datasource:\\n    username: root\\n    password: root\\n    url: jdbc:mysql://localhost:3306/mogu_blog?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&useSSL=false&serverTimezone=Asia/Shanghai\\n    driver-class-name: com.mysql.cj.jdbc.Driver\\n    type: com.alibaba.druid.pool.DruidDataSource\\n\\n    # 初始化大小，最小，最大\\n    initialSize: 20\\n    minIdle: 5\\n    maxActive: 200\\n\\n    #连接等待超时时间\\n    maxWait: 60000\\n\\n    #配置隔多久进行一次检测(检测可以关闭的空闲连接)\\n    timeBetweenEvictionRunsMillis: 60000\\n\\n    #配置连接在池中的最小生存时间\\n    minEvictableIdleTime"
+    },
+    {
+      "n": 36,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8848/nacos/v1/cs/configs?search=blur&dataId=&group=&appName=&tenant=prod&pageNo=1&pageSize=50&accessKey=&secretKey=",
+        "headers_json": "{\"Authorization\": \"Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MTk3NDk0NH0.9Qi2skonCVVuFfbSU04dXWO-EUbDIfJrhPCkAPdSejMT87wWGKYZ2AaSyKQXIGPUC-OY2TazzfZI1HjHLWkiYg\"}"
+      },
+      "result": "HTTP 200\nContent-Type: application/json;charset=UTF-8\n\n{\"totalCount\":8,\"pageNumber\":1,\"pagesAvailable\":1,\"pageItems\":[{\"id\":\"73\",\"dataId\":\"mogu-admin-prod.yaml\",\"group\":\"prod\",\"content\":\"#app\\nserver:\\n  port: 8601\\n\\n#阿里大于\\ntemplateCode: SMS_XXXXXX #短信模板编号\\nsignName: 蘑菇博客\\n\\n#项目名称\\nPROJECT_NAME: 蘑菇博客\\n\\ndata:\\n  # 门户页面  如果没有域名，使用 http://120.78.126.96:9527/#/\\n  webSite:\\n    url: http://demoweb.moguit.cn/#/\\n  web:\\n    # mogu_web网址，用于第三方登录回调【参考: http://www.moguit.cn/#/info?blogUid=8cbadb54967257f12d6cc7eb1a58a361】\\n    url: http://120.78.126.96:8603\\n    # 邮件发送时的LOGO\\n    logo: https://gitee.com/moxi159753/mogu_blog_v2/raw/Nacos/doc/icon/favicon2.ico\\n    # 项目英文名\\n    project_name_en: moguBlog\\n    #项目名称\\n    project_name: 蘑菇博客\\n\\nfile:\\n  upload:\\n    path: /home/mogu_blog/mogu_data/\\n\\n# 邮箱验证\\nmoguBlog:\\n  email: mogublog@163.com\\n\\n# 蘑菇博客后台登录默认密码\\nDEFAULE_PWD: mogu2018\\n\\n#博客相关配置\\nBLOG:\\n  HOT_COUNT: 5 #热门博客数量\\n  NEW_COUNT: 15 #最新博客数据\\n  FIRST_COUNT: 5 #一级推荐\\n  SECOND_COUNT: 2 #二级推荐\\n  THIRD_COUNT: 3 #三级推荐\\n  FOURTH_COUNT: 5 #四级推荐\\n\\n# 日志收集线程数\\nlog:\\n  thread:\\n    corePoolSize: 5\\n    maxPoolSize: 15\\n\\n#spring\\nspring:\\n  jackson:\\n    serialization:\\n      INDENT_OUTPUT: true\\n    date-format: yyyy-MM-dd HH:mm:ss\\n    time-zone: Asia/Shanghai\\n  jmx:\\n    default-domain: mogu_admin\\n  thymeleaf:\\n    cache: true   #关闭缓存\\n  application:\\n    name: mogu-admin\\n  security:\\n    user:\\n      name: user\\n      password: password123\\n\\n\\n  # DATABASE CONFIG\\n  datasource:\\n    username: root\\n    password: mogu2018\\n    url: jdbc:mysql://mysql:3306/mogu_blog?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&useSSL=false&serverTimezone=Asia/Shanghai\\n    driver-class-name: com.mysql.cj.jdbc.Driver\\n    type: com.alibaba.druid.pool.DruidDataSource\\n\\n    # 初始化大小，最小，最大\\n    initialSize: 20\\n    minIdle: 5\\n    maxActive: 200\\n\\n    #连接等待超时时间\\n    maxWait: 60000\\n\\n    #配置隔多久进行一次检测(检测可以关闭的空闲连接)\\n    timeBetweenEvic"
+    },
+    {
+      "n": 37,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "pig",
+        "pattern": "redis"
+      },
+      "result": "examples/PassJava-Platform/passjava-jwt/pom.xml:18:            <artifactId>spring-data-redis</artifactId>\nexamples/PassJava-Platform/passjava-jwt/pom.xml:22:            <artifactId>spring-boot-starter-data-redis</artifactId>\nexamples/PassJava-Platform/passjava-jwt/pom.xml:64:            <artifactId>spring-data-redis</artifactId>\nexamples/PassJava-Platform/passjava-jwt/pom.xml:68:            <artifactId>spring-data-redis</artifactId>\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:7:import org.springframework.data.redis.core.StringRedisTemplate;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:163:     * 判断令牌是否不存在 redis 中\nexamples/PassJava-Platform/passjava-auth/src/main/java/com/jackson0714/passjava/auth/controller/JwtAuthController.java:100:        // 这里为了保证 refreshToken 只能用一次，刷新后，会从 redis 中删除。\nexamples/PassJava-Platform/passjava-auth/src/main/java/com/jackson0714/passjava/auth/controller/JwtAuthController.java:101:        // 如果用的不是 redis 中的 refreshToken 进行刷新令牌，则不能刷新。\nexamples/PassJava-Platform/passjava-auth/src/main/java/com/jackson0714/passjava/auth/controller/JwtAuthController.java:102:        // 如果使用 redis 中已过期的 refreshToken 也不能刷新令牌。\nexamples/PassJava-Platform/passjava-auth/src/main/java/com/jackson0714/passjava/auth/controller/JwtAuthController.java:115:     * 登出，删除 redis 中的 accessToken 和 refreshToken\nexamples/PassJava-Platform/renren-fast/pom.xml:74:\t\t\t<artifactId>spring-boot-starter-data-redis</artifactId>\nexamples/PassJava-Platform/renren-fast/src/test/java/io/renren/RedisTest.java:16:\tprivate RedisUtils redisUtils;\nexamples/PassJava-Platform/renren-fast/src/test/java/io/renren/RedisTest.java:22:\t\tredisUtils.set(\"user\", user);\nexamples/PassJava-Platform/renren-fast/src/test/java/io/renren/RedisTest.java:24:\t\tSystem.out.println(ToStringBuilder.reflectionToString(redisUtils.get(\"user\", SysUserEntity.class)));\nexamples/PassJava-P"
+    },
+    {
+      "n": 38,
+      "tool": "search_code",
+      "args": {
+        "pattern": "spring:.*\\n.*redis|redis:\\s*\\n\\s*password",
+        "path_prefix": "pig"
+      },
+      "result": "examples/MoGuBlog/doc/docker-compose/yaml/mysql/init/nacos_config.sql:46:insert  into `config_info`(`id`,`data_id`,`group_id`,`content`,`md5`,`gmt_create`,`gmt_modified`,`src_user`,`src_ip`,`app_name`,`tenant_id`,`c_desc`,`c_use`,`effect`,`type`,`c_schema`) values (27,'mogu-admin.yaml','dev','#app\\r\\nserver:\\r\\n  port: 8601\\r\\n\\r\\n#阿里大于\\r\\ntemplateCode: SMS_XXXXXX #短信模板编号\\r\\nsignName: 蘑菇博客\\r\\n#项目名称\\r\\nPROJECT_NAME: 蘑菇博客\\r\\n\\r\\nfile:\\r\\n  upload:\\r\\n    path: D:/mogu_blog/data/\\r\\n\\r\\n# 邮箱验证\\r\\nmoguBlog:\\r\\n  email: mogublog@163.com\\r\\n\\r\\n# 蘑菇博客登录默认密码\\r\\nDEFAULE_PWD: mogu2018\\r\\n\\r\\n#博客相关配置\\r\\nBLOG:\\r\\n  HOT_COUNT: 5 #热门博客数量\\r\\n  NEW_COUNT: 15 #最新博客数据\\r\\n  FIRST_COUNT: 5 #一级推荐\\r\\n  SECOND_COUNT: 2 #二级推荐\\r\\n  THIRD_COUNT: 3 #三级推荐\\r\\n  FOURTH_COUNT: 5 #四级推荐\\r\\n\\r\\n#spring\\r\\nspring:\\r\\n  jackson:\\r\\n    serialization:\\r\\n      INDENT_OUTPUT: true\\r\\n    date-format: yyyy-MM-dd HH:mm:ss\\r\\n    time-zone: Asia/Shanghai\\r\\n  jmx:\\r\\n    default-domain: mogu_admin\\r\\n  thymeleaf:\\r\\n    cache: true   #关闭缓存\\r\\n  application:\\r\\n    name: mogu-admin\\r\\n  security:\\r\\n    user:\\r\\n      name: user\\r\\n      password: password123\\r\\n\\r\\n  # sleuth 配置\\r\\n  sleuth:\\r\\n    web:\\r\\n      client:\\r\\n        enabled: true\\r\\n    sampler:\\r\\n      probability: 1.0 # 采样比例为: 0.1(即10%),设置的值介于0.0到1.0之间，1.0则表示全部采集。\\r\\n  # zipkin 配置\\r\\n  zipkin:\\r\\n    base-url: http://localhost:9411  # 指定了Zipkin服务器的地址\\r\\n\\r\\n  # DATABASE CONFIG\\r\\n  datasource:\\r\\n    username: root\\r\\n    password: root\\r\\n    url: jdbc:mysql://localhost:3306/mogu_blog?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&useSSL=false&serverTimezone=Asia/Shanghai\\r\\n    driver-class-name: com.mysql.cj.jdbc.Driver\\r\\n    type: com.alibaba.druid.pool.DruidDataSource\\r\\n\\r\\n    # 初始化大小，最小，最大\\r\\n    initialSize: 20\\r\\n    minIdle: 5\\r\\n    maxActive: 200\\r\\n\\r\\n    #连接等待超时时间\\r\\n    maxWait: 60000\\r\\n\\r\\n    #配置隔多久进行一次检测(检测可以关闭的空闲连接)\\r\\n    timeBetweenEvictionRunsMillis: 60000"
+    },
+    {
+      "n": 39,
+      "tool": "query_db",
+      "args": {
+        "sql": "SHOW DATABASES"
+      },
+      "result": "Database\napolloconfigdb\napolloportaldb\nblade\ncloud_admin_v1\nfile-center\nfile_center\ninformation_schema\nlamp_nacos\nlamp_none\nlamp_sw\nlogger-center\nmall_oms\nmall_pms\nmall_sms\nmall_ums\nmogu_blog\nmogu_picture\nmysql\nnacos\nnacos_config\nnovel\nnovel-cloud\nnovel_test\noauth-center\noauth2_server\nperformance_schema\npig\nruoyi-vue-pro\nry-cloud\nry-config\nry-job\nry-seata\nry-workflow\nseata\nsys\ntest\nuser-center\nxxl_job\nyoulai_system"
+    },
+    {
+      "n": 40,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, data_id, group_id, tenant_id FROM nacos_config.config_info WHERE data_id LIKE '%pig%' OR group_id LIKE '%pig%' LIMIT 30"
+      },
+      "result": "(空结果, 执行成功)"
+    },
+    {
+      "n": 41,
+      "tool": "search_code",
+      "args": {
+        "pattern": "requirepass|password.*pig",
+        "path_prefix": "pig"
+      },
+      "result": "examples/MoGuBlog/doc/docker-compose/yaml/redis.yml:9:    command: redis-server --requirepass mogu2018 --appendonly yes # 启动redis服务并添加密码为：mogu2018,并开启redis持久化配置\nexamples/youlai-mall/docs/docker/docker-compose.yml:74:    command: redis-server /etc/redis/redis.conf --requirepass 123456 --appendonly no # 启动 Redis 服务并添加密码为：123456，默认不开启 Redis AOF 方式持久化配置\nexamples/pig/db/pig_config.sql:38:INSERT INTO `config_info` (`id`, `data_id`, `group_id`, `content`, `md5`, `gmt_create`, `gmt_modified`, `src_user`, `src_ip`, `app_name`, `tenant_id`, `c_desc`, `c_use`, `effect`, `type`, `c_schema`, `encrypted_data_key`) VALUES (1, 'application-dev.yml', 'DEFAULT_GROUP', '# 配置文件加密根密码\\njasypt:\\n  encryptor:\\n    password: pig\\n    algorithm: PBEWithMD5AndDES\\n    iv-generator-classname: org.jasypt.iv.NoIvGenerator\\n\\nspring:\\n  jackson:\\n    use-jackson2-defaults: true\\n  data:\\n    redis:\\n      host: pig-redis\\n  servlet:\\n    multipart:\\n      max-file-size: 100MB\\n      max-request-size: 100MB\\n  cloud:\\n    nacos:\\n      discovery:\\n        naming-async-query-subscribe-service: true\\n    openfeign:\\n      sentinel:\\n        enabled: false\\n      okhttp:\\n        enabled: true\\n      httpclient:\\n        enabled: false\\n        connection-timeout: 20000\\n      compression:\\n        request:\\n          enabled: true\\n        response:\\n          enabled: true\\n\\n# 端点对外暴露\\nmanagement:\\n  endpoints:\\n    web:\\n      exposure:\\n        include: \\' *\\'          \\n  endpoint:\\n    restart:\\n      access: unrestricted\\n    health:\\n      show-details: ALWAYS\\n\\n\\n# mybatis-plus 配置\\nmybatis-plus:\\n  mapper-locations: classpath:/mapper/*Mapper.xml\\n  global-config:\\n    capitalMode: true\\n    banner: false\\n    db-config:\\n      id-type: auto\\n      where-strategy: not_empty\\n      insert-strategy: not_empty\\n      update-strategy: not_null\\n  type-handlers-package:  com.pig4cloud.pig.common.data.handler\\n  configuration:\\n    jdbc-type-for-null: \\'null\\'\\n    call-setters-on-nulls: true\\n   "
+    },
+    {
+      "n": 42,
+      "tool": "redis_cmd",
+      "args": {
+        "cmd_str": "AUTH pig"
+      },
+      "result": "WRONGPASS invalid username-password pair or user is disabled."
+    },
+    {
+      "n": 43,
+      "tool": "read_source",
+      "args": {
+        "path": "pig/pig-boot/src/main/resources/application-dev.yml",
+        "start": 1,
+        "end": 80
+      },
+      "result": "pig/pig-boot/src/main/resources/application-dev.yml (L1-37, 共37行)\n   1 | spring:\n   2 |   data:\n   3 |     redis:\n   4 |       host: pig-redis\n   5 |       database: 5\n   6 |   # 数据库相关配置\n   7 |   datasource:\n   8 |     type: com.alibaba.druid.pool.DruidDataSource\n   9 |     druid:\n  10 |       driver-class-name: com.mysql.cj.jdbc.Driver\n  11 |       username: root\n  12 |       password: root\n  13 |       url: jdbc:mysql://pig-mysql:3306/pig?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8&allowMultiQueries=true&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true\n  14 | \n  15 | # 文件上传配置\n  16 | file:\n  17 |   type: local\n  18 |   local:\n  19 |     base-path: /Users/lengleng/Downloads/img\n  20 | \n  21 | # 验证码配置\n  22 | aj:\n  23 |   captcha:\n  24 |     water-mark: pig4cloud\n  25 | \n  26 | # 登录报文加密根密钥 ，必须是16位\n  27 | security:\n  28 |   encodeKey: thanks,pig4cloud\n  29 | \n  30 | # 配置文件加密根密码\n  31 | jasypt:\n  32 |   encryptor:\n  33 |     password: pig\n  34 | \n  35 | # swagger token url 配置\n  36 | swagger:\n  37 |   token-url: ${swagger.gateway}/admin/oauth2/token"
+    },
+    {
+      "n": 44,
+      "tool": "redis_cmd",
+      "args": {
+        "cmd_str": "AUTH default pig"
+      },
+      "result": "WRONGPASS invalid username-password pair or user is disabled."
+    },
+    {
+      "n": 45,
+      "tool": "redis_cmd",
+      "args": {
+        "cmd_str": "AUTH 123456"
+      },
+      "result": "WRONGPASS invalid username-password pair or user is disabled."
+    },
+    {
+      "n": 46,
+      "tool": "redis_cmd",
+      "args": {
+        "cmd_str": "AUTH root"
+      },
+      "result": "WRONGPASS invalid username-password pair or user is disabled."
+    },
+    {
+      "n": 47,
+      "tool": "redis_cmd",
+      "args": {
+        "cmd_str": "AUTH mogu2018"
+      },
+      "result": "WRONGPASS invalid username-password pair or user is disabled."
+    },
+    {
+      "n": 48,
+      "tool": "search_code",
+      "args": {
+        "pattern": "redis:\\n\\s+host",
+        "path_prefix": "pig/pig-boot"
+      },
+      "result": "无匹配: redis:\\n\\s+host"
+    },
+    {
+      "n": 49,
+      "tool": "search_code",
+      "args": {
+        "pattern": "data:\\n\\s+redis:",
+        "path_prefix": "pig"
+      },
+      "result": "无匹配: data:\\n\\s+redis:"
+    },
+    {
+      "n": 50,
+      "tool": "search_code",
+      "args": {
+        "pattern": "application-.*\\.yml",
+        "path_prefix": "pig/pig-boot"
+      },
+      "result": "examples/RuoYi-Cloud/sql/ry_config_20260611.sql:36:(1,'application-dev.yml','DEFAULT_GROUP','spring:\\n  autoconfigure:\\n    exclude: com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure\\n\\n# feign 配置\\nfeign:\\n  sentinel:\\n    enabled: true\\n  okhttp:\\n    enabled: true\\n  httpclient:\\n    enabled: false\\n  client:\\n    config:\\n      default:\\n        connectTimeout: 10000\\n        readTimeout: 10000\\n  compression:\\n    request:\\n      enabled: true\\n      min-request-size: 8192\\n    response:\\n      enabled: true\\n\\n# 暴露监控端点\\nmanagement:\\n  endpoints:\\n    web:\\n      exposure:\\n        include: \\'*\\'\\n','9928f41dfb10386ad38b3254af5692e0','2020-05-20 12:00:00','2024-08-29 12:14:45','nacos','0:0:0:0:0:0:0:1','','','通用配置','null','null','yaml','',''),\nexamples/lamp-cloud/lamp-support/lamp-boot-server/src/main/resources/application.yml:245:    # 配置优先级： ./application-${spring.profiles.active}.yml >= ./application.yml >= /config/${spring.profiles.active}/*.yml  >= bootstrap-${spring.profiles.active}.yml >= bootstrap.yml\nexamples/pig/pig-auth/target/classes/application.yml:17:      - optional:nacos:application-@profiles.active@.yml\nexamples/pig/pig-auth/src/main/resources/application.yml:17:      - optional:nacos:application-@profiles.active@.yml\nexamples/pig/pig-gateway/target/classes/application.yml:49:      - optional:nacos:application-@profiles.active@.yml\nexamples/pig/pig-gateway/src/main/resources/application.yml:49:      - optional:nacos:application-@profiles.active@.yml\nexamples/pig/db/pig_config.sql:38:INSERT INTO `config_info` (`id`, `data_id`, `group_id`, `content`, `md5`, `gmt_create`, `gmt_modified`, `src_user`, `src_ip`, `app_name`, `tenant_id`, `c_desc`, `c_use`, `effect`, `type`, `c_schema`, `encrypted_data_key`) VALUES (1, 'application-dev.yml', 'DEFAULT_GROUP', '# 配置文件加密根密码\\njasypt:\\n  encryptor:\\n    password: pig\\n    algorithm: PBEWithMD5AndDES\\n    iv-generator-classname: org.jasypt.iv.NoIvGenerator\\n\\nspring:\\n  jackson:\\n    u"
+    }
+  ],
+  "final_text": "budget_exceeded"
+}

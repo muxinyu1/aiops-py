@@ -710,6 +710,21 @@ SINK_TASKS = {
         "hint_level": "hint",
         "container": "/tmp/pigboot.log",
     },
+    "pig_apikey_token_locked": {
+        "sink": "PigCustomOpaqueTokenIntrospector.handleApiKeyToken 中的 "
+                "log.warn(\"用户账号 {} 已被锁定，拒绝 API Key 访问\", pigUser.getUsername()) "
+                "(L163, 源码 examples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigCustomOpaqueTokenIntrospector.java)。"
+                "触发条件: 携带以 sk- 开头的 API Key 访问受保护资源, 该 API Key 对应的用户处于锁定态 (lockFlag 为锁定态)。",
+        "api": "POST http://localhost:9999/admin/api-key 创建 API Key (需携带登录 token 与当前用户密码); "
+               "锁用户: PUT http://localhost:9999/admin/user/lock/{username}; 之后携带 Authorization: Bearer <sk-xxx> 访问任意受保护资源触发内省。",
+        "env": "目标服务: pig-boot 单体 9999 端口, 日志文件: /tmp/pigboot.log (宿主机文件)。"
+               "登录端点: POST http://localhost:9999/admin/oauth2/token, Basic test:test, "
+               "form: grant_type=password&scope=server&username=admin&password=<工具层自动加密>。"
+               "数据库: trace-real-mysql 的 pig 库。",
+        "hint_level": "hint",
+        "container": "/tmp/pigboot.log",
+        "log_match": "已被锁定，拒绝 API Key 访问",
+    },
     "yudao_pay_channel_not_found": {
         "sink": "PayNotifyController.notifyOrder 中的 "
                 "log.error(\"[notifyOrder][渠道编号({}) 找不到对应的支付客户端]\", channelId) "

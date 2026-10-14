@@ -11,12 +11,12 @@
 | yudao | 117 | 6 PASS（pay 3 + mall 3）+ 5 静态不可达（pay 域） | trade/pay/system 已部署；**system 阻塞**（WebFrameworkUtils NPE，见 AGENTS.md §5.2） |
 | paascloud | 37 | 0 | 未部署（无 Dockerfile） |
 | lamp-cloud | 15 | 1 PASS（AbstractTokenGranter L425 登录成功） | oauth-server(9216) mapper-locations 修复并验证通过 |
-| pig | 15 | 5（file_not_exist / change_password / sms 两批） | 已部署 |
+| pig | 15 | 6（file_not_exist / change_password / sms 两批 / apikey_token_locked） | 已部署 |
 | apollo | 11 | 0 | 未部署 |
 | ruoyi-plus | 10 | 10（含 workflow 6 条） | 已部署 |
 | small-swarm | 7 | 4（brand create/update/delete/delete_failed） | mall-demo 已部署(9215)；recommend 需 ES |
 | 其他散量 | 13 | 0 | — |
-| **合计** | **225** | **24** | |
+| **合计** | **225** | **25** | |
 
 ---
 
@@ -81,6 +81,7 @@
 ### pig（9999, /tmp/pigboot.log）
 - ✅ pig_file_not_exist / pig_change_password_wrong / pig_sms_unregistered
 - ✅ pig_sms_login_not_exist（78 调用/455s）/ pig_opaque_token_locked（100 调用/558s）
+- ✅ `pig_apikey_token_locked` — PigCustomOpaqueTokenIntrospector L163（64 调用/827.4s, v4 PASS; 经历 v1 预算超限、v2 残留缓存阻断、v3 密码试错，最终 v4 完成全自主编排）
 
 ### ruoyi-plus（9201/9205）
 - ✅ 10 个概念 sink 家族全部验证（menu 同级/根/路由名、mybatis 重复、wf 定义在用/同步/变量/孤儿/监听器）

@@ -175,6 +175,22 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 |---|---|---|---|---|
 | lamp_oauth_login_success | AbstractTokenGranter L425「登录成功」 | v1 | ✅ PASS | 40/381.8s |
 
-**累计验证**: 19 个真实业务 sink PASS (ruoyi-plus 10 + pig 5 + yudao pay/mall 6 + small-swarm 4 + lamp-cloud 1，部分为概念家族计数) + 5 处静态不可达阴性对照。
+---
+
+## 十二、pig API Key 内省实验 (2026-10-14)
+
+> 服务: pig-boot 单体 (9999, 宿主机进程, 日志 `/tmp/pigboot.log`)
+> 机制: Spring Security Opaque Token 内省中 `sk-` 前缀 API Key 独立鉴权分支
+> 提示规范: 严格公允与中立提示词，无任何作弊 Key/特定用户泄漏
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| pig_apikey_token_locked | PigCustomOpaqueTokenIntrospector L163「已被锁定，拒绝 API Key 访问」 | v1 | ❌ FAIL (35/452.8s) | 预算超限 (35 次预算在探查认证链路时耗尽) |
+| | | v2 | ❌ FAIL (50/519.4s) | 遇残留锁定缓存 (401 误导转向 Nacos 探查) |
+| | | v3 | ❌ FAIL (90/1335.8s) | 密码盲试卡点 (撞 admin/admin 失败后反复尝试爆破) |
+| | | v4 | ✅ PASS (64/827.4s) | admin 登录 → 创建标记用户 → 登录 → 创建 API Key → 锁定 → 访问全链路闭环 |
+
+**累计验证**: 20 个真实业务 sink PASS (ruoyi-plus 10 + pig 6 + yudao pay/mall 6 + small-swarm 4 + lamp-cloud 1，部分为概念家族计数) + 5 处静态不可达阴性对照。
+
 
 
