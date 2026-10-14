@@ -940,6 +940,19 @@ SINK_TASKS = {
         "container": "trace-real-novel-cloud-novel-book-service",
         "log_match": "JWT解析失败:",
     },
+    # ── RuoYi-Cloud (ruoyi-auth, 8080) ──
+    "ruoyi_auth_token_parse_failed": {
+        "sink": "TokenService.getLoginUser 中的 "
+                "log.error(\"获取用户信息异常'{}'\", e.getMessage()) "
+                "(L113, 源码 examples/RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/service/TokenService.java)。"
+                "触发条件: 请求需要解析用户身份的接口时，请求头 Authorization 携带无法合法解析的 Token。",
+        "api": "POST http://localhost:8080/refresh (需在请求头 Authorization 携带 Token)",
+        "env": "目标服务容器: trace-real-ruoyi-cloud-ruoyi-auth (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 ry-cloud。",
+        "hint_level": "hint",
+        "container": "trace-real-ruoyi-cloud-ruoyi-auth",
+        "log_match": "获取用户信息异常",
+    },
 }
 
 

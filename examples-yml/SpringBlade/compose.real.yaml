@@ -11,7 +11,7 @@ services:
       - ../common-real.env
     environment:
       SPRING_PROFILES_ACTIVE: dev
-    entrypoint: ["java", "-jar", "/app/app.jar"]
+    entrypoint: ["java", "-Xms256m", "-Xmx512m", "-XX:MaxMetaspaceSize=128m", "-jar", "/app/app.jar"]
     command:
       - --spring.cloud.bootstrap.enabled=false
       - --spring.cloud.config.enabled=false
@@ -47,11 +47,11 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=org.springblade"
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -XX:MaxMetaspaceSize=128m -javaagent:/opt/trace-agent.jar=packages=org.springblade"
       OTEL_SERVICE_NAME: springblade-blade-auth
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation
-    entrypoint: ["java", "-javaagent:/opt/trace-agent.jar=packages=org.springblade", "-jar", "/app/app.jar"]
+    entrypoint: ["java", "-Xms256m", "-Xmx512m", "-XX:MaxMetaspaceSize=128m", "-javaagent:/opt/trace-agent.jar=packages=org.springblade", "-jar", "/app/app.jar"]
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
       - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro

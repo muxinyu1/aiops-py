@@ -98,3 +98,9 @@
 ### novel-cloud（8080, trace-real-novel-cloud-novel-book-service）
 - ✅ `novel_jwt_parse_failed` — JwtUtils L72「JWT解析失败:」（40 调用/995.4s, v1 PASS; 携带 Authorization 头部请求受拦截接口触发 JWT 校验失败分支）
 
+### SpringBlade（8080/8106, trace-real-springblade-blade-auth）
+- ⛔ `PasswordTokenGranter L82 / CaptchaTokenGranter L96`「用户登录失败」— 静态/动态不可达死代码。BladeBeanSerializerModifier 机制将下游 blade-system 返回的 null 对象序列化为 `{}`，经 Feign 反序列化为非空空对象 `new User()`，导致 `userInfo.getUser() == null` 永远不成立；下游故障时亦直接抛 500 异常跳过 fallback。
+
+### RuoYi-Cloud（8080, trace-real-ruoyi-cloud-ruoyi-auth）
+- ✅ `ruoyi_auth_token_parse_failed` — TokenService L113「获取用户信息异常」（15 调用/681.8s, v1 PASS; HeaderInterceptor 拦截携带非法 JWT 的 Authorization 请求头，解析抛异常进入 catch 命中目标日志）
+

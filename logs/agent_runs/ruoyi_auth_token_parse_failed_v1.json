@@ -1,0 +1,151 @@
+{
+  "reached": true,
+  "turns": 2,
+  "tool_calls": 15,
+  "elapsed": 681.8319289684296,
+  "tool_log": [
+    {
+      "n": 1,
+      "tool": "read_source",
+      "args": {
+        "path": "RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/service/TokenService.java",
+        "start": 80,
+        "end": 160
+      },
+      "result": "RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/service/TokenService.java (L80-160, 共174行)\n  80 |     }\n  81 | \n  82 |     /**\n  83 |      * 获取用户身份信息\n  84 |      *\n  85 |      * @return 用户信息\n  86 |      */\n  87 |     public LoginUser getLoginUser(HttpServletRequest request)\n  88 |     {\n  89 |         // 获取请求携带的令牌\n  90 |         String token = SecurityUtils.getToken(request);\n  91 |         return getLoginUser(token);\n  92 |     }\n  93 | \n  94 |     /**\n  95 |      * 获取用户身份信息\n  96 |      *\n  97 |      * @return 用户信息\n  98 |      */\n  99 |     public LoginUser getLoginUser(String token)\n 100 |     {\n 101 |         LoginUser user = null;\n 102 |         try\n 103 |         {\n 104 |             if (StringUtils.isNotEmpty(token))\n 105 |             {\n 106 |                 String userkey = JwtUtils.getUserKey(token);\n 107 |                 user = redisService.getCacheObject(getTokenKey(userkey));\n 108 |                 return user;\n 109 |             }\n 110 |         }\n 111 |         catch (Exception e)\n 112 |         {\n 113 |             log.error(\"获取用户信息异常'{}'\", e.getMessage());\n 114 |         }\n 115 |         return user;\n 116 |     }\n 117 | \n 118 |     /**\n 119 |      * 设置用户身份信息\n 120 |      */\n 121 |     public void setLoginUser(LoginUser loginUser)\n 122 |     {\n 123 |         if (StringUtils.isNotNull(loginUser) && StringUtils.isNotEmpty(loginUser.getToken()))\n 124 |         {\n 125 |             refreshToken(loginUser);\n 126 |         }\n 127 |     }\n 128 | \n 129 |     /**\n 130 |      * 删除用户缓存信息\n 131 |      */\n 132 |     public void delLoginUser(String token)\n 133 |     {\n 134 |         if (StringUtils.isNotEmpty(token))\n 135 |         {\n 136 |             String userkey = JwtUtils.getUserKey(token);\n 137 |             redisService.deleteObject(getTokenKey(userkey));\n 138 |         }\n 139 |     }\n 140 | \n 141 |     /**\n 142 |      * 验证令牌有效期，相差不足120分钟，自动刷新缓存\n 143 |      *\n 144 |      * @param loginUser\n 145 |      */\n 146 |     pub"
+    },
+    {
+      "n": 2,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class JwtUtils",
+        "path_prefix": "RuoYi-Cloud"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/app/utils/JwtUtils.java:28:public class JwtUtils {\nexamples/zlt-microservices-platform/zlt-uaa/src/test/java/com/central/oauth2/common/util/JwtUtilsTest.java:16:public class JwtUtilsTest {\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/modules/app/utils/JwtUtils.java:28:public class JwtUtils {\nexamples/RuoYi-Cloud/ruoyi-common/ruoyi-common-core/src/main/java/com/ruoyi/common/core/utils/JwtUtils.java:16:public class JwtUtils\nexamples/novel-cloud/novel-core/novel-common/src/main/java/io/github/xxyopen/novel/common/auth/JwtUtils.java:25:public class JwtUtils {\nexamples/RuoYi-Cloud/ruoyi-common/ruoyi-common-core/src/main/java/com/ruoyi/common/core/utils/JwtUtils.java:16:public class JwtUtils\n"
+    },
+    {
+      "n": 3,
+      "tool": "read_source",
+      "args": {
+        "path": "RuoYi-Cloud/ruoyi-common/ruoyi-common-core/src/main/java/com/ruoyi/common/core/utils/JwtUtils.java",
+        "start": 1,
+        "end": 120
+      },
+      "result": "RuoYi-Cloud/ruoyi-common/ruoyi-common-core/src/main/java/com/ruoyi/common/core/utils/JwtUtils.java (L1-120, 共123行)\n   1 | package com.ruoyi.common.core.utils;\n   2 | \n   3 | import java.util.Map;\n   4 | import com.ruoyi.common.core.constant.SecurityConstants;\n   5 | import com.ruoyi.common.core.constant.TokenConstants;\n   6 | import com.ruoyi.common.core.text.Convert;\n   7 | import io.jsonwebtoken.Claims;\n   8 | import io.jsonwebtoken.Jwts;\n   9 | import io.jsonwebtoken.SignatureAlgorithm;\n  10 | \n  11 | /**\n  12 |  * Jwt工具类\n  13 |  *\n  14 |  * @author ruoyi\n  15 |  */\n  16 | public class JwtUtils\n  17 | {\n  18 |     public static String secret = TokenConstants.SECRET;\n  19 | \n  20 |     /**\n  21 |      * 从数据声明生成令牌\n  22 |      *\n  23 |      * @param claims 数据声明\n  24 |      * @return 令牌\n  25 |      */\n  26 |     public static String createToken(Map<String, Object> claims)\n  27 |     {\n  28 |         String token = Jwts.builder().setClaims(claims).signWith(SignatureAlgorithm.HS512, secret).compact();\n  29 |         return token;\n  30 |     }\n  31 | \n  32 |     /**\n  33 |      * 从令牌中获取数据声明\n  34 |      *\n  35 |      * @param token 令牌\n  36 |      * @return 数据声明\n  37 |      */\n  38 |     public static Claims parseToken(String token)\n  39 |     {\n  40 |         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();\n  41 |     }\n  42 | \n  43 |     /**\n  44 |      * 根据令牌获取用户标识\n  45 |      *\n  46 |      * @param token 令牌\n  47 |      * @return 用户ID\n  48 |      */\n  49 |     public static String getUserKey(String token)\n  50 |     {\n  51 |         Claims claims = parseToken(token);\n  52 |         return getValue(claims, SecurityConstants.USER_KEY);\n  53 |     }\n  54 | \n  55 |     /**\n  56 |      * 根据令牌获取用户标识\n  57 |      *\n  58 |      * @param claims 身份信息\n  59 |      * @return 用户ID\n  60 |      */\n  61 |     public static String getUserKey(Claims claims)\n  62 |     {\n  63 |         return getValue(claims, SecurityConstants.USER_KEY);\n  64 |     }\n  65 | \n  66"
+    },
+    {
+      "n": 4,
+      "tool": "read_source",
+      "args": {
+        "path": "RuoYi-Cloud/ruoyi-common/ruoyi-common-core/src/main/java/com/ruoyi/common/core/utils/ServletUtils.java",
+        "start": 1,
+        "end": 50
+      },
+      "result": "RuoYi-Cloud/ruoyi-common/ruoyi-common-core/src/main/java/com/ruoyi/common/core/utils/ServletUtils.java (L1-50, 共333行)\n   1 | package com.ruoyi.common.core.utils;\n   2 | \n   3 | import java.io.IOException;\n   4 | import java.io.UnsupportedEncodingException;\n   5 | import java.net.URLDecoder;\n   6 | import java.net.URLEncoder;\n   7 | import java.util.Collections;\n   8 | import java.util.Enumeration;\n   9 | import java.util.HashMap;\n  10 | import java.util.Map;\n  11 | import jakarta.servlet.ServletRequest;\n  12 | import jakarta.servlet.http.HttpServletRequest;\n  13 | import jakarta.servlet.http.HttpServletResponse;\n  14 | import jakarta.servlet.http.HttpSession;\n  15 | import org.springframework.core.io.buffer.DataBuffer;\n  16 | import org.springframework.http.HttpHeaders;\n  17 | import org.springframework.http.HttpStatus;\n  18 | import org.springframework.http.MediaType;\n  19 | import org.springframework.http.server.reactive.ServerHttpResponse;\n  20 | import org.springframework.util.LinkedCaseInsensitiveMap;\n  21 | import org.springframework.web.context.request.RequestAttributes;\n  22 | import org.springframework.web.context.request.RequestContextHolder;\n  23 | import org.springframework.web.context.request.ServletRequestAttributes;\n  24 | import com.alibaba.fastjson2.JSON;\n  25 | import com.ruoyi.common.core.constant.Constants;\n  26 | import com.ruoyi.common.core.domain.R;\n  27 | import com.ruoyi.common.core.text.Convert;\n  28 | import reactor.core.publisher.Mono;\n  29 | \n  30 | /**\n  31 |  * 客户端工具类\n  32 |  *\n  33 |  * @author ruoyi\n  34 |  */\n  35 | public class ServletUtils\n  36 | {\n  37 |     /**\n  38 |      * 获取String参数\n  39 |      */\n  40 |     public static String getParameter(String name)\n  41 |     {\n  42 |         return getRequest().getParameter(name);\n  43 |     }\n  44 | \n  45 |     /**\n  46 |      * 获取String参数\n  47 |      */\n  48 |     public static String getParameter(String name, String defaultValue)\n  49 |     {\n  50 |         return Convert.toStr(getR"
+    },
+    {
+      "n": 5,
+      "tool": "search_code",
+      "args": {
+        "pattern": "jjwt",
+        "path_prefix": "RuoYi-Cloud"
+      },
+      "result": "examples/PassJava-Platform/passjava-jwt/pom.xml:32:            <artifactId>jjwt</artifactId>\nexamples/PassJava-Platform/renren-fast/pom.xml:172:\t\t\t<artifactId>jjwt</artifactId>\nexamples/PassJava-Platform/passjava-gateway/pom.xml:51:            <artifactId>jjwt</artifactId>\nexamples/zlt-microservices-platform/pom.xml:20:        <jjwt.version>0.9.1</jjwt.version>\nexamples/zlt-microservices-platform/pom.xml:162:                <artifactId>jjwt</artifactId>\nexamples/zlt-microservices-platform/pom.xml:163:                <version>${jjwt.version}</version>\nexamples/gulimall-learning/renren-fast/pom.xml:172:\t\t\t<artifactId>jjwt</artifactId>\nexamples/SpringBlade/blade-gateway/pom.xml:76:            <artifactId>jjwt-impl</artifactId>\nexamples/SpringBlade/blade-gateway/pom.xml:80:            <artifactId>jjwt-jackson</artifactId>\nexamples/MoGuBlog/pom.xml:28:        <jjwt.version>0.7.0</jjwt.version>\nexamples/MoGuBlog/mogu_utils/pom.xml:161:            <artifactId>jjwt</artifactId>\nexamples/MoGuBlog/mogu_utils/pom.xml:162:            <version>${jjwt.version}</version>\nexamples/RuoYi-Cloud/pom.xml:32:        <jjwt.version>0.9.1</jjwt.version>\nexamples/RuoYi-Cloud/pom.xml:134:                <artifactId>jjwt</artifactId>\nexamples/RuoYi-Cloud/pom.xml:135:                <version>${jjwt.version}</version>\nexamples/RuoYi-Cloud/ruoyi-common/ruoyi-common-core/pom.xml:89:            <artifactId>jjwt</artifactId>\nexamples/paascloud-master/pom.xml:42:    <jjwt.version>0.7.0</jjwt.version>\nexamples/paascloud-master/pom.xml:166:        <artifactId>jjwt</artifactId>\nexamples/paascloud-master/pom.xml:167:        <version>${jjwt.version}</version>\nexamples/paascloud-master/paascloud-common/paascloud-common-core/pom.xml:82:            <artifactId>jjwt</artifactId>\nexamples/paascloud-master/paascloud-provider/paascloud-provider-uac/pom.xml:33:      <artifactId>jjwt</artifactId>\nexamples/RuoYi-Cloud-Plus/ruoyi-visual/ruoyi-nacos/.flattened-pom.xml:262:      <artifactId>jjwt-api</artifactId>\nexam"
+    },
+    {
+      "n": 6,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class SecurityUtils",
+        "path_prefix": "RuoYi-Cloud/ruoyi-common/ruoyi-common-security"
+      },
+      "result": "examples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/utils/SecurityUtils.java:14:public class SecurityUtils\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/util/SecurityUtils.java:21:public class SecurityUtils {\nexamples/RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/utils/SecurityUtils.java:18:public class SecurityUtils\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/util/SecurityUtils.java:39:public class SecurityUtils {\nexamples/paascloud-master/paascloud-provider/paascloud-provider-uac/src/main/java/com/paascloud/provider/security/SecurityUtils.java:23:public final class SecurityUtils {\nexamples/RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/utils/SecurityUtils.java:18:public class SecurityUtils\n"
+    },
+    {
+      "n": 7,
+      "tool": "search_code",
+      "args": {
+        "pattern": "XssFilter|XssHttpServletRequestWrapper",
+        "path_prefix": "RuoYi-Cloud"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:43:        registration.setFilter(new XssFilter());\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:28:\t\tXssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:30:public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:36:    public XssHttpServletRequestWrapper(HttpServletRequest request) {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:140:        if (request instanceof XssHttpServletRequestWrapper) {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:141:            return ((XssHttpServletRequestWrapper) request).getOrgRequest();\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/config/FilterConfig.java:43:        registration.setFilter(new XssFilter());\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:28:\t\tXssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:30:publi"
+    },
+    {
+      "n": 8,
+      "tool": "read_source",
+      "args": {
+        "path": "RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/utils/SecurityUtils.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/utils/SecurityUtils.java (L1-80, 共128行)\n   1 | package com.ruoyi.common.security.utils;\n   2 | \n   3 | import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\n   4 | import com.ruoyi.common.core.constant.SecurityConstants;\n   5 | import com.ruoyi.common.core.constant.TokenConstants;\n   6 | import com.ruoyi.common.core.constant.UserConstants;\n   7 | import com.ruoyi.common.core.context.SecurityContextHolder;\n   8 | import com.ruoyi.common.core.utils.ServletUtils;\n   9 | import com.ruoyi.common.core.utils.StringUtils;\n  10 | import com.ruoyi.system.api.model.LoginUser;\n  11 | import jakarta.servlet.http.HttpServletRequest;\n  12 | \n  13 | /**\n  14 |  * 权限获取工具类\n  15 |  *\n  16 |  * @author ruoyi\n  17 |  */\n  18 | public class SecurityUtils\n  19 | {\n  20 |     /**\n  21 |      * 获取用户ID\n  22 |      */\n  23 |     public static Long getUserId()\n  24 |     {\n  25 |         return SecurityContextHolder.getUserId();\n  26 |     }\n  27 | \n  28 |     /**\n  29 |      * 获取用户名称\n  30 |      */\n  31 |     public static String getUsername()\n  32 |     {\n  33 |         return SecurityContextHolder.getUserName();\n  34 |     }\n  35 | \n  36 |     /**\n  37 |      * 获取用户key\n  38 |      */\n  39 |     public static String getUserKey()\n  40 |     {\n  41 |         return SecurityContextHolder.getUserKey();\n  42 |     }\n  43 | \n  44 |     /**\n  45 |      * 获取登录用户信息\n  46 |      */\n  47 |     public static LoginUser getLoginUser()\n  48 |     {\n  49 |         return SecurityContextHolder.get(SecurityConstants.LOGIN_USER, LoginUser.class);\n  50 |     }\n  51 | \n  52 |     /**\n  53 |      * 获取请求token\n  54 |      */\n  55 |     public static String getToken()\n  56 |     {\n  57 |         return getToken(ServletUtils.getRequest());\n  58 |     }\n  59 | \n  60 |     /**\n  61 |      * 根据request获取请求token\n  62 |      */\n  63 |     public static String getToken(HttpServletRequest request)\n  64 |     {\n  65 |     "
+    },
+    {
+      "n": 9,
+      "tool": "search_code",
+      "args": {
+        "pattern": "refresh",
+        "path_prefix": "RuoYi-Cloud/ruoyi-auth"
+      },
+      "result": "examples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:27:    private static final String REFRESH_TOKEN = \"refresh_token\";\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:57:        String refreshToken = generateRefreshToken(userId, username, null);\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:60:        tokenMap.put(REFRESH_TOKEN, refreshToken);\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:66:    public Map<String, Object> refreshTokenAndGenerateToken(String userId, String username) {\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:170:        String refreshToken = (String)stringRedisTemplate.opsForHash().get(JWT_CACHE_KEY + userId, REFRESH_TOKEN);\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:171:        return refreshToken == null || !refreshToken.equals(token);\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:197:    public String refreshToken(String token) {\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:198:        String refreshedToken;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:202:            refreshedToken = generateToken(claims);\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:204:            refreshedToken = null;\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/utils/PassJavaJwtTokenUtil.java:206:        return refreshedToken;\nexamples/PassJava-Platform/pas"
+    },
+    {
+      "n": 10,
+      "tool": "search_code",
+      "args": {
+        "pattern": "@PostMapping\\(\"/refresh\"\\)",
+        "path_prefix": "RuoYi-Cloud"
+      },
+      "result": "无匹配: @PostMapping\\(\"/refresh\"\\)"
+    },
+    {
+      "n": 11,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class HeaderInterceptor|class SecurityFilter|ignore-urls",
+        "path_prefix": "RuoYi-Cloud"
+      },
+      "result": "examples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/interceptor/HeaderInterceptor.java:18:public class HeaderInterceptor implements AsyncHandlerInterceptor\nexamples/RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/interceptor/HeaderInterceptor.java:21:public class HeaderInterceptor implements AsyncHandlerInterceptor\nexamples/pig/db/pig_config.sql:43:INSERT INTO `config_info` (`id`, `data_id`, `group_id`, `content`, `md5`, `gmt_create`, `gmt_modified`, `src_user`, `src_ip`, `app_name`, `tenant_id`, `c_desc`, `c_use`, `effect`, `type`, `c_schema`, `encrypted_data_key`) VALUES (7, 'pig-upms-biz-dev.yml', 'DEFAULT_GROUP', '## spring security 配置\\nsecurity:\\n  oauth2:\\n    client:\\n      ignore-urls:\\n        - /druid/**\\n\\n# 数据源\\nspring:\\n  datasource:\\n    type: com.alibaba.druid.pool.DruidDataSource\\n    druid:\\n      driver-class-name: com.mysql.cj.jdbc.Driver\\n      username: ${MYSQL_USER:root}\\n      password: ${MYSQL_PWD:root}\\n      url: jdbc:mysql://${MYSQL_HOST:pig-mysql}:${MYSQL_PORT:3306}/${MYSQL_DB:pig}?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8&allowMultiQueries=true&allowPublicKeyRetrieval=true\\n      stat-view-servlet:\\n        enabled: true\\n        allow: \"\"\\n        url-pattern: /druid/*\\n        #login-username: admin\\n        #login-password: admin\\n      filter:\\n        stat:\\n          enabled: true\\n          log-slow-sql: true\\n          slow-sql-millis: 10000\\n          merge-sql: false\\n        wall:\\n          config:\\n            multi-statement-allow: true\\n\\n# 本地文件系统\\nfile:\\n  type: local\\n  local:\\n    basePath: /Users/lengleng/Downloads/files', '04686a0ea9903be52ff5f114ce95699f', '2022-12-16 10:44:25', '2024-02-22 15:08:36', 'nacos', '127.0.0.1', '', 'public', '', '', '', 'yaml', '', '');\nexamples/pig/pig-boot/target/classes/application.yml:46:      ign"
+    },
+    {
+      "n": 12,
+      "tool": "search_code",
+      "args": {
+        "pattern": "TokenController",
+        "path_prefix": "RuoYi-Cloud/ruoyi-auth"
+      },
+      "result": "examples/PassJava-Platform/passjava-channel/src/main/java/com/jackson0714/passjava/channel/controller/AccessTokenController.java:29:public class AccessTokenController {\nexamples/RuoYi-Cloud/ruoyi-auth/src/main/java/com/ruoyi/auth/controller/TokenController.java:27:public class TokenController\nexamples/mall4cloud/mall4cloud-auth/src/main/java/com/mall4j/cloud/auth/controller/TokenController.java:23:public class TokenController {\nexamples/pig/pig-upms/pig-upms-biz/src/main/java/com/pig4cloud/pig/admin/controller/SysTokenController.java:44:public class SysTokenController {\nexamples/RuoYi-Cloud-Plus/ruoyi-auth/src/main/java/org/dromara/auth/controller/TokenController.java:61:public class TokenController {\nexamples/yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/controller/admin/oauth2/OAuth2TokenController.java:27:public class OAuth2TokenController {\nexamples/RuoYi-Cloud/ruoyi-auth/src/main/java/com/ruoyi/auth/controller/TokenController.java:27:public class TokenController\n"
+    },
+    {
+      "n": 13,
+      "tool": "read_source",
+      "args": {
+        "path": "RuoYi-Cloud/ruoyi-auth/src/main/java/com/ruoyi/auth/controller/TokenController.java",
+        "start": 1,
+        "end": 120
+      },
+      "result": "RuoYi-Cloud/ruoyi-auth/src/main/java/com/ruoyi/auth/controller/TokenController.java (L1-89, 共89行)\n   1 | package com.ruoyi.auth.controller;\n   2 | \n   3 | import jakarta.servlet.http.HttpServletRequest;\n   4 | import org.springframework.beans.factory.annotation.Autowired;\n   5 | import org.springframework.web.bind.annotation.DeleteMapping;\n   6 | import org.springframework.web.bind.annotation.PostMapping;\n   7 | import org.springframework.web.bind.annotation.RequestBody;\n   8 | import org.springframework.web.bind.annotation.RestController;\n   9 | import com.ruoyi.auth.form.LoginBody;\n  10 | import com.ruoyi.auth.form.RegisterBody;\n  11 | import com.ruoyi.auth.form.UnLockBody;\n  12 | import com.ruoyi.auth.service.SysLoginService;\n  13 | import com.ruoyi.common.core.domain.R;\n  14 | import com.ruoyi.common.core.utils.JwtUtils;\n  15 | import com.ruoyi.common.core.utils.StringUtils;\n  16 | import com.ruoyi.common.security.auth.AuthUtil;\n  17 | import com.ruoyi.common.security.service.TokenService;\n  18 | import com.ruoyi.common.security.utils.SecurityUtils;\n  19 | import com.ruoyi.system.api.model.LoginUser;\n  20 | \n  21 | /**\n  22 |  * token 控制\n  23 |  *\n  24 |  * @author ruoyi\n  25 |  */\n  26 | @RestController\n  27 | public class TokenController\n  28 | {\n  29 |     @Autowired\n  30 |     private TokenService tokenService;\n  31 | \n  32 |     @Autowired\n  33 |     private SysLoginService sysLoginService;\n  34 | \n  35 |     @PostMapping(\"login\")\n  36 |     public R<?> login(@RequestBody LoginBody form)\n  37 |     {\n  38 |         // 用户登录\n  39 |         LoginUser userInfo = sysLoginService.login(form.getUsername(), form.getPassword());\n  40 |         // 获取登录token\n  41 |         return R.ok(tokenService.createToken(userInfo));\n  42 |     }\n  43 | \n  44 |     @DeleteMapping(\"logout\")\n  45 |     public R<?> logout(HttpServletRequest request)\n  46 |     {\n  47 |         String token = SecurityUtils.getToken(request);\n  48 |         if (StringUtils.isNotEmpty(token))\n  49 |    "
+    },
+    {
+      "n": 14,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:8080/refresh",
+        "headers_json": "{\"Authorization\": \"Bearer PDxTSU5LX1JFQUNIRUQ-Pg.eyJ1c2VyIjoiYWJjIn0.aGVsbG8\"}",
+        "body": ""
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":200,\"data\":null,\"msg\":null}"
+    },
+    {
+      "n": 15,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-ruoyi-cloud-ruoyi-auth",
+        "tail": 40
+      },
+      "result": "13:34:28.408 [background-preinit] INFO  o.h.v.i.util.Version - [<clinit>,18] - HV000001: Hibernate Validator 9.0.1.Final\nSpring Boot Version: 4.0.6\nSpring Application Name: ruoyi-auth\n                            _                        _    _     \n                           (_)                      | |  | |    \n _ __  _   _   ___   _   _  _  ______   __ _  _   _ | |_ | |__  \n| '__|| | | | / _ \\ | | | || ||______| / _` || | | || __|| '_ \\ \n| |   | |_| || (_) || |_| || |        | (_| || |_| || |_ | | | |\n|_|    \\__,_| \\___/  \\__, ||_|         \\__,_| \\__,_| \\__||_| |_|\n                      __/ |                                     \n                     |___/                                      \n13:34:28.688 [main] INFO  c.r.a.RuoYiAuthApplication - [logStartupProfileInfo,658] - The following 1 profile is active: \"trace-validation\"\n13:34:31.218 [main] INFO  o.a.c.h.Http11NioProtocol - [log,168] - Initializing ProtocolHandler [\"http-nio-8080\"]\n13:34:31.220 [main] INFO  o.a.c.c.StandardService - [log,168] - Starting service [Tomcat]\n13:34:31.220 [main] INFO  o.a.c.c.StandardEngine - [log,168] - Starting Servlet engine: [Apache Tomcat/11.0.21]\n13:34:31.581 [main] DEBUG c.r.a.t.TraceFilter - [init,236] - Filter 'traceFilter' configured for use\n13:34:32.500 [main] INFO  o.a.c.h.Http11NioProtocol - [log,168] - Starting ProtocolHandler [\"http-nio-8080\"]\n13:34:32.616 [main] INFO  c.a.c.s.SentinelWebMvcConfigurer - [addInterceptors,52] - [Sentinel Starter] register SentinelWebInterceptor with urlPatterns: [/**].\n13:34:32.907 [main] INFO  c.r.a.RuoYiAuthApplication - [logStarted,60] - Started RuoYiAuthApplication in 5.213 seconds (process running for 6.498)\n(♥◠‿◠)ﾉﾞ  认证授权中心启动成功   ლ(´ڡ`ლ)ﾞ  \n .-------.       ____     __        \n |  _ _   \\      \\   \\   /  /    \n | ( ' )  |       \\  _. /  '       \n |(_ o _) /        _( )_ .'         \n | (_,_).' __  ___(_ o _)'          \n |  |\\ \\  |  ||   |(_,_)'         \n |  | \\ `'   /|   `-'  /           \n |  |  \\    /  \\      /           \n ''-"
+    }
+  ],
+  "final_text": "**Sink 命中成功!** ✅\n\n日志中清晰可见目标行:\n\n```\n13:45:41.148 [http-nio-8080-exec-2] ERROR c.r.c.s.s.TokenService - [getLoginUser,113] - 获取用户信息异常'Unable to read JSON value: <<SINK_REACHED>>'\n```\n\n- **类/方法/行号完全匹配**: `com.ruoyi.common.security.service.TokenService` 的 `getLoginUser` 方法, **L113** —— 正是目标 sink\n- **攻击标记完整保留**: `<<SINK_REACHED>>` 原样出现在日志中, 未被任何过滤器剥除\n\n## 攻击路径总结\n\n1. **触发接口**: `POST http://localhost:8080/refresh` (auth 服务, 直连绕过网关 XSS 过滤器)\n2. **调用链**: `TokenController.refresh()` → `TokenService.getLoginUser(request)` (L87) → `SecurityUtils.getToken()` 读取 `Authorization` 头 → `JwtUtils.getUserKey(token)` → jjwt 0.9.1 `parseClaimsJws()`\n3. **关键技巧**: jjwt 解析 JWT 的顺序是 *分割 → 解析 header (base64url 解码 + JSON 反序列化) → 验签 → 解析 claims*。我将 header 段构造为 `PDxTSU5LX1JFQUNIRUQ-Pg`——它是 `<<SINK_REACHED>>` 的 base64url 编码, 解码后不是合法 JSON, 导致 jjwt 抛出的异常消息直接内嵌原始 header 字符串 (`Unable to read JSON value: <<SINK_REACHED>>`)\n4. **结果**: 异常被 L111-114 的 `catch (Exception e)` 捕获, `e.getMessage()` (含完整攻击标记) 被打印进日志, 接口正常返回 `{\"code\":200,\"data\":null}`\n\n标记通过\"异常消息回显\"这条路径进入了日志——token 内容作为不可信输入直接拼进了 jjwt 的异常描述, 这正是此类 JWT 解析 sink 的典型信息泄露/日志注入面。"
+}

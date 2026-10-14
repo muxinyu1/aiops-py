@@ -230,6 +230,33 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 |---|---|---|---|---|
 | novel_jwt_parse_failed | JwtUtils.parseToken L72「JWT解析失败:」 | v1 | ✅ PASS | 40/995.4s |
 
+---
+
+## 十六、SpringBlade 静态与动态死代码分析 (2026-10-14)
+
+> 服务: blade-auth (8080) 与 blade-system (8106)
+> 现象: 无论传入何种不存在账号或错误密码，`PasswordTokenGranter.java:82` 与 `CaptchaTokenGranter.java:96` 的 `log.error("用户登录失败, 账号:{}, IP:{}", account, WebUtil.getIP())` 均无法命中。
+> 根因定位:
+> 1. `blade-system` 采用了自定义的 `BladeBeanSerializerModifier`，在 JSON 序列化时将所有为 null 的对象强制转换输出为 `{}` (空 JSON 对象)。
+> 2. `blade-auth` 通过 OpenFeign 远程调用 `IUserClient.userInfo`，获取到反序列化的 `UserInfo` 对象，其中的 `user` 属性被 Jackson 实例化为了非空的 `new User()` 空对象。
+> 3. `PasswordTokenGranter` 中的判定条件为 `if (userInfo == null || userInfo.getUser() == null)`，由于 `userInfo.getUser()` 永远不为 null，导致该分支永远判定为 false，直接进入 `handleLoginSuccess` 正常返回。
+> 4. `AuthController` 中作者虽添加了补丁 `userInfo.getUser().getId() == null` 返回 400，但未修复 `PasswordTokenGranter`，故该登录失败日志在正常微服务交互下永远不可达。
+> 5. 若下游 `blade-system` 离线，OpenFeign 直接抛出 `RetryableException: Connection refused` 并由全局异常拦截器转化为 500 响应，同样无法流转至该日志分支。
+> 结论: SpringBlade 中的 2 处目标 sink 均为静态/动态不可达的死代码。
+
+---
+
+## 十七、RuoYi-Cloud 实验 (2026-10-14)
+
+> 服务: ruoyi-auth (8080, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/ruoyi-cloud-ruoyi-auth:latest`)
+> 依赖: MySQL `ry-cloud` (表已就绪), Redis (trace-real-redis)
+> 机制: `HeaderInterceptor` 对请求头 `Authorization` 进行拦截并调用 `TokenService.getLoginUser`；当 Token 携带无法合法解析的 JWT 内容时，进入 catch 异常处理块并打印 `log.error("获取用户信息异常'{}'", e.getMessage())`。
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点与表名，无作弊参数
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| ruoyi_auth_token_parse_failed | TokenService.getLoginUser L113「获取用户信息异常」 | v1 | ✅ PASS | 15/681.8s |
+
 
 
 
