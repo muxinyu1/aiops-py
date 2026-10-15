@@ -119,3 +119,6 @@
 ### Cloud-Platform（8080, trace-real-cloud-platform-ace-admin）
 - ✅ `cloud_platform_auth_require_logging` — AuthController L40「require logging...」（40 调用/830.5s, v1 PASS; Agent 自主阅读 AuthController 源码定位身份认证入口 /jwt/token，构造 POST 请求在用户名中注入 <<SINK_REACHED>> 成功触发目标日志）
 
+### java-microservice（8080, trace-real-java-microservice）
+- ✅ `javams_order_evaluate_risk_high` — OrderService L77「VIP大额APP端高风险订单」（7 调用/54.9s, v1 PASS; Agent 自主阅读 OrderService 与 AppController 源码，分析出多层嵌套风控规则组合（level=="vip"、amount>10000、channel.startsWith("app")），构造精确 JSON 请求体调用 POST /api/orders/risk-eval 成功命中目标日志）
+

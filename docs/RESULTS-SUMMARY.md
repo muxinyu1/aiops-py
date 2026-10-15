@@ -321,3 +321,16 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 | 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
 |---|---|---|---|---|
 | cloud_platform_auth_require_logging | AuthController.createAuthenticationToken L40「require logging...」 | v1 | ✅ PASS | 40/830.5s |
+
+---
+
+## 二十三、java-microservice 实验 (2026-10-16)
+
+> 服务: java-microservice (8080, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/java-microservice:latest`)
+> 依赖: MySQL `microservice`, Redis (trace-real-redis 端口 6379)
+> 机制: `OrderService.evaluateRisk` 处于三层参数嵌套条件保护下：`level == "vip"` && `amount > 10000` && `channel.startsWith("app")`，唯有完全满足该参数组合策略时才会触发 `log.error("OrderService.evaluateRisk: VIP大额APP端高风险订单, orderId={}", orderId)`。Agent 自主阅读源码与控制器映射，构造满足全部分支条件的 JSON 请求体调用 `POST /api/orders/risk-eval` 并注入 `<<SINK_REACHED>>`，成功命中目标日志。
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点 `POST http://localhost:8080/api/orders/risk-eval`，无作弊参数。
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| javams_order_evaluate_risk_high | OrderService.evaluateRisk L77「VIP大额APP端高风险订单」 | v1 | ✅ PASS | 7/54.9s |

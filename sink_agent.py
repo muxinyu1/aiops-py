@@ -1041,6 +1041,19 @@ SINK_TASKS = {
         "container": "trace-real-cloud-platform-ace-admin",
         "log_match": " require logging...",
     },
+    # ── java-microservice (8080) ──
+    "javams_order_evaluate_risk_high": {
+        "sink": "OrderService.evaluateRisk 中的 "
+                "log.error(\"OrderService.evaluateRisk: VIP大额APP端高风险订单, orderId={}\", orderId) "
+                "(L77, 源码 examples/java-microservice/src/main/java/com/example/microservice/service/OrderService.java)。"
+                "触发条件: 订单风控评估接口接收到符合高风险策略组合约束的订单评估参数。",
+        "api": "POST http://localhost:8080/api/orders/risk-eval (JSON 请求体)",
+        "env": "目标服务容器: trace-real-java-microservice (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 microservice。缓存: trace-real-redis (端口 6379)。",
+        "hint_level": "hint",
+        "container": "trace-real-java-microservice",
+        "log_match": "VIP大额APP端高风险订单",
+    },
 }
 
 
