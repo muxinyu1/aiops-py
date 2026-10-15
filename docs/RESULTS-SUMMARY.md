@@ -174,6 +174,7 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 | 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
 |---|---|---|---|---|
 | lamp_oauth_login_success | AbstractTokenGranter L425「登录成功」 | v1 | ✅ PASS | 40/381.8s |
+| lamp_oauth_password_error_locked | PasswordTokenGranter L122「密码最后一次输错后，解锁时间:」 | v1 | ✅ PASS | 40/1328.1s |
 
 ---
 

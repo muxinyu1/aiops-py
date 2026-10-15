@@ -10,7 +10,7 @@
 |------|------------|--------|------|
 | yudao | 117 | 6 PASS（pay 3 + mall 3）+ 5 静态不可达（pay 域） | trade/pay/system 已部署；**system 阻塞**（WebFrameworkUtils NPE，见 AGENTS.md §5.2） |
 | paascloud | 37 | 0 | 未部署（无 Dockerfile） |
-| lamp-cloud | 15 | 1 PASS（AbstractTokenGranter L425 登录成功） | oauth-server(9216) mapper-locations 修复并验证通过 |
+| lamp-cloud | 15 | 2 PASS（AbstractTokenGranter L425 登录成功 + PasswordTokenGranter L122 密码输错锁定） | oauth-server(9216) mapper-locations 修复并验证通过 |
 | pig | 15 | 6（file_not_exist / change_password / sms 两批 / apikey_token_locked） | 已部署 |
 | apollo | 11 | 0 | 未部署 |
 | ruoyi-plus | 10 | 10（含 workflow 6 条） | 已部署 |
@@ -88,6 +88,7 @@
 
 ### lamp-cloud（9216, trace-real-lamp-cloud-lamp-oauth-server）
 - ✅ `lamp_oauth_login_success` — AbstractTokenGranter L425「登录成功」（40 调用/381.8s）
+- ✅ `lamp_oauth_password_error_locked` — PasswordTokenGranter L122「密码最后一次输错后，解锁时间:」（40 调用/1328.1s, v1 PASS; Agent 自主通过 query_db 发现被锁定的账号 test1，构造 POST /anyTenant/login 登录请求成功命中目标日志）
 
 ### apollo（8080, trace-real-apollo-apollo-adminservice）
 - ✅ `apollo_delete_app` — AdminService L68「is deleting App:」（18 调用/180.6s, v1 PASS; Agent 自主调用 POST /apps 创建应用，随后 DELETE /apps 携带标记触发命中）
