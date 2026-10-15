@@ -113,3 +113,6 @@
 ### mall4cloud（8080, trace-real-mall4cloud-mall4cloud-auth）
 - ✅ `mall4cloud_token_decrypt_error` — TokenStore L264「logger.error(e.getMessage())」（8 调用/645.0s, v1 PASS; Agent 自主阅读 TokenStore 源码定位解密协议规范，构造携带 <<SINK_REACHED>> 的 Base64 编码 refreshToken 负载，调用 POST /ua/token/refresh 触发解密解析异常命中目标日志）
 
+### PiggyMetrics（8080, trace-real-piggymetrics-account-service）
+- ✅ `piggymetrics_token_fetch_user_details_failed` — CustomUserInfoTokenServices L132「Could not fetch user details:」（20 调用/623.3s, v1 PASS; Agent 自主阅读 CustomUserInfoTokenServices 与 ResourceServerConfig 源码，发现针对受保护端点（/current）携带 Bearer token 时会触发远程 userinfo 解析校验分支，调用 GET /current 携带标记成功触发目标日志）
+

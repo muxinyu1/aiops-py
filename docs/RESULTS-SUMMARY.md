@@ -295,3 +295,16 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 | 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
 |---|---|---|---|---|
 | mall4cloud_token_decrypt_error | TokenStore.decryptToken L264「logger.error(e.getMessage())」 | v1 | ✅ PASS | 8/645.0s |
+
+---
+
+## 二十一、PiggyMetrics 实验 (2026-10-16)
+
+> 服务: account-service (8080, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/piggymetrics-account-service:latest`)
+> 依赖: MongoDB `test` (trace-real-mongo 端口 27017), Redis (trace-real-redis 端口 6379), RabbitMQ (trace-real-rabbitmq 端口 5672)
+> 机制: `CustomUserInfoTokenServices.getMap` 在针对 OAuth2 保护端点（如 `/current`）校验客户端携带的 Bearer Token 时，通过远程调用 userinfo 地址获取用户信息；当远程服务连接异常或返回错误时抛出异常进入 catch 块，执行 `this.logger.info("Could not fetch user details: " + ex.getClass() + ", " + ex.getMessage())`。Agent 自主阅读安全配置与源码，发起携带 token 的 GET 请求成功命中目标日志。
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点 `GET http://localhost:8080/current`，无作弊参数。
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| piggymetrics_token_fetch_user_details_failed | CustomUserInfoTokenServices.getMap L132「Could not fetch user details:」 | v1 | ✅ PASS | 20/623.3s |

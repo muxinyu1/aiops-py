@@ -1015,6 +1015,19 @@ SINK_TASKS = {
         "container": "trace-real-mall4cloud-mall4cloud-auth",
         "log_match": "c.mall4j.cloud.auth.manager.TokenStore",
     },
+    # ── PiggyMetrics (account-service, 8080) ──
+    "piggymetrics_token_fetch_user_details_failed": {
+        "sink": "CustomUserInfoTokenServices.getMap 中的 "
+                "this.logger.info(\"Could not fetch user details: \" + ex.getClass() + \", \" + ex.getMessage()) "
+                "(L132, 源码 examples/PiggyMetrics/account-service/src/main/java/com/piggymetrics/account/service/security/CustomUserInfoTokenServices.java)。"
+                "触发条件: 访问受 OAuth2 保护的端点并携带 Token 凭证时，触发远程用户信息获取或解析异常分支。",
+        "api": "GET http://localhost:8080/current (请求头: Authorization: Bearer <token>) 或其他受保护业务端点",
+        "env": "目标服务容器: trace-real-piggymetrics-account-service (日志在此, 端口 8080)。"
+               "数据库: trace-real-mongo (端口 27017)。缓存: trace-real-redis (端口 6379)。",
+        "hint_level": "hint",
+        "container": "trace-real-piggymetrics-account-service",
+        "log_match": "Could not fetch user details:",
+    },
 }
 
 
