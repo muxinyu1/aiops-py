@@ -10,7 +10,7 @@ services:
     env_file:
       - ../common-real.env
     environment:
-      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.mall4j.cloud -javaagent:/opt/jacocoagent.jar=output=tcpserver,address=*,port=6300,includes=com.mall4j.cloud.*"
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/trace-agent.jar=packages=com.mall4j.cloud -Xms512m -Xmx1024m -XX:MaxMetaspaceSize=256m"
       OTEL_SERVICE_NAME: mall4cloud-mall4cloud-auth
       TRACE_SMOKE_MODE: "false"
       SPRING_PROFILES_ACTIVE: trace-validation
@@ -37,8 +37,10 @@ services:
       - --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
       - --spring.data.redis.host=127.0.0.1
       - --spring.data.redis.port=6379
+      - --spring.data.redis.password=password
       - --spring.redis.host=127.0.0.1
       - --spring.redis.port=6379
+      - --spring.redis.password=password
     depends_on:
       mysql:
         condition: service_healthy

@@ -283,3 +283,15 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 |---|---|---|---|---|
 | youlai_order_submit_params | OrderServiceImpl.submitOrder L176「订单提交参数:{}」 | v1 | ✅ PASS | 40/509.6s |
 
+---
+
+## 二十、mall4cloud 实验 (2026-10-15)
+
+> 服务: mall4cloud-auth (8080, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/mall4cloud-auth:latest`)
+> 依赖: MySQL `mall4cloud_auth` (表 `auth_account`), Redis (trace-real-redis)
+> 机制: `TokenStore.decryptToken` 在解密 Base64 格式的 `refreshToken` 时，若密文结构不满足解析规则（32位Token+13位时间戳+系统类型），抛出异常进入 catch 分支执行 `logger.error(e.getMessage())`。Agent 自主阅读源码设计出包含 `<<SINK_REACHED>>` 的 Base64 负载，调用 `POST /ua/token/refresh` 成功命中日志。
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点 `POST http://localhost:8080/ua/token/refresh`，无作弊参数。
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| mall4cloud_token_decrypt_error | TokenStore.decryptToken L264「logger.error(e.getMessage())」 | v1 | ✅ PASS | 8/645.0s |

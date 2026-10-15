@@ -1002,6 +1002,19 @@ SINK_TASKS = {
         "container": "trace-real-youlai-mall-oms",
         "log_match": "订单提交参数:",
     },
+    # ── mall4cloud (mall4cloud-auth, 8080) ──
+    "mall4cloud_token_decrypt_error": {
+        "sink": "TokenStore.decryptToken 中的 "
+                "logger.error(e.getMessage()) "
+                "(L264, 源码 examples/mall4cloud/mall4cloud-auth/src/main/java/com/mall4j/cloud/auth/manager/TokenStore.java)。"
+                "触发条件: 请求刷新 Token 时，传入无法合法解密的 refreshToken 触发解密异常处理。",
+        "api": "POST http://localhost:8080/ua/token/refresh (JSON 请求体: {\"refreshToken\":\"<非法或无法解密的token>\"})",
+        "env": "目标服务容器: trace-real-mall4cloud-mall4cloud-auth (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 mall4cloud_auth。缓存: trace-real-redis (端口 6379)。",
+        "hint_level": "hint",
+        "container": "trace-real-mall4cloud-mall4cloud-auth",
+        "log_match": "c.mall4j.cloud.auth.manager.TokenStore",
+    },
 }
 
 

@@ -109,3 +109,7 @@
 
 ### youlai-mall（8803, trace-real-youlai-mall-oms）
 - ✅ `youlai_order_submit_params` — OrderServiceImpl L176「订单提交参数:{}」（40 调用/509.6s, v1 PASS; Agent 自主探索 OrderSubmitForm 表单结构与字段约束，构造符合 Bean Validation 规范的提交数据，调用 POST /app-api/v1/orders/submit 并在 remark 等字段中注入 <<SINK_REACHED>> 标记命中目标日志）
+
+### mall4cloud（8080, trace-real-mall4cloud-mall4cloud-auth）
+- ✅ `mall4cloud_token_decrypt_error` — TokenStore L264「logger.error(e.getMessage())」（8 调用/645.0s, v1 PASS; Agent 自主阅读 TokenStore 源码定位解密协议规范，构造携带 <<SINK_REACHED>> 的 Base64 编码 refreshToken 负载，调用 POST /ua/token/refresh 触发解密解析异常命中目标日志）
+
