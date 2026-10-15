@@ -957,6 +957,19 @@ SINK_TASKS = {
         "container": "trace-real-mogublog-mogu-admin",
         "log_match": "管理员密码错误",
     },
+    "mogu_admin_authority_verify_success": {
+        "sink": "AuthorityVerifyAspect.doAround 中的 "
+                "log.info(\"用户拥有操作权限，访问的路径: {}，拥有的权限接口：{}\", url, visitMap.get(url)) "
+                "(L119, 源码 examples/MoGuBlog/mogu_admin/src/main/java/com/moxi/mogublog/admin/annotion/AuthorityVerify/AuthorityVerifyAspect.java)。"
+                "触发条件: 使用已分配对应操作权限的管理员账号完成登录认证，携带合法 Token 访问受 @AuthorityVerify 注解保护的后台端点 (如 /blogSort/getList 等)。"
+                "注意: 本任务日志参数 url 必须精确匹配权限系统注册的标准路径 (如 /blogSort/getList)，切勿在 URL 路径后拼接分号或多余字符 (Spring Security 防火墙会拦截含分号的请求路径)；harness 依据 log_match 前缀自动判定命中，无需向 URL 路径注入标记。",
+        "api": "POST http://localhost:8080/auth/login 换取登录 Token，直接将响应中的完整 token 填入 Authorization 请求头，请求受保护端点 (如 POST http://localhost:8080/blogSort/getList，JSON Body 包含分页参数如 {\"currentPage\": 1, \"pageSize\": 10})",
+        "env": "目标服务容器: trace-real-mogublog-mogu-admin (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 mogu_blog, 管理员表 t_admin, 角色表 t_role, 菜单表 t_category_menu (项目初始管理员账号密码在项目根目录 README.md 有明确说明)。",
+        "hint_level": "hint",
+        "container": "trace-real-mogublog-mogu-admin",
+        "log_match": "用户拥有操作权限，访问的路径:",
+    },
     # ── novel-cloud (novel-book-service, 8080) ──
     "novel_jwt_parse_failed": {
         "sink": "JwtUtils.parseToken 中的 "

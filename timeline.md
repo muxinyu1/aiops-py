@@ -96,6 +96,7 @@
 
 ### mogu-blog（8080, trace-real-mogublog-mogu-admin）
 - ✅ `mogu_admin_login_password_error` — LoginRestApi L120「管理员密码错误」（28 调用/775.6s, v2 PASS; v1 经历预算超限探索，v2 自主定位管理员账号并传入错误密码与攻击标记触发命中）
+- ✅ `mogu_admin_authority_verify_success` — AuthorityVerifyAspect L119「用户拥有操作权限，访问的路径:」（40 调用/533.9s, v2 PASS; v1 探索中向路径拼装分号被 StrictHttpFirewall 拦截，v2 自主调用 POST /auth/login 获取有效 Token，并在请求头携带 Token 成功调用受 @AuthorityVerify 注解保护的 POST /blogSort/getList 接口命中目标日志）
 
 ### novel-cloud（8080, trace-real-novel-cloud-novel-book-service）
 - ✅ `novel_jwt_parse_failed` — JwtUtils L72「JWT解析失败:」（40 调用/995.4s, v1 PASS; 携带 Authorization 头部请求受拦截接口触发 JWT 校验失败分支）

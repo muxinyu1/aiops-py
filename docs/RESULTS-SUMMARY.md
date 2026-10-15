@@ -218,6 +218,8 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 |---|---|---|---|---|
 | mogu_admin_login_password_error | LoginRestApi.login L120「管理员密码错误」 | v1 | ❌ FAIL (40/847.8s) | 预算超限 (尝试通过未部署的 mogu-picture 注册用户) |
 | | | v2 | ✅ PASS | 28/775.6s (自主定位已有管理员账号并传入错误密码触发命中) |
+| mogu_admin_authority_verify_success | AuthorityVerifyAspect.doAround L119「用户拥有操作权限，访问的路径:」 | v1 | ❌ FAIL (40/886.3s) | 预算超限 (在 URL 路径后拼装分号被 StrictHttpFirewall 拦截) |
+| | | v2 | ✅ PASS | 40/533.9s (自主调用 POST /auth/login 获取 Token，并在请求头携带 Token 成功调用受 @AuthorityVerify 注解保护的 POST /blogSort/getList 接口触发命中) |
 
 ---
 
