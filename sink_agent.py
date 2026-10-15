@@ -932,6 +932,18 @@ SINK_TASKS = {
         "container": "trace-real-apollo-apollo-adminservice",
         "log_match": "is deleting App:",
     },
+    "apollo_delete_app_namespace": {
+        "sink": "AppNamespaceService.deleteAppNamespace 中的 "
+                "logger.info(\"{} is deleting AppNamespace, appId: {}, namespace: {}\", operator, appId, namespaceName) "
+                "(L188, 源码 examples/Apollo/apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/AppNamespaceService.java)。"
+                "触发条件: 删除一个已存在的 AppNamespace 应用命名空间记录。",
+        "api": "DELETE http://localhost:8080/apps/{appId}/appnamespaces/{namespaceName}?operator={operator} (需携带 operator 查询参数)",
+        "env": "目标服务容器: trace-real-apollo-apollo-adminservice (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 ApolloConfigDB, 表 AppNamespace (已有预置命名空间记录，可直接查表或先 POST /apps/{appId}/appnamespaces 创建)。",
+        "hint_level": "hint",
+        "container": "trace-real-apollo-apollo-adminservice",
+        "log_match": "is deleting AppNamespace, appId:",
+    },
     # ── mogu-blog (mogu-admin, 8080) ──
     "mogu_admin_login_password_error": {
         "sink": "LoginRestApi.login 中的 "

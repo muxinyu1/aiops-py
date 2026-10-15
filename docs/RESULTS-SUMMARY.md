@@ -204,6 +204,7 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 | 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
 |---|---|---|---|---|
 | apollo_delete_app | AdminService.deleteApp L68「is deleting App:」 | v1 | ✅ PASS | 18/180.6s |
+| apollo_delete_app_namespace | AppNamespaceService.deleteAppNamespace L188「is deleting AppNamespace, appId:」 | v1 | ✅ PASS | 9/83.5s |
 
 ---
 
