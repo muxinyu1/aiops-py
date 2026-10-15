@@ -107,4 +107,5 @@
 ### zlt-microservices-platform（8080, trace-real-zlt-microservices-platform-zlt-uaa）
 - ✅ `zlt_sms_validate_code_not_expired` — ValidateCodeServiceImpl L62「用户:{}验证码未失效{}」（25 调用/426.2s, v1 PASS; Agent 自主阅读源码定位 Redis 键命名规范 `DEFAULT_CODE_KEY:{mobile}`，通过 redis_cmd 预置缓存状态，随后调用 GET /validata/smsCode/{mobile} 携带 <<SINK_REACHED>> 成功触发目标日志）
 
-
+### youlai-mall（8803, trace-real-youlai-mall-oms）
+- ✅ `youlai_order_submit_params` — OrderServiceImpl L176「订单提交参数:{}」（40 调用/509.6s, v1 PASS; Agent 自主探索 OrderSubmitForm 表单结构与字段约束，构造符合 Bean Validation 规范的提交数据，调用 POST /app-api/v1/orders/submit 并在 remark 等字段中注入 <<SINK_REACHED>> 标记命中目标日志）

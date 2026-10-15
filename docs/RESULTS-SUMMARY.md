@@ -269,3 +269,17 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 | 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
 |---|---|---|---|---|
 | zlt_sms_validate_code_not_expired | ValidateCodeServiceImpl.sendSmsCode L62「用户:{}验证码未失效{}」 | v1 | ✅ PASS | 25/426.2s |
+
+---
+
+## 十九、youlai-mall 实验 (2026-10-15)
+
+> 服务: mall-oms (8803, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/youlai-mall-mall-oms:latest`)
+> 依赖: MySQL `mall_oms` (表已就绪), Redis (trace-real-redis)
+> 机制: `OrderServiceImpl.submitOrder` 方法开始处打印接收到的提交表单内容 `log.info("订单提交参数:{}", JSONUtil.toJsonStr(submitForm))`。Agent 自主探索代码发现 `OrderSubmitForm` 字段校验规则（非空令牌、枚举订单来源、商品数组与收货信息），通过 POST 请求并成功将 `<<SINK_REACHED>>` 注入日志中。
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点 `POST http://localhost:8803/app-api/v1/orders/submit`，无作弊参数。
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| youlai_order_submit_params | OrderServiceImpl.submitOrder L176「订单提交参数:{}」 | v1 | ✅ PASS | 40/509.6s |
+

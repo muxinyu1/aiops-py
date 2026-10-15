@@ -1,0 +1,371 @@
+{
+  "reached": true,
+  "turns": 1,
+  "tool_calls": 40,
+  "elapsed": 509.6417672634125,
+  "tool_log": [
+    {
+      "n": 1,
+      "tool": "read_source",
+      "args": {
+        "path": "youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java",
+        "start": 120,
+        "end": 260
+      },
+      "result": "youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java (L120-260, 共507行)\n 120 | \n 121 |         Long memberId = SecurityUtils.getMemberId();\n 122 | \n 123 |         // 解决子线程无法获取HttpServletRequest请求对象中数据的问题\n 124 |         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();\n 125 |         RequestContextHolder.setRequestAttributes(attributes, true);\n 126 | \n 127 |         // 获取订单商品\n 128 |         CompletableFuture<List<OrderItemDTO>> getOrderItemsFuture = CompletableFuture.supplyAsync(\n 129 |                         () -> this.getOrderItems(skuId, memberId), threadPoolExecutor)\n 130 |                 .exceptionally(ex -> {\n 131 |                     log.error(\"Failed to get order items: {}\", ex.toString());\n 132 |                     return Collections.emptyList();\n 133 |                 });\n 134 | \n 135 |         // 用户收货地址\n 136 |         CompletableFuture<List<MemberAddressDTO>> getMemberAddressFuture = CompletableFuture.supplyAsync(() -> {\n 137 |             Result<List<MemberAddressDTO>> getMemberAddressResult = memberFeignClient.listMemberAddresses(memberId);\n 138 |             if (Result.isSuccess(getMemberAddressResult)) {\n 139 |                 return getMemberAddressResult.getData();\n 140 |             }\n 141 |             return null;\n 142 |         }, threadPoolExecutor).exceptionally(ex -> {\n 143 |             log.error(\"Failed to get addresses for memberId {} : {}\", memberId, ex.toString());\n 144 |             return Collections.emptyList();\n 145 |         });\n 146 | \n 147 |         // 生成唯一令牌,防止重复提交(原理：提交会消耗令牌，令牌被消耗无法再次提交)\n 148 |         CompletableFuture<String> generateOrderTokenFuture = CompletableFuture.supplyAsync(() -> {\n 149 |             String orderToken = this.generateTradeNo(memberId);\n 150 |             redisTemplate.opsForValue().set(OrderConstants.ORDER_TOKEN_PREFIX + orderToken, orderToken);\n 151 |             return orderToken;\n 152 |         }, threadPoolExecutor).except"
+    },
+    {
+      "n": 2,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class OrderSubmitForm",
+        "path_prefix": "youlai-mall"
+      },
+      "result": "examples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/model/form/OrderSubmitForm.java:23:public class OrderSubmitForm {\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/model/form/OrderSubmitForm.java:23:public class OrderSubmitForm {\n"
+    },
+    {
+      "n": 3,
+      "tool": "read_source",
+      "args": {
+        "end": 120,
+        "path": "youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/model/form/OrderSubmitForm.java",
+        "start": 1
+      },
+      "result": "youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/model/form/OrderSubmitForm.java (L1-105, 共105行)\n   1 | package com.youlai.mall.oms.model.form;\n   2 | \n   3 | import com.youlai.mall.oms.enums.OrderSourceEnum;\n   4 |  import io.swagger.v3.oas.annotations.media.Schema;\n   5 | import io.swagger.v3.oas.annotations.media.Schema;\n   6 | import lombok.Data;\n   7 | import lombok.ToString;\n   8 | \n   9 | import  jakarta.validation.constraints.NotBlank;\n  10 | import  jakarta.validation.constraints.NotEmpty;\n  11 | import  jakarta.validation.constraints.NotNull;\n  12 | import  jakarta.validation.constraints.Size;\n  13 | import java.util.List;\n  14 | \n  15 | /**\n  16 |  * 订单提交表单对象\n  17 |  *\n  18 |  * @author haoxr\n  19 |  * @since 2.0.0\n  20 |  */\n  21 | @Data\n  22 | @ToString\n  23 | public class OrderSubmitForm {\n  24 | \n  25 |     @Schema(description=\"订单确认页面签发的令牌(防止重复提交)\")\n  26 |     @NotBlank(message = \"订单令牌不能为空\")\n  27 |     private String orderToken;\n  28 | \n  29 |     @Schema(description=\"订单来源\")\n  30 |     @NotNull(message = \"订单来源不能为空\")\n  31 |     private OrderSourceEnum orderSource;\n  32 | \n  33 |     @Schema(description=\"订单商品明细\")\n  34 |     @NotEmpty(message = \"订单商品不能为空\")\n  35 |     private List<OrderItem> orderItems;\n  36 | \n  37 |     @Schema(description=\"应付金额(单位：分)\")\n  38 |     @NotNull(message = \"应付金额不能为空\")\n  39 |     private Long paymentAmount;\n  40 | \n  41 |     @Schema(description=\"优惠卷ID\")\n  42 |     private Long couponId;\n  43 | \n  44 |     @Schema(description=\"优惠金额\")\n  45 |     private Long couponAmount;\n  46 | \n  47 |     @Schema(description=\"收获地址\")\n  48 |     @NotNull(message = \"收货地址不能为空\")\n  49 |     private ShippingAddress shippingAddress;\n  50 | \n  51 |     @Schema(description=\"订单备注\")\n  52 |     @Size(max = 500, message = \"订单备注长度不能超过500\")\n  53 |     private String remark;\n  54 | \n  55 |     @Schema(description =\"收获地址\")\n  56 |     @Data\n  57 |     public static class ShippingAddress {\n  58 | \n  59 |         @Schema(description=\"收货人姓名\")\n  60 | "
+    },
+    {
+      "n": 4,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "youlai-mall",
+        "pattern": "orders/submit|OrderController"
+      },
+      "result": "examples/zlt-microservices-platform/zlt-demo/seata-demo/order-service/src/main/java/com/central/order/controller/OrderController.java:17:public class OrderController {\nexamples/zlt-microservices-platform/zlt-demo/rocketmq-demo/rocketmq-transactional/src/main/java/com/rocketmq/demo/controller/OrderController.java:16:public class OrderController {\nexamples/zlt-microservices-platform/zlt-demo/rocketmq-demo/rocketmq-transactional/src/main/java/com/rocketmq/demo/controller/OrderController.java:20:    public OrderController(StreamBridge streamBridge) {\nexamples/gulimall-learning/renren-generator/renren-order/main/java/io/niceseason/gulimall/order/controller/OrderController.java:29:public class OrderController {\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/controller/OrderController.java:29:public class OrderController {\nexamples/SpringBlade/blade-ops/blade-seata-order/src/main/java/org/springblade/seata/order/controller/OrderController.java:10: * OrderController\nexamples/SpringBlade/blade-ops/blade-seata-order/src/main/java/org/springblade/seata/order/controller/OrderController.java:17:public class OrderController {\nexamples/youlai-mall/mall-oms/oms-boot/src/test/java/com/youlai/mall/oms/controller/OrderControllerTest.java:41:public class OrderControllerTest {\nexamples/youlai-mall/mall-oms/oms-boot/src/test/java/com/youlai/mall/oms/controller/OrderControllerTest.java:171:        MockHttpServletRequestBuilder requestBuilder = post(\"/app-api/v1/orders/submit\")\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/controller/app/OrderController.java:30:public class OrderController {\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/controller/admin/OmsOrderController.java:37:public class OmsOrderController {\nexamples/mall4cloud/mall4cloud-order/src/main/java/com/mall4j/cloud/order/controller/multishop/OrderController.java:31:@RestController(\"multishopOrderController\")\nexamples/mall4cloud/mall4c"
+    },
+    {
+      "n": 5,
+      "tool": "read_source",
+      "args": {
+        "end": 60,
+        "path": "youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/controller/app/OrderController.java",
+        "start": 1
+      },
+      "result": "youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/controller/app/OrderController.java (L1-60, 共74行)\n   1 | package com.youlai.mall.oms.controller.app;\n   2 | \n   3 | import com.baomidou.mybatisplus.core.metadata.IPage;\n   4 | import com.youlai.common.result.PageResult;\n   5 | import com.youlai.common.result.Result;\n   6 | import com.youlai.common.security.util.SecurityUtils;\n   7 | import com.youlai.mall.oms.model.form.OrderPaymentForm;\n   8 | import com.youlai.mall.oms.model.form.OrderSubmitForm;\n   9 | import com.youlai.mall.oms.model.query.OrderPageQuery;\n  10 | import com.youlai.mall.oms.model.vo.OrderConfirmVO;\n  11 | import com.youlai.mall.oms.model.vo.OrderPageVO;\n  12 | import com.youlai.mall.oms.service.app.OrderService;\n  13 | import io.swagger.v3.oas.annotations.tags.Tag;\n  14 | import io.swagger.v3.oas.annotations.Operation;\n  15 | import io.swagger.v3.oas.annotations.Parameter;\n  16 | import lombok.RequiredArgsConstructor;\n  17 | import org.springframework.validation.annotation.Validated;\n  18 | import org.springframework.web.bind.annotation.*;\n  19 | \n  20 | /**\n  21 |  * APP-订单控制层\n  22 |  *\n  23 |  * @author huawei\n  24 |  * @since 2020/12/30\n  25 |  */\n  26 | @Tag(name  = \"APP-订单接口\")\n  27 | @RestController\n  28 | @RequestMapping(\"/app-api/v1/orders\")\n  29 | @RequiredArgsConstructor\n  30 | public class OrderController {\n  31 | \n  32 |     private final OrderService orderService;\n  33 | \n  34 |     @Operation(summary =\"订单分页列表\")\n  35 |     @GetMapping\n  36 |     public PageResult<OrderPageVO> getOrderPage(OrderPageQuery queryParams) {\n  37 |         // 强制覆盖前端传入的memberId\n  38 |         Long currentMemberId = SecurityUtils.getMemberId();\n  39 |         queryParams.setMemberId(currentMemberId);\n  40 |         IPage<OrderPageVO> result = orderService.getOrderPage(queryParams);\n  41 |         return PageResult.success(result);\n  42 |     }\n  43 | \n  44 |     @Operation(summary = \"订单确认\", description = \"进入订单确认页面有两个入口，1：立即购买；2：购物车结算\")\n  45 |     @"
+    },
+    {
+      "n": 6,
+      "tool": "read_source",
+      "args": {
+        "end": 200,
+        "path": "youlai-mall/mall-oms/oms-boot/src/test/java/com/youlai/mall/oms/controller/OrderControllerTest.java",
+        "start": 150
+      },
+      "result": "youlai-mall/mall-oms/oms-boot/src/test/java/com/youlai/mall/oms/controller/OrderControllerTest.java (L150-200, 共242行)\n 150 |         orderItem.setSpuName(\"REDMI K60\");\n 151 |         orderItem.setPrice(399900L);\n 152 |         orderItem.setPicUrl(\"https://www.youlai.tech/files/default/c25b39470474494485633c49101a0f5d.png\");\n 153 |         submitForm.setOrderItems(Arrays.asList(orderItem));\n 154 |         // submitForm - 收货地址\n 155 |         OrderSubmitForm.ShippingAddress shippingAddress = new OrderSubmitForm.ShippingAddress();\n 156 |         shippingAddress.setProvince(\"上海\");\n 157 |         shippingAddress.setCity(\"上海市\");\n 158 |         shippingAddress.setDistrict(\"浦东新区\");\n 159 |         shippingAddress.setConsigneeName(\"法外张三\");\n 160 |         shippingAddress.setConsigneeMobile(\"18866668888\");\n 161 |         shippingAddress.setDetailAddress(\"世纪公园\");\n 162 |         submitForm.setShippingAddress(shippingAddress);\n 163 | \n 164 |         // submitForm - 订单信息\n 165 |         submitForm.setOrderToken(orderToken);\n 166 |         submitForm.setPaymentAmount(orderItem.getPrice() * 1);\n 167 |         submitForm.setOrderSource(OrderSourceEnum.APP);\n 168 |         submitForm.setRemark(\"单元测试生成订单\");\n 169 | \n 170 |         // 发起 POST 请求\n 171 |         MockHttpServletRequestBuilder requestBuilder = post(\"/app-api/v1/orders/submit\")\n 172 |                 .headers(headers)\n 173 |                 .contentType(MediaType.APPLICATION_JSON)\n 174 |                 .content(objectMapper.writeValueAsString(submitForm));\n 175 | \n 176 |         // 执行请求并断言结果\n 177 |         MvcResult submitResult = mockMvc.perform(requestBuilder)\n 178 |                 .andExpect(status().isOk())\n 179 |                 .andReturn();\n 180 |         String confirmJsonResponse = submitResult.getResponse().getContentAsString();\n 181 |         JsonNode confirmJsonNode = objectMapper.readTree(confirmJsonResponse);\n 182 | \n 183 |         return confirmJsonNode.path(\"data\").asText();\n 184 |     }\n 185 | \n 186 |     /**\n"
+    },
+    {
+      "n": 7,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "youlai-mall",
+        "pattern": "class SaTokenFilterConfig|SaServletFilter|addExcludePath|satoken"
+      },
+      "result": "examples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/RefreshTokenGranter.java:19:import cn.dev33.satoken.config.SaTokenConfig;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/RefreshTokenGranter.java:20:import cn.dev33.satoken.session.SaSession;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/RefreshTokenGranter.java:21:import cn.dev33.satoken.stp.SaLoginModel;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/RefreshTokenGranter.java:22:import cn.dev33.satoken.stp.StpUtil;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/RefreshTokenGranter.java:23:import cn.dev33.satoken.temp.SaTempUtil;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/AbstractTokenGranter.java:15:import cn.dev33.satoken.config.SaTokenConfig;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/AbstractTokenGranter.java:16:import cn.dev33.satoken.session.SaSession;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/AbstractTokenGranter.java:17:import cn.dev33.satoken.stp.StpUtil;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/AbstractTokenGranter.java:18:import cn.dev33.satoken.temp.SaTempUtil;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/biz/StpInterfaceBiz.java:3:import cn.dev33.satoken.session.SaSession;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/biz/StpInterfaceBiz.java:4:import cn.dev33.satoken.stp.StpUtil;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-controller/src/main/java/top/tangyh/lamp/oauth/controller/RootController.java:3:import cn.dev33.satoken.session.SaSession;\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-controller/src/main/java/top/tangyh/lamp/oauth/contro"
+    },
+    {
+      "n": 8,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "youlai-mall",
+        "pattern": "SaInterceptor|isLogin|addInterceptors|excludePathPatterns"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/utils/ShiroUtils.java:48:\tpublic static boolean isLogin() {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/app/config/WebMvcConfig.java:34:    public void addInterceptors(InterceptorRegistry registry) {\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/config/WebMvcConfig.java:17:    public void addInterceptors(InterceptorRegistry registry)\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/config/WebMvcConfig.java:21:                .excludePathPatterns(excludeUrls)\nexamples/zlt-microservices-platform/zlt-uaa/src/main/java/com/central/tracing/TraceHandlerInterceptor.java:25:    public void addInterceptors(InterceptorRegistry registry) {\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/utils/ShiroUtils.java:48:\tpublic static boolean isLogin() {\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/modules/app/config/WebMvcConfig.java:34:    public void addInterceptors(InterceptorRegistry registry) {\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/config/GulimallWebConfig.java:12:    public void addInterceptors(InterceptorRegistry registry) {\nexamples/gulimall-learning/gulimall-seckill/src/main/java/io/niceseason/gulimall/seckill/config/GulimallWebConfig.java:11:    public void addInterceptors(InterceptorRegistry registry) {\nexamples/gulimall-learning/gulimall-cart/src/main/java/io/niceseason/gulimall/cart/interceptor/GulimallWebConfig.java:10:    public void addInterceptors(InterceptorRegistry registry) {\nexamples/MoGuBlog/mogu_picture/src/main/java/com/moxi/mogublog/picture/config/InterceptorConfig.java:21:    public void addInterceptors(InterceptorRegistry registry) {\nexamples/RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/config/WebMvcConfig.java:18:    public void addInterceptors(Intercept"
+    },
+    {
+      "n": 9,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "youlai-mall",
+        "pattern": "getMemberId"
+      },
+      "result": "examples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/service/impl/OrderServiceImpl.java:296:        orderEntity.setMemberId(orderTo.getMemberId());\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/controller/app/OrderController.java:38:        Long currentMemberId = SecurityUtils.getMemberId();\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/controller/app/CartController.java:33:        List<CartItemDto> result = cartService.listCartItems(SecurityUtils.getMemberId());\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java:101:        Long memberId = SecurityUtils.getMemberId();\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java:121:        Long memberId = SecurityUtils.getMemberId();\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java:216:        String orderSn = generateUniqueTradeNo(SecurityUtils.getMemberId());\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java:243:        order.setMemberId(SecurityUtils.getMemberId());\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java:311:        Long memberId = order.getMemberId();\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java:339:        Long memberId = SecurityUtils.getMemberId();\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/CartServiceImpl.java:56:        String key = OrderConstants.MEMBER_CART_PREFIX + SecurityUtils.getMemberId();\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/CartServiceImpl.java:66:        Long memberId = SecurityUtils.getMemberId();\nexamples/youlai-mall/mall-oms/oms-boot/src/mai"
+    },
+    {
+      "n": 10,
+      "tool": "read_source",
+      "args": {
+        "end": 140,
+        "path": "youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/util/SecurityUtils.java",
+        "start": 80
+      },
+      "result": "youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/util/SecurityUtils.java (L80-120, 共120行)\n  80 |             return String.valueOf(tokenAttributes.get(\"jti\"));\n  81 |         }\n  82 |         return null;\n  83 |     }\n  84 | \n  85 | \n  86 |     public static Long getExp() {\n  87 |         Map<String, Object> tokenAttributes = getTokenAttributes();\n  88 |         if (tokenAttributes != null) {\n  89 |             return Convert.toLong(tokenAttributes.get(\"exp\"));\n  90 |         }\n  91 |         return null;\n  92 |     }\n  93 | \n  94 |     /**\n  95 |      * 获取数据权限范围\n  96 |      *\n  97 |      * @return 数据权限范围\n  98 |      * @see com.youlai.common.mybatis.enums.DataScopeEnum\n  99 |      */\n 100 |     public static Integer getDataScope() {\n 101 |         Map<String, Object> tokenAttributes = getTokenAttributes();\n 102 |         if (tokenAttributes != null) {\n 103 |             return Convert.toInt(tokenAttributes.get(\"dataScope\"));\n 104 |         }\n 105 |         return null;\n 106 |     }\n 107 | \n 108 |     /**\n 109 |      * 获取会员ID\n 110 |      *\n 111 |      * @return 会员ID\n 112 |      */\n 113 |     public static Long getMemberId() {\n 114 |         Map<String, Object> tokenAttributes = getTokenAttributes();\n 115 |         if (tokenAttributes != null) {\n 116 |             return Convert.toLong(tokenAttributes.get(\"memberId\"));\n 117 |         }\n 118 |         return null;\n 119 |     }\n 120 | }"
+    },
+    {
+      "n": 11,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "youlai-mall/youlai-common",
+        "pattern": "Interceptor|Filter|satoken"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/MybatisPlusConfig.java:11:import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/MybatisPlusConfig.java:27:    public PaginationInterceptor paginationInterceptor() {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/MybatisPlusConfig.java:28:        return new PaginationInterceptor();\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:11:import io.renren.modules.sys.oauth2.OAuth2Filter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:16:import org.apache.shiro.spring.web.ShiroFilterFactoryBean;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:21:import javax.servlet.Filter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:42:    @Bean(\"shiroFilter\")\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:43:    public ShiroFilterFactoryBean shiroFilter(SecurityManager securityManager) {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:44:        ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:45:        shiroFilter.setSecurityManager(securityManager);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:48:        Map<String, Filter> filters = new HashMap<>();\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:49:        filters.put(\"oauth2\", new OAuth2Filter());\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:50:        shiroFilter.setFilters(filters);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/ShiroConfig.java:64:        shiroFilter.set"
+    },
+    {
+      "n": 12,
+      "tool": "search_code",
+      "args": {
+        "pattern": "app-api"
+      },
+      "result": "examples/youlai-mall/mall-oms/oms-boot/src/test/java/com/youlai/mall/oms/controller/OrderControllerTest.java:115:        mockMvc.perform(post(\"/app-api/v1/carts\")\nexamples/youlai-mall/mall-oms/oms-boot/src/test/java/com/youlai/mall/oms/controller/OrderControllerTest.java:127:                        post(\"/app-api/v1/orders/confirm\")\nexamples/youlai-mall/mall-oms/oms-boot/src/test/java/com/youlai/mall/oms/controller/OrderControllerTest.java:171:        MockHttpServletRequestBuilder requestBuilder = post(\"/app-api/v1/orders/submit\")\nexamples/youlai-mall/mall-oms/oms-boot/src/test/java/com/youlai/mall/oms/controller/OrderControllerTest.java:194:        mockMvc.perform(post(\"/app-api/v1/orders/payment\")\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/controller/app/OrderController.java:28:@RequestMapping(\"/app-api/v1/orders\")\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/controller/app/CartController.java:24:@RequestMapping(\"/app-api/v1/carts\")\nexamples/youlai-mall/mall-sms/sms-boot/src/main/java/com/youlai/mall/sms/controller/app/AdvertController.java:18:@RequestMapping(\"/app-api/v1/adverts\")\nexamples/youlai-mall/mall-pms/pms-api/src/main/java/com/youlai/mall/pms/api/SkuFeignClient.java:18:    @GetMapping(\"/app-api/v1/skus/{skuId}\")\nexamples/youlai-mall/mall-pms/pms-api/src/main/java/com/youlai/mall/pms/api/SkuFeignClient.java:27:    @GetMapping(\"/app-api/v1/skus\")\nexamples/youlai-mall/mall-pms/pms-api/src/main/java/com/youlai/mall/pms/api/SkuFeignClient.java:33:    @PutMapping(\"/app-api/v1/skus/lock\")\nexamples/youlai-mall/mall-pms/pms-api/src/main/java/com/youlai/mall/pms/api/SkuFeignClient.java:39:    @PutMapping(\"/app-api/v1/skus/unlock\")\nexamples/youlai-mall/mall-pms/pms-api/src/main/java/com/youlai/mall/pms/api/SkuFeignClient.java:50:    @PutMapping(\"/app-api/v1/skus/deduct\")\nexamples/youlai-mall/mall-pms/pms-boot/src/main/java/com/youlai/mall/pms/controller/app/SkuController.java:23:@RequestMapping(\"/app-api/v1/"
+    },
+    {
+      "n": 13,
+      "tool": "read_source",
+      "args": {
+        "end": 80,
+        "path": "youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/util/SecurityUtils.java",
+        "start": 1
+      },
+      "result": "youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/util/SecurityUtils.java (L1-80, 共120行)\n   1 | package com.youlai.common.security.util;\n   2 | \n   3 | import cn.hutool.core.convert.Convert;\n   4 | import com.youlai.common.constant.SystemConstants;\n   5 | import org.springframework.security.core.Authentication;\n   6 | import org.springframework.security.core.authority.AuthorityUtils;\n   7 | import org.springframework.security.core.context.SecurityContextHolder;\n   8 | import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;\n   9 | \n  10 | import java.util.Collections;\n  11 | import java.util.Map;\n  12 | import java.util.Set;\n  13 | import java.util.stream.Collectors;\n  14 | \n  15 | /**\n  16 |  * Spring Security 工具类\n  17 |  *\n  18 |  * @author Ray Hao\n  19 |  * @since 2.1.0\n  20 |  */\n  21 | public class SecurityUtils {\n  22 | \n  23 |     public static Long getUserId() {\n  24 |         Map<String, Object> tokenAttributes = getTokenAttributes();\n  25 |         if (tokenAttributes != null) {\n  26 |             return Convert.toLong(tokenAttributes.get(\"userId\"));\n  27 |         }\n  28 |         return null;\n  29 |     }\n  30 | \n  31 |     public static String getUsername() {\n  32 |         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();\n  33 |         if (authentication != null) {\n  34 |             return authentication.getName();\n  35 |         }\n  36 |         return null;\n  37 |     }\n  38 | \n  39 |     public static Map<String, Object> getTokenAttributes() {\n  40 |         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();\n  41 |         if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {\n  42 |             return jwtAuthenticationToken.getTokenAttributes();\n  43 |         }\n  44 |         return null;\n  45 |     }\n  46 | \n  47 | \n  48 |     /**\n  49 |      * 获取用户角色集合\n  50 |      */\n  51 |"
+    },
+    {
+      "n": 14,
+      "tool": "read_source",
+      "args": {
+        "end": 80,
+        "path": "youlai-mall/mall-ums/ums-boot/src/main/java/com/youlai/mall/ums/controller/app/MemberController.java",
+        "start": 1
+      },
+      "result": "youlai-mall/mall-ums/ums-boot/src/main/java/com/youlai/mall/ums/controller/app/MemberController.java (L1-80, 共106行)\n   1 | package com.youlai.mall.ums.controller.app;\n   2 | \n   3 | import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;\n   4 | import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;\n   5 | import com.youlai.common.result.Result;\n   6 | import com.youlai.common.security.util.SecurityUtils;\n   7 | import com.youlai.mall.pms.model.vo.ProductHistoryVO;\n   8 | import com.youlai.mall.ums.dto.MemberAddressDTO;\n   9 | import com.youlai.mall.ums.dto.MemberAuthDTO;\n  10 | import com.youlai.mall.ums.dto.MemberRegisterDto;\n  11 | import com.youlai.mall.ums.model.entity.UmsMember;\n  12 | import com.youlai.mall.ums.model.vo.MemberVO;\n  13 | import com.youlai.mall.ums.service.UmsMemberService;\n  14 | import io.swagger.v3.oas.annotations.tags.Tag;\n  15 | import io.swagger.v3.oas.annotations.Operation;\n  16 | import io.swagger.v3.oas.annotations.Parameter;\n  17 | import lombok.RequiredArgsConstructor;\n  18 | import org.springframework.web.bind.annotation.*;\n  19 | \n  20 | import java.util.List;\n  21 | import java.util.Set;\n  22 | \n  23 | @Tag(name = \"App-会员管理\")\n  24 | @RestController\n  25 | @RequestMapping(\"/app-api/v1/members\")\n  26 | @RequiredArgsConstructor\n  27 | public class MemberController {\n  28 |     private final UmsMemberService memberService;\n  29 | \n  30 |     @Operation(summary= \"根据会员ID获取openid\")\n  31 |     @GetMapping(\"/{memberId}/openid\")\n  32 |     public Result<String> getMemberById(@Parameter(name = \"会员ID\") @PathVariable Long memberId) {\n  33 |         UmsMember member = memberService.getOne(new LambdaQueryWrapper<UmsMember>()\n  34 |                 .eq(UmsMember::getId, memberId)\n  35 |                 .select(UmsMember::getOpenid));\n  36 |         String openid = member.getOpenid();\n  37 |         return Result.success(openid);\n  38 |     }\n  39 | \n  40 |     @Operation(summary= \"新增会员\")\n  41 |     @PostMappi"
+    },
+    {
+      "n": 15,
+      "tool": "search_code",
+      "args": {
+        "pattern": "youlai-mall.*(oauth|OAuth2).*Member|MemberUserDetails"
+      },
+      "result": "无匹配: youlai-mall.*(oauth|OAuth2).*Member|MemberUserDetails"
+    },
+    {
+      "n": 16,
+      "tool": "search_code",
+      "args": {
+        "pattern": "openid.*login|loginByOpenid|MemberOAuth2|WechatAuth|SmsAuth"
+      },
+      "result": "examples/MoGuBlog/doc/docker-compose/yaml/mysql/init/mogu_blog.sql:89:insert  into `t_blog`(`uid`,`title`,`summary`,`content`,`tag_uid`,`click_count`,`collect_count`,`file_uid`,`status`,`create_time`,`update_time`,`admin_uid`,`is_original`,`author`,`articles_part`,`blog_sort_uid`,`level`,`is_publish`,`sort`,`open_comment`,`type`,`outside_link`,`oid`) values ('05a627a5f5040b95c604410605a3ac5c','测试','测试','<h2 id=\\\"测试\\\">测试</h2>\\n<p>测试内容</p>\\n','7e0e93ea6cdb44ae92e58f48e6496ed7',1,0,'828227a0f1c736ea393fa4a747b1c5d9',0,'2020-10-06 11:11:27','2020-10-07 16:12:00','7621746caa93ce605e2de7143a3787b5','1','mogu2018mogu2018','蘑菇博客','a03d7290b1c04b6eaf46659661b47032',0,'1',0,1,0,NULL,1),('062ca3475e8193a4a81853a4bf41a8fa','JVM堆','JVM堆','<h1>堆</h1>\\n\\n<h2>堆的核心概念</h2>\\n\\n<p>堆针对一个JVM进程来说是唯一的，也就是一个进程只有一个JVM，但是进程包含多个线程，他们是共享同一堆空间的。</p>\\n\\n<p><img alt=\\\"image-20200706195127740\\\" src=\\\"http://localhost:8600//blog/admin/png/2020/10/15/1602724553658.png\\\" /></p>\\n\\n<p>一个JVM实例只存在一个堆内存，堆也是Java内存管理的核心区域。</p>\\n\\n<p>Java堆区在JVM启动的时候即被创建，其空间大小也就确定了。是JVM管理的最大一块内存空间。</p>\\n\\n<ul>\\n\t<li>堆内存的大小是可以调节的。</li>\\n</ul>\\n\\n<p>《Java虚拟机规范》规定，堆可以处于物理上不连续的内存空间中，但在逻辑上它应该被视为连续的。</p>\\n\\n<p>所有的线程共享Java堆，在这里还可以划分线程私有的缓冲区（Thread Local Allocation Buffer，TLAB）。</p>\\n\\n<blockquote>\\n<p>-Xms10m：最小堆内存</p>\\n\\n<p>-Xmx10m：最大堆内存</p>\\n</blockquote>\\n\\n<p>下图就是使用：Java VisualVM查看堆空间的内容，通过 jdk bin提供的插件</p>\\n\\n<p><img alt=\\\"image-20200706200739392\\\" src=\\\"http://localhost:8600//blog/admin/png/2020/10/15/1602724554552.png\\\" /></p>\\n\\n<p>《Java虚拟机规范》中对Java堆的描述是：所有的对象实例以及数组都应当在运行时分配在堆上。（The heap is the run-time data area from which memory for all class instances and arrays is allocated）</p>\\n\\n<p>我要说的是：&ldquo;几乎&rdquo;所有的对象实例都在这里分配内存。&mdash;从实际使用角度看的。</p>\\n\\n<ul>\\n\t<li>因为还有一些对象是在栈上分配的</li>\\n</ul>\\n\\n<p>数组和对象可能永远不会存储在栈上，因为栈帧中保存引用，这个引用指向对象或者数组在堆中的位置。</p>\\n\\n<p>在方法结束后，堆中的对象不会马上被移除，仅仅在垃圾收集的时候才会被移除。</p>\\n\\n<ul>\\n\t<li>也就是触发了GC的时候，才会进行回收</li>\\n\t<li>如果堆中对象马上被回收，那么用户线程就会收到影响，因为有stop the word</li>\\n</ul>\\n\\n<p>堆，是GC（Garbage Collection，垃圾收集器）执"
+    },
+    {
+      "n": 17,
+      "tool": "search_code",
+      "args": {
+        "pattern": "youlai-oauth2"
+      },
+      "result": "无匹配: youlai-oauth2"
+    },
+    {
+      "n": 18,
+      "tool": "docker_ps",
+      "args": {},
+      "result": "trace-real-youlai-mall-oms\tUp 2 minutes\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/youlai-mall-mall-oms:latest\ntrace-real-nacos\tUp 30 hours (healthy)\tnacos/nacos-server:v2.2.3\ntrace-real-piggymetrics-registry\tUp 30 hours (healthy)\tsqshq/piggymetrics-registry\ntrace-real-redis\tUp 30 hours (healthy)\tredis:7-alpine\ntrace-real-rabbitmq\tUp 30 hours (healthy)\trabbitmq:3-management\ntrace-real-mysql\tUp 30 hours (healthy)\tmysql:8.0\ntrace-real-mongo\tUp 30 hours (healthy)\tmongo:4.4\ntrace-real-piggymetrics-config\tUp 30 hours (healthy)\tsqshq/piggymetrics-config\n"
+    },
+    {
+      "n": 19,
+      "tool": "read_source",
+      "args": {
+        "end": 80,
+        "path": "youlai-mall/mall-oms/oms-boot/src/main/resources/application.yml",
+        "start": 1
+      },
+      "result": "ERROR: 文件不存在: youlai-mall/mall-oms/oms-boot/src/main/resources/application.yml"
+    },
+    {
+      "n": 20,
+      "tool": "search_code",
+      "args": {
+        "pattern": "SecurityFilterChain"
+      },
+      "result": "examples/zlt-microservices-platform/zlt-uaa/src/main/java/com/central/oauth/config/AuthorizationServerConfig.java:39:import org.springframework.security.web.SecurityFilterChain;\nexamples/zlt-microservices-platform/zlt-uaa/src/main/java/com/central/oauth/config/AuthorizationServerConfig.java:81:    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {\nexamples/zlt-microservices-platform/zlt-monitor/sc-admin/src/main/java/com/central/gateway/monitor/config/SecuritySecureConfig.java:10:import org.springframework.security.web.SecurityFilterChain;\nexamples/zlt-microservices-platform/zlt-monitor/sc-admin/src/main/java/com/central/gateway/monitor/config/SecuritySecureConfig.java:26:    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\nexamples/zlt-microservices-platform/zlt-commons/zlt-auth-client-spring-boot-starter/src/main/java/com/central/oauth2/common/config/DefaultResourceServerConf.java:21:import org.springframework.security.web.SecurityFilterChain;\nexamples/zlt-microservices-platform/zlt-commons/zlt-auth-client-spring-boot-starter/src/main/java/com/central/oauth2/common/config/DefaultResourceServerConf.java:50:    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {\nexamples/zlt-microservices-platform/zlt-commons/zlt-auth-client-spring-boot-starter/src/main/java/com/central/oauth2/common/config/DefaultWebFluxResourceServerConf.java:54:    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/config/ResourceServerConfig.java:25:import org.springframework.security.web.SecurityFilterChain;\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/config/ResourceServerConfig.java:59:    public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector) thr"
+    },
+    {
+      "n": 21,
+      "tool": "read_source",
+      "args": {
+        "end": 120,
+        "path": "youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/config/ResourceServerConfig.java",
+        "start": 1
+      },
+      "result": "youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/config/ResourceServerConfig.java (L1-120, 共122行)\n   1 | package com.youlai.common.security.config;\n   2 | \n   3 | import cn.hutool.core.collection.CollectionUtil;\n   4 | import cn.hutool.json.JSONUtil;\n   5 | import com.youlai.common.constant.JwtClaimConstants;\n   6 | import lombok.RequiredArgsConstructor;\n   7 | import lombok.Setter;\n   8 | import lombok.extern.slf4j.Slf4j;\n   9 | import org.apache.logging.log4j.util.Strings;\n  10 | import org.springframework.boot.context.properties.ConfigurationProperties;\n  11 | import org.springframework.context.annotation.Bean;\n  12 | import org.springframework.context.annotation.Configuration;\n  13 | import org.springframework.core.convert.converter.Converter;\n  14 | import org.springframework.security.authentication.AbstractAuthenticationToken;\n  15 | import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;\n  16 | import org.springframework.security.config.annotation.web.builders.HttpSecurity;\n  17 | import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;\n  18 | import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;\n  19 | import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;\n  20 | import org.springframework.security.oauth2.jwt.Jwt;\n  21 | import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;\n  22 | import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;\n  23 | import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;\n  24 | import org.springframework.security.web.AuthenticationEntryPoint;\n  25 | import org.springframework.security.web.SecurityFilterChain;\n  26 | import org.springframework.security.web.access.AccessDeniedHandler;\n  27 | import org.sprin"
+    },
+    {
+      "n": 22,
+      "tool": "search_code",
+      "args": {
+        "pattern": "whitelist"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:210:     * @return \"clean\" version of input, with only valid, whitelisted html elements allowed\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/xss/HTMLFilter.java:210:     * @return \"clean\" version of input, with only valid, whitelisted html elements allowed\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:210:     * @return \"clean\" version of input, with only valid, whitelisted html elements allowed\nexamples/gulimall-learning/gulimall-common/src/main/java/io/niceseason/common/xss/HTMLFilter.java:210:     * @return \"clean\" version of input, with only valid, whitelisted html elements allowed\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/config/ResourceServerConfig.java:55:    private List<String> whitelistPaths;\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/config/ResourceServerConfig.java:63:        log.info(\"whitelist path:{}\", JSONUtil.toJsonStr(whitelistPaths));\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/config/ResourceServerConfig.java:66:                            if (CollectionUtil.isNotEmpty(whitelistPaths)) {\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/config/ResourceServerConfig.java:67:                                for (String whitelistPath : whitelistPaths) {\nexamples/youlai-mall/youlai-common/common-security/src/main/java/com/youlai/common/security/config/ResourceServerConfig.java:68:                                    requests.requestMatchers(mvcMatcherBuilder.pattern(whitelistPath)).permitAll();\nexamples/youlai-mall/youlai-auth/src/main/java/com/youlai/auth/config/SecurityConfig.java:34:    private List<String> whitelistPaths;\nexamples/youlai-mall/youlai-auth/src/main/java/com/youlai/auth/confi"
+    },
+    {
+      "n": 23,
+      "tool": "read_source",
+      "args": {
+        "end": 100,
+        "path": "youlai-mall/mall-oms/oms-boot/src/main/resources/bootstrap.yml",
+        "start": 1
+      },
+      "result": "youlai-mall/mall-oms/oms-boot/src/main/resources/bootstrap.yml (L1-5, 共5行)\n   1 | spring:\n   2 |   application:\n   3 |     name: mall-oms\n   4 |   profiles:\n   5 |     active: dev"
+    },
+    {
+      "n": 24,
+      "tool": "read_source",
+      "args": {
+        "end": 100,
+        "path": "youlai-mall/mall-oms/oms-boot/src/main/resources/application-dev.yml",
+        "start": 1
+      },
+      "result": "ERROR: 文件不存在: youlai-mall/mall-oms/oms-boot/src/main/resources/application-dev.yml"
+    },
+    {
+      "n": 25,
+      "tool": "search_code",
+      "args": {
+        "pattern": "issuer-uri|issuer_uri"
+      },
+      "result": "examples/Apollo/apollo-portal/src/main/resources/application-oidc-sample.yml:26:            # 必须是 https, oidc 的 issuer-uri, 和 jwt 的 issuer-uri 一致的话直接引用即可, 也可以单独设置\nexamples/Apollo/apollo-portal/src/main/resources/application-oidc-sample.yml:27:            issuer-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}\nexamples/Apollo/apollo-portal/src/main/resources/application-oidc-sample.yml:61:          # 必须是 https, jwt 的 issuer-uri\nexamples/Apollo/apollo-portal/src/main/resources/application-oidc-sample.yml:62:          # 例如 你的 issuer-uri 是 https://host:port/auth/realms/apollo/.well-known/openid-configuration, 那么此处只需要配置 https://host:port/auth/realms/apollo 即可, spring boot 处理的时候会自动加上 /.well-known/openid-configuration 的后缀\nexamples/Apollo/apollo-portal/src/main/resources/application-oidc-sample.yml:63:          issuer-uri: https://host:port/auth/realms/apollo\nexamples/Apollo/e2e/portal-e2e/config/application-oidc-e2e.yml:25:            issuer-uri: \"${OIDC_ISSUER_URI:http://127.0.0.1:9080/realms/apollo}\"\nexamples/Apollo/e2e/portal-e2e/config/application-oidc-e2e.yml:39:          issuer-uri: \"${OIDC_ISSUER_URI:http://127.0.0.1:9080/realms/apollo}\"\n"
+    },
+    {
+      "n": 26,
+      "tool": "search_code",
+      "args": {
+        "pattern": "youlai\\.mall\\.|mall-oms.*nacos|nacos.*mall-oms"
+      },
+      "result": "examples/youlai-mall/mall-oms/oms-boot/target/classes/mapper/OmsOrderItemMapper.xml:5:<mapper namespace=\"com.youlai.mall.oms.mapper.OrderItemMapper\">\nexamples/youlai-mall/mall-oms/oms-boot/target/classes/mapper/OmsOrderItemMapper.xml:8:    <select id=\"getOrderItemsByOrderId\" resultType=\"com.youlai.mall.oms.model.bo.OrderBO$OrderItem\">\nexamples/youlai-mall/mall-oms/oms-boot/target/classes/mapper/OmsOrderMapper.xml:5:<mapper namespace=\"com.youlai.mall.oms.mapper.OrderMapper\">\nexamples/youlai-mall/mall-oms/oms-boot/target/classes/mapper/OmsOrderMapper.xml:7:    <resultMap id=\"OrderMap\" type=\"com.youlai.mall.oms.model.bo.OrderBO\">\nexamples/youlai-mall/mall-oms/oms-boot/target/classes/mapper/OmsOrderMapper.xml:10:                    select=\"com.youlai.mall.oms.mapper.OrderItemMapper.getOrderItemsByOrderId\">\nexamples/youlai-mall/mall-oms/oms-boot/target/generated-sources/annotations/com/youlai/mall/oms/converter/OrderItemConverterImpl.java:1:package com.youlai.mall.oms.converter;\nexamples/youlai-mall/mall-oms/oms-boot/target/generated-sources/annotations/com/youlai/mall/oms/converter/OrderItemConverterImpl.java:3:import com.youlai.mall.oms.model.entity.OmsOrderItem;\nexamples/youlai-mall/mall-oms/oms-boot/target/generated-sources/annotations/com/youlai/mall/oms/converter/OrderItemConverterImpl.java:4:import com.youlai.mall.oms.model.form.OrderSubmitForm;\nexamples/youlai-mall/mall-oms/oms-boot/target/generated-sources/annotations/com/youlai/mall/oms/converter/CartConverterImpl.java:1:package com.youlai.mall.oms.converter;\nexamples/youlai-mall/mall-oms/oms-boot/target/generated-sources/annotations/com/youlai/mall/oms/converter/CartConverterImpl.java:3:import com.youlai.mall.oms.model.dto.CartItemDto;\nexamples/youlai-mall/mall-oms/oms-boot/target/generated-sources/annotations/com/youlai/mall/oms/converter/CartConverterImpl.java:4:import com.youlai.mall.pms.model.dto.SkuInfoDTO;\nexamples/youlai-mall/mall-oms/oms-boot/target/generated-sources/annotations/com/youlai/mall/oms/con"
+    },
+    {
+      "n": 27,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:8803/app-api/v1/orders/submit",
+        "headers_json": "{\"Content-Type\": \"application/json\"}",
+        "body": "{\"orderToken\":\"tok1\",\"orderSource\":\"APP\",\"paymentAmount\":100,\"orderItems\":[{\"skuId\":1,\"skuSn\":\"S1\",\"skuName\":\"test\",\"price\":100,\"spuName\":\"spu\",\"quantity\":1}],\"shippingAddress\":{\"consigneeName\":\"a\",\"consigneeMobile\":\"13800000000\",\"province\":\"上海\",\"city\":\"上海市\",\"district\":\"浦东新区\",\"detailAddress\":\"x\"},\"remark\":\"probe\"}"
+      },
+      "result": "HTTP 400\nContent-Type: application/json\n\n{\"code\":\"B0001\",\"data\":null,\"msg\":\"订单重复提交，请刷新页面后重试\"}"
+    },
+    {
+      "n": 28,
+      "tool": "send_http",
+      "args": {
+        "body": "{\"orderToken\":\"tok1\",\"orderSource\":\"APP\",\"paymentAmount\":100,\"orderItems\":[{\"skuId\":1,\"skuSn\":\"S1\",\"skuName\":\"test\",\"price\":100,\"spuName\":\"spu\",\"quantity\":1}],\"shippingAddress\":{\"consigneeName\":\"a\",\"consigneeMobile\":\"13800000000\",\"province\":\"上海\",\"city\":\"上海市\",\"district\":\"浦东新区\",\"detailAddress\":\"x\"},\"remark\":\"<<SINK_REACHED>> probe\"}",
+        "headers_json": "{\"Content-Type\": \"application/json\"}",
+        "method": "POST",
+        "url": "http://localhost:8803/app-api/v1/orders/submit"
+      },
+      "result": "HTTP 400\nContent-Type: application/json\n\n{\"code\":\"B0001\",\"data\":null,\"msg\":\"订单重复提交，请刷新页面后重试\"}"
+    },
+    {
+      "n": 29,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-youlai-mall-oms",
+        "tail": 40
+      },
+      "result": "\tat org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:268)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)\n\tat org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)\n\tat org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)\n\tat org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:109)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)\n\tat org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)\n\tat com.youlai.mall.oms.tracing.TraceFilter.doFilterInternal(TraceFilter.java:57)\n\tat org.springframework.web"
+    },
+    {
+      "n": 30,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-youlai-mall-oms",
+        "tail": 200
+      },
+      "result": "(ObservationFilterChainDecorator.java:137)\n\tat org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)\n\tat org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)\n\tat org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)\n\tat org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)\n\tat org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChai"
+    },
+    {
+      "n": 31,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-youlai-mall-oms",
+        "tail": 600
+      },
+      "result": "rity.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)\n\tat org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)\n\tat org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)\n\tat org.springframe"
+    },
+    {
+      "n": 32,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-youlai-mall-oms",
+        "tail": 1500
+      },
+      "result": "r.java:240)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)\n\tat org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)\n\tat org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)\n\tat org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)\n\tat org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:195)\n\tat org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)\n\tat org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)\n\tat org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:230)\n\tat org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:352)\n\tat org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:268)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)\n\tat org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)\n\tat org.apache.catalina.core.ApplicationFilt"
+    },
+    {
+      "n": 33,
+      "tool": "docker_ps",
+      "args": {},
+      "result": "trace-real-youlai-mall-oms\tUp 5 minutes\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/youlai-mall-mall-oms:latest\ntrace-real-nacos\tUp 30 hours (healthy)\tnacos/nacos-server:v2.2.3\ntrace-real-piggymetrics-registry\tUp 30 hours (healthy)\tsqshq/piggymetrics-registry\ntrace-real-redis\tUp 30 hours (healthy)\tredis:7-alpine\ntrace-real-rabbitmq\tUp 30 hours (healthy)\trabbitmq:3-management\ntrace-real-mysql\tUp 30 hours (healthy)\tmysql:8.0\ntrace-real-mongo\tUp 30 hours (healthy)\tmongo:4.4\ntrace-real-piggymetrics-config\tUp 30 hours (healthy)\tsqshq/piggymetrics-config\n"
+    },
+    {
+      "n": 34,
+      "tool": "send_http",
+      "args": {
+        "body": "{\"orderToken\":\"tok2\",\"orderSource\":\"APP\",\"paymentAmount\":100,\"orderItems\":[{\"skuId\":1,\"skuSn\":\"S1\",\"skuName\":\"test\",\"price\":100,\"spuName\":\"spu\",\"quantity\":1}],\"shippingAddress\":{\"consigneeName\":\"a\",\"consigneeMobile\":\"13800000000\",\"province\":\"上海\",\"city\":\"上海市\",\"district\":\"浦东新区\",\"detailAddress\":\"x\"},\"remark\":\"<<SINK_REACHED>> probe3\"}",
+        "headers_json": "{\"Content-Type\": \"application/json\"}",
+        "method": "POST",
+        "url": "http://localhost:8803/app-api/v1/orders/submit"
+      },
+      "result": "HTTP 400\nContent-Type: application/json\n\n{\"code\":\"B0001\",\"data\":null,\"msg\":\"订单重复提交，请刷新页面后重试\"}"
+    },
+    {
+      "n": 35,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-youlai-mall-oms",
+        "tail": 300
+      },
+      "result": "(ObservationFilterChainDecorator.java:137)\n\tat org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)\n\tat org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)\n\tat org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)\n\tat org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)\n\tat org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)\n\tat org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChai"
+    },
+    {
+      "n": 36,
+      "tool": "read_source",
+      "args": {
+        "end": 120,
+        "path": "youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java",
+        "start": 1
+      },
+      "result": "youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java (L1-120, 共507行)\n   1 | package com.youlai.mall.oms.service.app.impl;\n   2 | \n   3 | import cn.hutool.core.bean.BeanUtil;\n   4 | import cn.hutool.core.lang.Assert;\n   5 | import cn.hutool.core.util.RandomUtil;\n   6 | import cn.hutool.core.util.StrUtil;\n   7 | import cn.hutool.json.JSONUtil;\n   8 | import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;\n   9 | import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;\n  10 | import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;\n  11 | import com.baomidou.mybatisplus.core.metadata.IPage;\n  12 | import com.baomidou.mybatisplus.extension.plugins.pagination.Page;\n  13 | import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;\n  14 | import com.github.binarywang.wxpay.bean.notify.SignatureHeader;\n  15 | import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyV3Result;\n  16 | import com.github.binarywang.wxpay.bean.notify.WxPayRefundNotifyV3Result;\n  17 | import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderV3Request;\n  18 | import com.github.binarywang.wxpay.bean.result.WxPayUnifiedOrderV3Result;\n  19 | import com.github.binarywang.wxpay.bean.result.enums.TradeTypeEnum;\n  20 | import com.github.binarywang.wxpay.constant.WxPayConstants;\n  21 | import com.github.binarywang.wxpay.exception.WxPayException;\n  22 | import com.github.binarywang.wxpay.service.WxPayService;\n  23 | import com.youlai.common.result.Result;\n  24 | import com.youlai.common.security.util.SecurityUtils;\n  25 | import com.youlai.common.web.exception.BizException;\n  26 | import com.youlai.mall.oms.config.WxPayProperties;\n  27 | import com.youlai.mall.oms.constant.OrderConstants;\n  28 | import com.youlai.mall.oms.converter.OrderConverter;\n  29 | import com.youlai.mall.oms.converter.OrderItemConverter;\n  30 | import com.youlai.mall.oms.enums.OrderStatusEnum;\n  31 | import com.youl"
+    },
+    {
+      "n": 37,
+      "tool": "search_code",
+      "args": {
+        "pattern": "RestControllerAdvice|GlobalExceptionHandler"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/exception/RRExceptionHandler.java:17:import org.springframework.web.bind.annotation.RestControllerAdvice;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/exception/RRExceptionHandler.java:25:@RestControllerAdvice\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/exception/PassjavaExceptionControllerAdvice.java:10:import org.springframework.web.bind.annotation.RestControllerAdvice;\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/exception/PassjavaExceptionControllerAdvice.java:19:@RestControllerAdvice(basePackages = \"com.jackson0714.passjava.question.controller\")\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/exception/RRExceptionHandler.java:17:import org.springframework.web.bind.annotation.RestControllerAdvice;\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/exception/RRExceptionHandler.java:25:@RestControllerAdvice\nexamples/gulimall-learning/gulimall-product/src/main/java/io/niceseason/gulimall/product/exception/GulimallExceptionAdvice.java:9:import org.springframework.web.bind.annotation.RestControllerAdvice;\nexamples/gulimall-learning/gulimall-product/src/main/java/io/niceseason/gulimall/product/exception/GulimallExceptionAdvice.java:15:@RestControllerAdvice(basePackages = \"io.niceseason.gulimall.product.controller\")\nexamples/MoGuBlog/mogu_commons/src/main/java/com/moxi/mogublog/commons/config/mybatis/GlobalExceptionHandler.java:13://import org.springframework.web.bind.annotation.RestControllerAdvice;\nexamples/MoGuBlog/mogu_commons/src/main/java/com/moxi/mogublog/commons/config/mybatis/GlobalExceptionHandler.java:25://@RestControllerAdvice\nexamples/MoGuBlog/mogu_commons/src/main/java/com/moxi/mogublog/commons/config/mybatis/GlobalExceptionHandler.java:26://public class GlobalExceptionHandler {\nexamples/MoGuBlog/mogu_commons/src/main/java/com"
+    },
+    {
+      "n": 38,
+      "tool": "read_source",
+      "args": {
+        "end": 140,
+        "path": "youlai-mall/youlai-common/common-web/src/main/java/com/youlai/common/web/exception/GlobalExceptionHandler.java",
+        "start": 30
+      },
+      "result": "youlai-mall/youlai-common/common-web/src/main/java/com/youlai/common/web/exception/GlobalExceptionHandler.java (L30-140, 共236行)\n  30 | import java.util.regex.Pattern;\n  31 | import java.util.stream.Collectors;\n  32 | \n  33 | /**\n  34 |  * 全局系统异常处理\n  35 |  * <p>\n  36 |  * 调整异常处理的HTTP状态码，丰富异常处理类型\n  37 |  *\n  38 |  * @author Gadfly\n  39 |  * @since 2020-02-25 13:54\n  40 |  **/\n  41 | @RestControllerAdvice\n  42 | @Slf4j\n  43 | public class GlobalExceptionHandler {\n  44 | \n  45 |     @ResponseStatus(HttpStatus.BAD_REQUEST)\n  46 |     @ExceptionHandler(BindException.class)\n  47 |     public <T> Result<T> processException(BindException e) {\n  48 |         log.error(\"BindException:{}\", e.getMessage());\n  49 |         String msg = e.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.joining(\"；\"));\n  50 |         return Result.failed(ResultCode.PARAM_ERROR, msg);\n  51 |     }\n  52 | \n  53 |     /**\n  54 |      * RequestParam参数的校验\n  55 |      *\n  56 |      * @param e\n  57 |      * @param <T>\n  58 |      * @return\n  59 |      */\n  60 |     @ResponseStatus(HttpStatus.BAD_REQUEST)\n  61 |     @ExceptionHandler(ConstraintViolationException.class)\n  62 |     public <T> Result<T> processException(ConstraintViolationException e) {\n  63 |         log.error(\"ConstraintViolationException:{}\", e.getMessage());\n  64 |         String msg = e.getConstraintViolations().stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(\"；\"));\n  65 |         return Result.failed(ResultCode.PARAM_ERROR, msg);\n  66 |     }\n  67 | \n  68 |     /**\n  69 |      * RequestBody参数的校验\n  70 |      *\n  71 |      * @param e\n  72 |      * @param <T>\n  73 |      * @return\n  74 |      */\n  75 |     @ResponseStatus(HttpStatus.BAD_REQUEST)\n  76 |     @ExceptionHandler(MethodArgumentNotValidException.class)\n  77 |     public <T> Result<T> processException(MethodArgumentNotValidException e) {\n  78 |         log.error(\"MethodArgumentNotValidException:{}\", e.getMes"
+    },
+    {
+      "n": 39,
+      "tool": "search_code",
+      "args": {
+        "pattern": "XssHttpServletRequest|XssFilter|xss"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:40:    public FilterRegistrationBean xssFilterRegistration() {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:43:        registration.setFilter(new XssFilter());\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:45:        registration.setName(\"xssFilter\");\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:1:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:37: * source, and our contact details, can be found at http://xss-html-filter.sf.net\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/SQLFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:28:\t\tXssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:30:\t\tchain.doFilter(xssRequest, response);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:30:public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:36:    public XssHttpServletRequ"
+    },
+    {
+      "n": 40,
+      "tool": "search_code",
+      "args": {
+        "pattern": "ORDER_TOKEN_PREFIX"
+      },
+      "result": "examples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/constant/OrderConstant.java:4:    public static final String USER_ORDER_TOKEN_PREFIX = \"order:token\";\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/service/impl/OrderServiceImpl.java:133:        redisTemplate.opsForValue().set(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberResponseVo.getId(), token, 30, TimeUnit.MINUTES);\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/service/impl/OrderServiceImpl.java:154:        Long execute = redisTemplate.execute(new DefaultRedisScript<>(script,Long.class), Arrays.asList(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberResponseVo.getId()), submitVo.getOrderToken());\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/constant/OrderConstants.java:21:    String ORDER_TOKEN_PREFIX = \"order:token:\";\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java:150:            redisTemplate.opsForValue().set(OrderConstants.ORDER_TOKEN_PREFIX + orderToken, orderToken);\nexamples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java:183:                Collections.singletonList(OrderConstants.ORDER_TOKEN_PREFIX + orderToken),\n"
+    }
+  ],
+  "final_text": "budget_exceeded"
+}

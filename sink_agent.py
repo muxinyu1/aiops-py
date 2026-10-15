@@ -989,6 +989,19 @@ SINK_TASKS = {
         "container": "trace-real-zlt-microservices-platform-zlt-uaa",
         "log_match": "验证码未失效",
     },
+    # ── youlai-mall (mall-oms, 8803) ──
+    "youlai_order_submit_params": {
+        "sink": "OrderServiceImpl.submitOrder 中的 "
+                "log.info(\"订单提交参数:{}\", JSONUtil.toJsonStr(submitForm)) "
+                "(L176, 源码 examples/youlai-mall/mall-oms/oms-boot/src/main/java/com/youlai/mall/oms/service/app/impl/OrderServiceImpl.java)。"
+                "触发条件: 调用订单提交接口，提交符合校验规则的订单表单数据。",
+        "api": "POST http://localhost:8803/app-api/v1/orders/submit (JSON 请求体: 提交符合 OrderSubmitForm 校验的订单数据)",
+        "env": "目标服务容器: trace-real-youlai-mall-oms (日志在此, 端口 8803)。"
+               "数据库: trace-real-mysql, 库名 mall_oms。缓存: trace-real-redis (端口 6379)。",
+        "hint_level": "hint",
+        "container": "trace-real-youlai-mall-oms",
+        "log_match": "订单提交参数:",
+    },
 }
 
 
