@@ -116,3 +116,6 @@
 ### PiggyMetrics（8080, trace-real-piggymetrics-account-service）
 - ✅ `piggymetrics_token_fetch_user_details_failed` — CustomUserInfoTokenServices L132「Could not fetch user details:」（20 调用/623.3s, v1 PASS; Agent 自主阅读 CustomUserInfoTokenServices 与 ResourceServerConfig 源码，发现针对受保护端点（/current）携带 Bearer token 时会触发远程 userinfo 解析校验分支，调用 GET /current 携带标记成功触发目标日志）
 
+### Cloud-Platform（8080, trace-real-cloud-platform-ace-admin）
+- ✅ `cloud_platform_auth_require_logging` — AuthController L40「require logging...」（40 调用/830.5s, v1 PASS; Agent 自主阅读 AuthController 源码定位身份认证入口 /jwt/token，构造 POST 请求在用户名中注入 <<SINK_REACHED>> 成功触发目标日志）
+

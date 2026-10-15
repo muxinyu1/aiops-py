@@ -308,3 +308,16 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 | 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
 |---|---|---|---|---|
 | piggymetrics_token_fetch_user_details_failed | CustomUserInfoTokenServices.getMap L132「Could not fetch user details:」 | v1 | ✅ PASS | 20/623.3s |
+
+---
+
+## 二十二、Cloud-Platform 实验 (2026-10-16)
+
+> 服务: ace-admin (8080, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/cloud-platform-ace-admin:latest`)
+> 依赖: MySQL `cloud_admin_v1` (表已就绪), Redis (trace-real-redis 端口 6379), RabbitMQ (trace-real-rabbitmq 端口 5672)
+> 机制: `AuthController.createAuthenticationToken` 在客户端发起获取 JWT Token 的请求入口处，打印传入的用户名 `log.info(authenticationRequest.getUsername() + " require logging...")`。Agent 自主阅读源码定位端点结构，向 `POST /jwt/token` 发送请求并在用户名中注入 `<<SINK_REACHED>>` 成功命中目标日志。
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点 `POST http://localhost:8080/jwt/token`，无作弊参数。
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
+|---|---|---|---|---|
+| cloud_platform_auth_require_logging | AuthController.createAuthenticationToken L40「require logging...」 | v1 | ✅ PASS | 40/830.5s |

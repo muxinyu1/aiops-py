@@ -1028,6 +1028,19 @@ SINK_TASKS = {
         "container": "trace-real-piggymetrics-account-service",
         "log_match": "Could not fetch user details:",
     },
+    # ── Cloud-Platform (ace-admin, 8080) ──
+    "cloud_platform_auth_require_logging": {
+        "sink": "AuthController.createAuthenticationToken 中的 "
+                "log.info(authenticationRequest.getUsername() + \" require logging...\") "
+                "(L40, 源码 examples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/AuthController.java)。"
+                "触发条件: 发起获取 JWT Token 的身份认证请求，在校验验证码与用户凭据前记录请求用户名日志。",
+        "api": "POST http://localhost:8080/jwt/token (JSON 请求体: {\"username\":\"...\",\"password\":\"...\"})",
+        "env": "目标服务容器: trace-real-cloud-platform-ace-admin (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 cloud_admin_v1。缓存: trace-real-redis (端口 6379)。",
+        "hint_level": "hint",
+        "container": "trace-real-cloud-platform-ace-admin",
+        "log_match": " require logging...",
+    },
 }
 
 

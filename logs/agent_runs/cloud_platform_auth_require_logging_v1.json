@@ -1,0 +1,378 @@
+{
+  "reached": true,
+  "turns": 1,
+  "tool_calls": 40,
+  "elapsed": 830.4572508335114,
+  "tool_log": [
+    {
+      "n": 1,
+      "tool": "read_source",
+      "args": {
+        "path": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/AuthController.java",
+        "start": 1,
+        "end": 120
+      },
+      "result": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/AuthController.java (L1-75, 共75行)\n   1 | package com.github.wxiaoqi.security.modules.auth.controller;\n   2 | \n   3 | import com.github.wxiaoqi.security.common.exception.auth.UserInvalidException;\n   4 | import com.github.wxiaoqi.security.common.msg.ObjectRestResponse;\n   5 | import com.github.wxiaoqi.security.modules.auth.service.AuthService;\n   6 | import com.github.wxiaoqi.security.modules.auth.util.user.JwtAuthenticationRequest;\n   7 | import lombok.extern.slf4j.Slf4j;\n   8 | import org.springframework.beans.factory.annotation.Autowired;\n   9 | import org.springframework.beans.factory.annotation.Value;\n  10 | import org.springframework.data.redis.core.StringRedisTemplate;\n  11 | import org.springframework.web.bind.annotation.RequestBody;\n  12 | import org.springframework.web.bind.annotation.RequestMapping;\n  13 | import org.springframework.web.bind.annotation.RequestMethod;\n  14 | import org.springframework.web.bind.annotation.RestController;\n  15 | \n  16 | import javax.servlet.http.HttpServletRequest;\n  17 | import java.util.Map;\n  18 | \n  19 | import static com.github.wxiaoqi.security.common.constant.RedisKeyConstant.REDIS_KEY_CAPTCHA;\n  20 | \n  21 | @RestController\n  22 | @RequestMapping(\"jwt\")\n  23 | @Slf4j\n  24 | public class AuthController {\n  25 |     @Autowired\n  26 |     protected HttpServletRequest request;\n  27 | \n  28 |     @Value(\"${jwt.token-header}\")\n  29 |     private String tokenHeader;\n  30 | \n  31 |     @Autowired\n  32 |     private AuthService authService;\n  33 | \n  34 |     @Autowired\n  35 |     private StringRedisTemplate stringRedisTemplate;\n  36 | \n  37 |     @RequestMapping(value = \"token\", method = RequestMethod.POST)\n  38 |     public ObjectRestResponse<String> createAuthenticationToken(@RequestBody JwtAuthenticationRequest authenticationRequest) throws Exception {\n  39 | \n  40 |         log.info(authenticationRequest.getUsername() + \""
+    },
+    {
+      "n": 2,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:8080/jwt/token",
+        "headers_json": "{\"Content-Type\":\"application/json\"}",
+        "body": "{\"username\":\"<<SINK_REACHED>>\",\"password\":\"x\",\"uuid\":\"probe\",\"verCode\":\"x\"}"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"statusCode\":40001,\"message\":\"验证码已过期\"}"
+    },
+    {
+      "n": 3,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-cloud-platform-ace-admin",
+        "tail": 60
+      },
+      "result": "\tat org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)\n\tat org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)\n\tat javax.servlet.http.HttpServlet.service(HttpServlet.java:517)\n\tat org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)\n\tat javax.servlet.http.HttpServlet.service(HttpServlet.java:584)\n\tat io.undertow.servlet.handlers.ServletHandler.handleRequest(ServletHandler.java:74)\n\tat io.undertow.servlet.handlers.FilterHandler$FilterChainImpl.doFilter(FilterHandler.java:129)\n\tat org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\n\tat io.undertow.servlet.core.ManagedFilter.doFilter(ManagedFilter.java:61)\n\tat io.undertow.servlet.handlers.FilterHandler$FilterChainImpl.doFilter(FilterHandler.java:131)\n\tat org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\n\tat io.undertow.servlet.core.ManagedFilter.doFilter(ManagedFilter.java:61)\n\tat io.undertow.servlet.handlers.FilterHandler$FilterChainImpl.doFilter(FilterHandler.java:131)\n\tat org.springframework.boot.actuate.metrics.web.servlet.WebMvcMetricsFilter.doFilterInternal(WebMvcMetricsFilter.java:93)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\n\tat io.undertow.servlet.core.ManagedFilter.doFilter(ManagedFilter.java:61)\n\tat io.undertow.servlet.handlers.FilterHandler$FilterChainImpl.doFilter(FilterHandler.java:131)\n\tat org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\n\tat io.undertow.servlet.core.ManagedFilter.doFilter(ManagedFilter.java:61)\n\tat io.unde"
+    },
+    {
+      "n": 4,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-cloud-platform-ace-admin",
+        "tail": 200
+      },
+      "result": "venArgs(AbstractAspectJAdvice.java:634)\n\tat org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:624)\n\tat org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:72)\n\tat org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)\n\tat org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:749)\n\tat org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)\n\tat org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)\n\tat org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:749)\n\tat org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:691)\n\tat com.github.wxiaoqi.security.modules.auth.controller.AuthController$$EnhancerBySpringCGLIB$$e8784952.createAuthenticationToken(<generated>)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.lang.reflect.Method.invoke(Method.java:498)\n\tat org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:197)\n\tat org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:141)\n\tat org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)\n\tat org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:894)\n\tat org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:808)\n\tat org.springfr"
+    },
+    {
+      "n": 5,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-cloud-platform-ace-admin",
+        "tail": 400
+      },
+      "result": "venArgs(AbstractAspectJAdvice.java:634)\n\tat org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:624)\n\tat org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:72)\n\tat org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)\n\tat org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:749)\n\tat org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)\n\tat org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)\n\tat org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:749)\n\tat org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:691)\n\tat com.github.wxiaoqi.security.modules.auth.controller.AuthController$$EnhancerBySpringCGLIB$$e8784952.createAuthenticationToken(<generated>)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.lang.reflect.Method.invoke(Method.java:498)\n\tat org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:197)\n\tat org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:141)\n\tat org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)\n\tat org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:894)\n\tat org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:808)\n\tat org.springfr"
+    },
+    {
+      "n": 6,
+      "tool": "search_code",
+      "args": {
+        "pattern": "xss|Xss|XSS",
+        "path_prefix": "Cloud-Platform"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:40:    public FilterRegistrationBean xssFilterRegistration() {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:43:        registration.setFilter(new XssFilter());\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:45:        registration.setName(\"xssFilter\");\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:1:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:12: * HTML filtering utility for protecting against XSS (Cross Site Scripting).\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:37: * source, and our contact details, can be found at http://xss-html-filter.sf.net\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/SQLFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:16: * XSS过滤\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:28:\t\tXssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:30:\t\tchain.doFilter(xssRequest, response);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/re"
+    },
+    {
+      "n": 7,
+      "tool": "search_code",
+      "args": {
+        "pattern": "REDIS_KEY_CAPTCHA",
+        "path_prefix": "Cloud-Platform"
+      },
+      "result": "examples/Cloud-Platform/ace-dev-base/ace-common/src/main/java/com/github/wxiaoqi/security/common/constant/RedisKeyConstant.java:12:    public static final String REDIS_KEY_CAPTCHA = \"admin:captcha:%s\";\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/AuthController.java:19:import static com.github.wxiaoqi.security.common.constant.RedisKeyConstant.REDIS_KEY_CAPTCHA;\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/AuthController.java:42:        String sessionCode = stringRedisTemplate.opsForValue().get(String.format(REDIS_KEY_CAPTCHA, authenticationRequest.getUuid()));\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/CaptchaController.java:20:import static com.github.wxiaoqi.security.common.constant.RedisKeyConstant.REDIS_KEY_CAPTCHA;\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/CaptchaController.java:44:        stringRedisTemplate.opsForValue().set(String.format(REDIS_KEY_CAPTCHA, uuid), text, LOGIN_CAPTCHA_EXPIRATION, TimeUnit.MINUTES);\nexamples/Cloud-Platform/ace-dev-base/ace-common/src/main/java/com/github/wxiaoqi/security/common/constant/RedisKeyConstant.java:12:    public static final String REDIS_KEY_CAPTCHA = \"admin:captcha:%s\";\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/AuthController.java:19:import static com.github.wxiaoqi.security.common.constant.RedisKeyConstant.REDIS_KEY_CAPTCHA;\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/AuthController.java:42:        String sessionCode = stringRedisTemplate.opsForValue().get(String.format(REDIS_KEY_CAPTCHA, authenticationRequest.getUuid()));\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/mod"
+    },
+    {
+      "n": 8,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, username, password, status FROM sys_user LIMIT 20"
+      },
+      "result": "[stderr] ERROR 1146 (42S02) at line 1: Table 'ruoyi-vue-pro.sys_user' doesn't exist"
+    },
+    {
+      "n": 9,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform",
+        "pattern": "class .*AuthService.*implements|login\\(JwtAuthenticationRequest"
+      },
+      "result": "examples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/service/impl/AuthServiceImpl.java:30:public class AuthServiceImpl implements AuthService {\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/service/impl/AuthServiceImpl.java:46:    public Map login(JwtAuthenticationRequest authenticationRequest) throws Exception {\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/service/AuthService.java:9:    Map login(JwtAuthenticationRequest authenticationRequest) throws Exception;\nexamples/yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/service/auth/AdminAuthServiceImpl.java:55:public class AdminAuthServiceImpl implements AdminAuthService {\nexamples/yudao-cloud/yudao-module-member/yudao-module-member-server/src/main/java/cn/iocoder/yudao/module/member/service/auth/MemberAuthServiceImpl.java:48:public class MemberAuthServiceImpl implements MemberAuthService {\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/service/impl/AuthServiceImpl.java:30:public class AuthServiceImpl implements AuthService {\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/service/impl/AuthServiceImpl.java:46:    public Map login(JwtAuthenticationRequest authenticationRequest) throws Exception {\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/service/AuthService.java:9:    Map login(JwtAuthenticationRequest authenticationRequest) throws Exception;\n"
+    },
+    {
+      "n": 10,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, username, password, status FROM cloud_admin_v1.sys_user LIMIT 20"
+      },
+      "result": "[stderr] ERROR 1146 (42S02) at line 1: Table 'cloud_admin_v1.sys_user' doesn't exist"
+    },
+    {
+      "n": 11,
+      "tool": "read_source",
+      "args": {
+        "path": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/service/impl/AuthServiceImpl.java",
+        "start": 30,
+        "end": 110
+      },
+      "result": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/service/impl/AuthServiceImpl.java (L30-101, 共101行)\n  30 | public class AuthServiceImpl implements AuthService {\n  31 | \n  32 |     @Autowired\n  33 |     private JwtTokenUtil jwtTokenUtil;\n  34 | \n  35 |     @Autowired\n  36 |     private PermissionService permissionService;\n  37 | \n  38 |     @Autowired\n  39 |     private StringRedisTemplate stringRedisTemplate;\n  40 | \n  41 |     @Value(\"${jwt.expire}\")\n  42 |     private int expire;\n  43 | \n  44 | \n  45 |     @Override\n  46 |     public Map login(JwtAuthenticationRequest authenticationRequest) throws Exception {\n  47 |         UserInfo info = permissionService.validate(authenticationRequest.getUsername(), authenticationRequest.getPassword());\n  48 |         if (!StringUtils.isEmpty(info.getId())) {\n  49 |             JWTInfo jwtInfo = new JWTInfo(info.getUsername(), info.getId() + \"\", info.getName());\n  50 |             String token = jwtTokenUtil.generateToken(jwtInfo);\n  51 |             Map<String, String> result = new HashMap<>();\n  52 |             result.put(\"accessToken\", token);\n  53 |             result.put(\"id\", info.id);\n  54 |             WebUtils.getRequest();\n  55 |             writeOnlineLog(jwtInfo);\n  56 |             return result;\n  57 |         }\n  58 |         throw new UserInvalidException(\"用户不存在或账户密码错误!\");\n  59 |     }\n  60 | \n  61 |     @Override\n  62 |     public void validate(String token) throws Exception {\n  63 |         jwtTokenUtil.getInfoFromToken(token);\n  64 |     }\n  65 | \n  66 |     @Override\n  67 |     public String refresh(String oldToken) throws Exception {\n  68 |         return jwtTokenUtil.generateToken(jwtTokenUtil.getInfoFromToken(oldToken));\n  69 |     }\n  70 | \n  71 |     @Override\n  72 |     public void logout(String token) throws Exception {\n  73 |         IJWTInfo infoFromToken = jwtTokenUtil.getInfoFromToken(token);\n  74 |         String tokenId = infoFromToken.getTokenId();\n  "
+    },
+    {
+      "n": 12,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform",
+        "pattern": "interface PermissionService|validate\\(String username"
+      },
+      "result": "examples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-core/src/main/java/org/dromara/common/core/service/PermissionService.java:10:public interface PermissionService {\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/rpc/service/PermissionService.java:62:    public UserInfo validate(String username, String password) {\nexamples/yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/service/permission/PermissionService.java:17:public interface PermissionService {\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/rpc/service/PermissionService.java:62:    public UserInfo validate(String username, String password) {\n"
+    },
+    {
+      "n": 13,
+      "tool": "query_db",
+      "args": {
+        "sql": "SHOW TABLES FROM cloud_admin_v1"
+      },
+      "result": "Tables_in_cloud_admin_v1\nauth_client\nauth_client_service\nbase_element\nbase_group\nbase_group_leader\nbase_group_member\nbase_group_type\nbase_menu\nbase_resource_authority\nbase_user\ngate_log"
+    },
+    {
+      "n": 14,
+      "tool": "read_source",
+      "args": {
+        "path": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/rpc/service/PermissionService.java",
+        "start": 40,
+        "end": 120
+      },
+      "result": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/rpc/service/PermissionService.java (L40-120, 共298行)\n  40 | public class PermissionService {\n  41 |     @Autowired\n  42 |     private UserBiz userBiz;\n  43 |     @Autowired\n  44 |     private MenuBiz menuBiz;\n  45 |     @Autowired\n  46 |     private ElementBiz elementBiz;\n  47 |     @Autowired\n  48 |     private JwtTokenUtil userAuthUtil;\n  49 |     private Sha256PasswordEncoder encoder = new Sha256PasswordEncoder();\n  50 | \n  51 |     @Autowired\n  52 |     private StringRedisTemplate stringRedisTemplate;\n  53 | \n  54 |     public UserInfo getUserByUsername(String username) {\n  55 |         UserInfo info = new UserInfo();\n  56 |         User user = userBiz.getUserByUsername(username);\n  57 |         BeanUtils.copyProperties(user, info);\n  58 |         info.setId(user.getId().toString());\n  59 |         return info;\n  60 |     }\n  61 | \n  62 |     public UserInfo validate(String username, String password) {\n  63 |         UserInfo info = new UserInfo();\n  64 |         User user = userBiz.getUserByUsername(username);\n  65 |         if (encoder.matches(password, user.getPassword())) {\n  66 |             BeanUtils.copyProperties(user, info);\n  67 |             info.setId(user.getId().toString());\n  68 |         }\n  69 |         return info;\n  70 |     }\n  71 | \n  72 |     public List<PermissionInfo> getAllPermission() {\n  73 |         String key = RedisKeyConstant.REDIS_KEY_ALL_PERMISISON;\n  74 |         String s = stringRedisTemplate.opsForValue().get(key);\n  75 |         if (s == null || org.apache.commons.lang.StringUtils.isBlank(s)) {\n  76 |             List<Menu> menus = menuBiz.selectListAll();\n  77 |             List<PermissionInfo> result = new ArrayList<PermissionInfo>();\n  78 |             menu2permission(menus, result);\n  79 |             List<Element> elements = elementBiz.getAllElementPermissions();\n  80 |             element2permission(result, elements);\n  81 |     "
+    },
+    {
+      "n": 15,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM cloud_admin_v1.base_user LIMIT 10"
+      },
+      "result": "id\tusername\tpassword\tname\tbirthday\taddress\tmobile_phone\ttel_phone\temail\tsex\ttype\tstatus\tdescription\tcrt_time\tcrt_user\tcrt_name\tcrt_host\tupd_time\tupd_user\tupd_name\tupd_host\tattr1\tattr2\tattr3\tattr4\tattr5\tattr6\tattr7\tattr8\n1\tadmin\tjGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=\tMr.AG\t\tNULL\t\tNULL\t\t?\tNULL\tNULL\t\tNULL\tNULL\tNULL\tNULL\t2017-11-16 23:23:49\t1\tMr.AG\t127.0.0.1\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\n2\ttest\tjGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=\t????\t\tNULL\t\tNULL\t\t?\tNULL\tNULL\t\tNULL\tNULL\tNULL\tNULL\t2017-07-15 19:18:07\t1\t???\t0:0:0:0:0:0:0:1\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\n4\tblog\tjGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=\tMr.AG(??)\t\tNULL\t\tNULL\t\t?\tNULL\tNULL\t123\\n456\\n789\tNULL\tNULL\tNULL\tNULL\t2020-08-23 08:28:41\t1\tadmin\t0:0:0:0:0:0:0:1\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL"
+    },
+    {
+      "n": 16,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform",
+        "pattern": "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg"
+      },
+      "result": "examples/Cloud-Platform/ace-modules/ace-admin/db/init.sql:625:(1,'admin','jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=','Mr.AG','',NULL,'',NULL,'','男',NULL,NULL,'',NULL,NULL,NULL,NULL,'2017-11-16 23:23:49','1','Mr.AG','127.0.0.1',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)\nexamples/Cloud-Platform/ace-modules/ace-admin/db/init.sql:626:,(2,'test','jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=','测试账户','',NULL,'',NULL,'','男',NULL,NULL,'',NULL,NULL,NULL,NULL,'2017-07-15 19:18:07','1','管理员','0:0:0:0:0:0:0:1',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)\nexamples/Cloud-Platform/ace-modules/ace-admin/db/init.sql:627:,(4,'blog','jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=','Mr.AG(博主)','',NULL,'',NULL,'','男',NULL,NULL,'123\nexamples/Cloud-Platform/ace-modules/ace-admin/db/init.sql:625:(1,'admin','jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=','Mr.AG','',NULL,'',NULL,'','男',NULL,NULL,'',NULL,NULL,NULL,NULL,'2017-11-16 23:23:49','1','Mr.AG','127.0.0.1',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)\nexamples/Cloud-Platform/ace-modules/ace-admin/db/init.sql:626:,(2,'test','jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=','测试账户','',NULL,'',NULL,'','男',NULL,NULL,'',NULL,NULL,NULL,NULL,'2017-07-15 19:18:07','1','管理员','0:0:0:0:0:0:0:1',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)\nexamples/Cloud-Platform/ace-modules/ace-admin/db/init.sql:627:,(4,'blog','jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=','Mr.AG(博主)','',NULL,'',NULL,'','男',NULL,NULL,'123\n"
+    },
+    {
+      "n": 17,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform",
+        "pattern": "password.*123456|123456.*password"
+      },
+      "result": "examples/PassJava-Platform/renren-generator/src/main/resources/application.yml:17:    #    password: 123456\nexamples/PassJava-Platform/renren-generator/src/main/resources/application.yml:22:    #    password: 123456\nexamples/PassJava-Platform/renren-generator/src/main/resources/application.yml:27:  #    password: 123456\nexamples/PassJava-Platform/renren-fast/db/mysql.sql:153:INSERT INTO `sys_user` (`user_id`, `username`, `password`, `salt`, `email`, `mobile`, `status`, `create_user_id`, `create_time`) VALUES ('1', 'admin', '9ec9750e709431dad22365cabc5c625482e574c74adaebba7dd02f1129e4ce1d', 'YzcmCZNvbXocrsz9dm8e', 'root@renren.io', '13612345678', '1', '1', '2016-11-11 11:11:11');\nexamples/PassJava-Platform/renren-fast/db/mysql.sql:190:INSERT INTO `tb_user` (`username`, `mobile`, `password`, `create_time`) VALUES ('mark', '13612345678', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', '2017-03-23 22:37:41');\nexamples/PassJava-Platform/renren-fast/db/sqlserver.sql:143:INSERT INTO sys_user (user_id, username, password, salt, email, mobile, status, create_user_id, create_time) VALUES ('1', 'admin', '9ec9750e709431dad22365cabc5c625482e574c74adaebba7dd02f1129e4ce1d', 'YzcmCZNvbXocrsz9dm8e', 'root@renren.io', '13612345678', '1', '1', '2016-11-11 11:11:11');\nexamples/PassJava-Platform/renren-fast/db/sqlserver.sql:186:INSERT INTO tb_user (username, mobile, password, create_time) VALUES ('mark', '13612345678', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', '2017-03-23 22:37:41');\nexamples/PassJava-Platform/renren-fast/db/oracle.sql:143:INSERT INTO sys_user (user_id, username, password, salt, email, mobile, status, create_user_id, create_time) VALUES ('1', 'admin', '9ec9750e709431dad22365cabc5c625482e574c74adaebba7dd02f1129e4ce1d', 'YzcmCZNvbXocrsz9dm8e', 'root@renren.io', '13612345678', '1', '1', CURRENT_DATE);\nexamples/PassJava-Platform/renren-fast/db/oracle.sql:183:INSERT INTO tb_user (user_id, username, mobile, password, create_time) "
+    },
+    {
+      "n": 18,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform",
+        "pattern": "默认|default.*password|初始密码|登录密码"
+      },
+      "result": "examples/PassJava-Platform/passjava-jwt/src/main/resources/application-jwt.yml:12:    useDefaultController: true # 是否使用默认的JwtAuthController\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/config/PassJavaJwtProperties.java:47:     * 是否使用默认的JWTAuthController\nexamples/PassJava-Platform/renren-fast/src/main/resources/application.yml:30:    password:    # 密码（默认为空）\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/datasource/config/DynamicDataSourceConfig.java:45:        //默认数据源\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/datasource/properties/DataSourceProperties.java:24:     * Druid默认参数\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/utils/Query.java:68:        //默认排序\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/utils/RedisUtils.java:37:    /**  默认过期时长，单位：秒 */\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/job/config/ScheduleConfig.java:61:        //设置自动启动，默认为true\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/utils/Query.java:68:        //默认排序\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/utils/SnowflakeUtilV2.java:107:    // 默认基于mac地址生成节点ID\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/text/CharsetKit.java:31:     * @param charset 字符集，为空则返回默认字符集\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/text/CharsetKit.java:43:     * @param srcCharset 源字符集，默认ISO-8859-1\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/text/CharsetKit.java:44:     * @param destCharset 目标字符集，默认UTF-8\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/text/CharsetKit.java:56:     * @param srcCharset 源字符集，默认ISO-8859-1\nexamples/PassJava-Platform/passjava-common/src/main/java/com/jackson0714/passjava/common/text/CharsetKit.ja"
+    },
+    {
+      "n": 19,
+      "tool": "read_source",
+      "args": {
+        "path": "Cloud-Platform/ace-dev-base/ace-common/src/main/java/com/github/wxiaoqi/security/common/utils/security/Sha256PasswordEncoder.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "ERROR: 文件不存在: Cloud-Platform/ace-dev-base/ace-common/src/main/java/com/github/wxiaoqi/security/common/utils/security/Sha256PasswordEncoder.java"
+    },
+    {
+      "n": 20,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform",
+        "pattern": "class Sha256PasswordEncoder"
+      },
+      "result": "examples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/util/Sha256PasswordEncoder.java:36:public class Sha256PasswordEncoder implements PasswordEncoder {\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/util/Sha256PasswordEncoder.java:36:public class Sha256PasswordEncoder implements PasswordEncoder {\n"
+    },
+    {
+      "n": 21,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform",
+        "pattern": "admin/|账户|账号|demo|登录"
+      },
+      "result": "examples/PassJava-Platform/passjava-jwt/src/main/resources/application-jwt.yml:6:    enabled: true   # 是否开启JWT登录认证功能\nexamples/PassJava-Platform/passjava-jwt/src/main/resources/application-jwt.yml:10:    userParamName: userId  # 用户登录认证用户名参数名称\nexamples/PassJava-Platform/passjava-jwt/src/main/resources/application-jwt.yml:11:    pwdParamName: password  # 用户登录认证密码参数名称\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/config/PassJavaJwtProperties.java:39:     * 用户登录-用户名参数名称\nexamples/PassJava-Platform/passjava-jwt/src/main/java/com/jackson0714/passjava/jwt/config/PassJavaJwtProperties.java:43:     * 用户登录-密码参数名称\nexamples/PassJava-Platform/passjava-auth/src/main/java/com/jackson0714/passjava/auth/controller/JwtAuthController.java:118:     * 下次登录时，需要重新获取新的 accessToken 和 refreshToken，这样才能利用 refreshToken 进行续期。\nexamples/PassJava-Platform/renren-fast/db/mysql.sql:189:-- 账号：13612345678  密码：admin\nexamples/PassJava-Platform/renren-fast/db/sqlserver.sql:185:-- 账号：13612345678  密码：admin\nexamples/PassJava-Platform/renren-fast/db/oracle.sql:182:-- 账号：13612345678  密码：admin\nexamples/PassJava-Platform/renren-fast/db/postgresql.sql:185:-- 账号：13612345678  密码：admin\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/controller/SysLoginController.java:33: * 登录相关\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/controller/SysLoginController.java:63:\t * 登录\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/controller/SysLoginController.java:75:\t\t//账号不存在、密码错误\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/controller/SysLoginController.java:77:\t\t\treturn R.error(\"账号或密码不正确\");\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/controller/SysLoginController.java:80:\t\t//账号锁定\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/controller/SysLoginController.java:82:\t\t\treturn R.error(\"账号已被锁定,请联系管理员\");\nexamples/PassJava-Platform"
+    },
+    {
+      "n": 22,
+      "tool": "read_source",
+      "args": {
+        "path": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/util/Sha256PasswordEncoder.java",
+        "start": 1,
+        "end": 100
+      },
+      "result": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/util/Sha256PasswordEncoder.java (L1-53, 共53行)\n   1 | /*\n   2 |  *\n   3 |  *  *  Copyright (C) 2018  老干爹<2014314038@qq.com>\n   4 |  *\n   5 |  *  *  Boot-Platform 企业版源码\n   6 |  *  *  郑重声明:\n   7 |  *  *  如果你从其他途径获取到，请告知老干爹传播人，奖励1000。\n   8 |  *  *  老干爹将追究授予人和传播人的法律责任!\n   9 |  *\n  10 |  *  *  This program is free software; you can redistribute it and/or modify\n  11 |  *  *  it under the terms of the GNU General Public License as published by\n  12 |  *  *  the Free Software Foundation; either version 2 of the License, or\n  13 |  *  *  (at your option) any later version.\n  14 |  *\n  15 |  *  *  This program is distributed in the hope that it will be useful,\n  16 |  *  *  but WITHOUT ANY WARRANTY; without even the implied warranty of\n  17 |  *  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n  18 |  *  *  GNU General Public License for more details.\n  19 |  *\n  20 |  *  *  You should have received a copy of the GNU General Public License along\n  21 |  *  *  with this program; if not, write to the Free Software Foundation, Inc.,\n  22 |  *  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.\n  23 |  *\n  24 |  */\n  25 | \n  26 | package com.github.wxiaoqi.security.modules.admin.util;\n  27 | \n  28 | import org.apache.commons.codec.binary.Base64;\n  29 | import org.springframework.security.crypto.password.PasswordEncoder;\n  30 | \n  31 | import java.security.MessageDigest;\n  32 | \n  33 | /**\n  34 |  * 老干爹 on 2017/8/11.\n  35 |  */\n  36 | public class Sha256PasswordEncoder implements PasswordEncoder {\n  37 | \n  38 |     @Override\n  39 |     public String encode(CharSequence charSequence) {\n  40 |         try {\n  41 |             MessageDigest md = MessageDigest.getInstance(\"SHA-256\");\n  42 |             byte digest[] = md.digest(charSequence.toString().getBytes(\"UTF-8\"));\n  43 |             return new String(Base64.encodeBase64(digest));\n  44 |         } catch (Exc"
+    },
+    {
+      "n": 23,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT p FROM (\n  SELECT '123456' p UNION ALL SELECT 'admin123' UNION ALL SELECT 'admin'\n  UNION ALL SELECT 'password' UNION ALL SELECT 'admin888' UNION ALL SELECT '888888'\n  UNION ALL SELECT '666666' UNION ALL SELECT '000000' UNION ALL SELECT '111111'\n  UNION ALL SELECT 'wxiaoqi' UNION ALL SELECT 'ag123456' UNION ALL SELECT 'Mr.AG'\n  UNION ALL SELECT 'a123456' UNION ALL SELECT 'admin@123' UNION ALL SELECT '12345678'\n  UNION ALL SELECT '123456789' UNION ALL SELECT '123123' UNION ALL SELECT '5201314'\n  UNION ALL SELECT 'admin123456' UNION ALL SELECT 'root' UNION ALL SELECT 'root123'\n  UNION ALL SELECT 'admin@2020' UNION ALL SELECT 'Abc123456' UNION ALL SELECT 'abc123456'\n  UNION ALL SELECT 'test123456' UNION ALL SELECT '123abc' UNION ALL SELECT 'admin.123'\n) t WHERE UNHEX(SHA2(p,256)) = FROM_BASE64('jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=')"
+      },
+      "result": "p\nadmin"
+    },
+    {
+      "n": 24,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform/ace-modules",
+        "pattern": "RequestMapping.*user|class UserController"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/modules/sys/controller/SysUserController.java:38:@RequestMapping(\"/sys/user\")\nexamples/PassJava-Platform/passjava-member/src/main/java/com/jackson0714/passjava/member/controller/MemberController.java:44:    @RequestMapping(\"/userinfo\")\nexamples/zlt-microservices-platform/zlt-demo/sharding-jdbc-demo/src/main/java/com/sharding/demo/controller/UserController.java:16:public class UserController {\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/modules/sys/controller/SysUserController.java:38:@RequestMapping(\"/sys/user\")\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/controller/UserController.java:68:@RequestMapping(\"/user\")\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/controller/UserController.java:71:public class UserController {\nexamples/PiggyMetrics/account-service/src/main/java/com/piggymetrics/account/client/AuthServiceClient.java:12:\t@RequestMapping(method = RequestMethod.POST, value = \"/uaa/users\", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)\nexamples/PiggyMetrics/auth-service/src/test/java/com/piggymetrics/auth/controller/UserControllerTest.java:26:public class UserControllerTest {\nexamples/PiggyMetrics/auth-service/src/main/java/com/piggymetrics/auth/controller/UserController.java:16:@RequestMapping(\"/users\")\nexamples/PiggyMetrics/auth-service/src/main/java/com/piggymetrics/auth/controller/UserController.java:17:public class UserController {\nexamples/MoGuBlog/mogu_admin/src/main/java/com/moxi/mogublog/admin/restapi/UserRestApi.java:33:@RequestMapping(\"/user\")\nexamples/youlai-mall/youlai-system/system-boot/src/main/java/com/youlai/system/controller/SysUserController.java:45:@RequestMapping(\"/api/v1/users\")\nexamples/RuoYi-Cloud/ruoyi-modules/ruoyi-system/src/main/java/com/ruoyi/system/controller/SysUserController.java:52:@RequestMapping(\"/user\")\nexamples/RuoYi-Cloud/ruoyi-modules/ruoyi-system/src/main/jav"
+    },
+    {
+      "n": 25,
+      "tool": "read_source",
+      "args": {
+        "path": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/rest/UserController.java",
+        "start": 1,
+        "end": 120
+      },
+      "result": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/rest/UserController.java (L1-66, 共66行)\n   1 | package com.github.wxiaoqi.security.modules.admin.rest;\n   2 | \n   3 | import com.github.wxiaoqi.security.common.msg.ObjectRestResponse;\n   4 | import com.github.wxiaoqi.security.common.rest.BaseController;\n   5 | import com.github.wxiaoqi.security.modules.admin.biz.MenuBiz;\n   6 | import com.github.wxiaoqi.security.modules.admin.biz.UserBiz;\n   7 | import com.github.wxiaoqi.security.modules.admin.entity.Menu;\n   8 | import com.github.wxiaoqi.security.modules.admin.entity.User;\n   9 | import com.github.wxiaoqi.security.modules.admin.rpc.service.PermissionService;\n  10 | import com.github.wxiaoqi.security.modules.admin.vo.FrontUser;\n  11 | import com.github.wxiaoqi.security.modules.admin.vo.FrontUserV2;\n  12 | import com.github.wxiaoqi.security.modules.admin.vo.MenuTree;\n  13 | import org.springframework.beans.factory.annotation.Autowired;\n  14 | import org.springframework.http.ResponseEntity;\n  15 | import org.springframework.web.bind.annotation.RequestMapping;\n  16 | import org.springframework.web.bind.annotation.RequestMethod;\n  17 | import org.springframework.web.bind.annotation.ResponseBody;\n  18 | import org.springframework.web.bind.annotation.RestController;\n  19 | \n  20 | import java.util.List;\n  21 | \n  22 | /**\n  23 |  * ${DESCRIPTION}\n  24 |  *\n  25 |  * @author the sun\n  26 |  * @create 2017-06-08 11:51\n  27 |  */\n  28 | @RestController\n  29 | @RequestMapping(\"user\")\n  30 | public class UserController extends BaseController<UserBiz,User> {\n  31 |     @Autowired\n  32 |     private PermissionService permissionService;\n  33 | \n  34 |     @Autowired\n  35 |     private MenuBiz menuBiz;\n  36 | \n  37 |     @RequestMapping(value = \"/front/info\", method = RequestMethod.GET)\n  38 |     @ResponseBody\n  39 |     public ResponseEntity<?> getUserInfo(String token) throws Exception {\n  40 |         FrontUser userInfo = permissionServ"
+    },
+    {
+      "n": 26,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform",
+        "pattern": "class BaseController"
+      },
+      "result": "examples/RuoYi-Cloud/ruoyi-common/ruoyi-common-core/src/main/java/com/ruoyi/common/core/web/controller/BaseController.java:27:public class BaseController\nexamples/paascloud-master/paascloud-common/paascloud-common-core/src/main/java/com/paascloud/core/support/BaseController.java:32:public class BaseController {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-web/src/main/java/org/dromara/common/web/core/BaseController.java:10:public class BaseController {\nexamples/Cloud-Platform/ace-dev-base/ace-common/src/main/java/com/github/wxiaoqi/security/common/rest/BaseController.java:23:public class BaseController<Biz extends BaseBiz,Entity> {\nexamples/Cloud-Platform/ace-dev-base/ace-common/src/main/java/com/github/wxiaoqi/security/common/rest/BaseController.java:23:public class BaseController<Biz extends BaseBiz,Entity> {\n"
+    },
+    {
+      "n": 27,
+      "tool": "read_source",
+      "args": {
+        "path": "Cloud-Platform/ace-dev-base/ace-common/src/main/java/com/github/wxiaoqi/security/common/rest/BaseController.java",
+        "start": 1,
+        "end": 140
+      },
+      "result": "Cloud-Platform/ace-dev-base/ace-common/src/main/java/com/github/wxiaoqi/security/common/rest/BaseController.java (L1-73, 共73行)\n   1 | package com.github.wxiaoqi.security.common.rest;\n   2 | \n   3 | import com.github.wxiaoqi.security.common.biz.BaseBiz;\n   4 | import com.github.wxiaoqi.security.common.context.BaseContextHandler;\n   5 | import com.github.wxiaoqi.security.common.msg.ObjectRestResponse;\n   6 | import com.github.wxiaoqi.security.common.msg.TableResultResponse;\n   7 | import com.github.wxiaoqi.security.common.util.Query;\n   8 | import lombok.extern.slf4j.Slf4j;\n   9 | import org.springframework.beans.factory.annotation.Autowired;\n  10 | import org.springframework.web.bind.annotation.*;\n  11 | \n  12 | import javax.servlet.http.HttpServletRequest;\n  13 | import java.util.List;\n  14 | import java.util.Map;\n  15 | \n  16 | /**\n  17 |  * ${DESCRIPTION}\n  18 |  *\n  19 |  * @author the sun\n  20 |  * @create 2017-06-15 8:48\n  21 |  */\n  22 | @Slf4j\n  23 | public class BaseController<Biz extends BaseBiz,Entity> {\n  24 |     @Autowired\n  25 |     protected HttpServletRequest request;\n  26 |     @Autowired\n  27 |     protected Biz baseBiz;\n  28 | \n  29 |     @RequestMapping(value = \"\",method = RequestMethod.POST)\n  30 |     @ResponseBody\n  31 |     public ObjectRestResponse<Entity> add(@RequestBody Entity entity){\n  32 |         baseBiz.insertSelective(entity);\n  33 |         return new ObjectRestResponse<Entity>();\n  34 |     }\n  35 | \n  36 |     @RequestMapping(value = \"/{id}\",method = RequestMethod.GET)\n  37 |     @ResponseBody\n  38 |     public ObjectRestResponse<Entity> get(@PathVariable int id){\n  39 |         ObjectRestResponse<Entity> entityObjectRestResponse = new ObjectRestResponse<>();\n  40 |         Object o = baseBiz.selectById(id);\n  41 |         entityObjectRestResponse.data((Entity)o);\n  42 |         return entityObjectRestResponse;\n  43 |     }\n  44 | \n  45 |     @RequestMapping(value = \"/{id}\",method = RequestMethod.PUT)\n  46 |     @ResponseBody\n  4"
+    },
+    {
+      "n": 28,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform",
+        "pattern": "token-header"
+      },
+      "result": "examples/Cloud-Platform/ace-dev-base/ace-auth-sdk/src/main/java/com/github/wxiaoqi/security/auth/client/config/UserAuthConfig.java:12:    @Value(\"${auth.user.token-header}\")\nexamples/Cloud-Platform/ace-gate/src/main/resources/application.yml:125:    token-header: Authorization\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/resources/application.yml:136:  token-header: Authorization\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/configuration/UserConfiguration.java:14:    @Value(\"${jwt.token-header}\")\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/AuthController.java:28:    @Value(\"${jwt.token-header}\")\nexamples/Cloud-Platform/ace-modules/ace-sample/src/main/resources/application.yml:59:    token-header: Authorization\nexamples/Cloud-Platform/ace-dev-base/ace-auth-sdk/src/main/java/com/github/wxiaoqi/security/auth/client/config/UserAuthConfig.java:12:    @Value(\"${auth.user.token-header}\")\nexamples/Cloud-Platform/ace-gate/src/main/resources/application.yml:125:    token-header: Authorization\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/resources/application.yml:136:  token-header: Authorization\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/configuration/UserConfiguration.java:14:    @Value(\"${jwt.token-header}\")\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/AuthController.java:28:    @Value(\"${jwt.token-header}\")\nexamples/Cloud-Platform/ace-modules/ace-sample/src/main/resources/application.yml:59:    token-header: Authorization\n"
+    },
+    {
+      "n": 29,
+      "tool": "query_db",
+      "args": {
+        "sql": "SHOW COLUMNS FROM cloud_admin_v1.base_user"
+      },
+      "result": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tint\tNO\tPRI\tNULL\tauto_increment\nusername\tvarchar(255)\tYES\t\tNULL\t\npassword\tvarchar(255)\tYES\t\tNULL\t\nname\tvarchar(255)\tYES\t\tNULL\t\nbirthday\tvarchar(255)\tYES\t\tNULL\t\naddress\tvarchar(255)\tYES\t\tNULL\t\nmobile_phone\tvarchar(255)\tYES\t\tNULL\t\ntel_phone\tvarchar(255)\tYES\t\tNULL\t\nemail\tvarchar(255)\tYES\t\tNULL\t\nsex\tchar(1)\tYES\t\tNULL\t\ntype\tchar(1)\tYES\t\tNULL\t\nstatus\tchar(1)\tYES\t\tNULL\t\ndescription\tvarchar(255)\tYES\t\tNULL\t\ncrt_time\tdatetime\tYES\t\tNULL\t\ncrt_user\tvarchar(255)\tYES\t\tNULL\t\ncrt_name\tvarchar(255)\tYES\t\tNULL\t\ncrt_host\tvarchar(255)\tYES\t\tNULL\t\nupd_time\tdatetime\tYES\t\tNULL\t\nupd_user\tvarchar(255)\tYES\t\tNULL\t\nupd_name\tvarchar(255)\tYES\t\tNULL\t\nupd_host\tvarchar(255)\tYES\t\tNULL\t\nattr1\tvarchar(255)\tYES\t\tNULL\t\nattr2\tvarchar(255)\tYES\t\tNULL\t\nattr3\tvarchar(255)\tYES\t\tNULL\t\nattr4\tvarchar(255)\tYES\t\tNULL\t\nattr5\tvarchar(255)\tYES\t\tNULL\t\nattr6\tvarchar(255)\tYES\t\tNULL\t\nattr7\tvarchar(255)\tYES\t\tNULL\t\nattr8\tvarchar(255)\tYES\t\tNULL"
+    },
+    {
+      "n": 30,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform/ace-modules/ace-admin",
+        "pattern": "antMatchers|authorizeRequests|WebSecurityConfigurerAdapter"
+      },
+      "result": "examples/zlt-microservices-platform/zlt-uaa/src/main/java/com/central/oauth/config/AuthorizationServerConfig.java:82:        http.authorizeHttpRequests(authorizeRequests -> {\nexamples/zlt-microservices-platform/zlt-uaa/src/main/java/com/central/oauth/config/AuthorizationServerConfig.java:84:                    authorizeRequests\nexamples/zlt-microservices-platform/zlt-monitor/sc-admin/src/main/java/com/central/gateway/monitor/config/SecuritySecureConfig.java:31:        http.authorizeHttpRequests(authorizeRequests -> {\nexamples/zlt-microservices-platform/zlt-monitor/sc-admin/src/main/java/com/central/gateway/monitor/config/SecuritySecureConfig.java:33:            authorizeRequests\nexamples/zlt-microservices-platform/zlt-commons/zlt-auth-client-spring-boot-starter/src/main/java/com/central/oauth2/common/config/DefaultResourceServerConf.java:51:        http.authorizeHttpRequests(authorizeRequests -> {\nexamples/zlt-microservices-platform/zlt-commons/zlt-auth-client-spring-boot-starter/src/main/java/com/central/oauth2/common/config/DefaultResourceServerConf.java:52:            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizedUrl authorizedUrl = authorizeRequests\nexamples/PiggyMetrics/config/src/main/java/com/piggymetrics/config/SecurityConfig.java:5:import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;\nexamples/PiggyMetrics/config/src/main/java/com/piggymetrics/config/SecurityConfig.java:11:public class SecurityConfig extends WebSecurityConfigurerAdapter {\nexamples/PiggyMetrics/config/src/main/java/com/piggymetrics/config/SecurityConfig.java:17:            .authorizeRequests()\nexamples/PiggyMetrics/config/src/main/java/com/piggymetrics/config/SecurityConfig.java:18:                .antMatchers(\"/actuator/**\").permitAll()\nexamples/PiggyMetrics/account-service/src/main/java/com/piggymetrics/account/config/ResourceServerConfig.java:56:        http.authorizeRequests()\nexamples/PiggyMetrics/account-service/src/main/java/co"
+    },
+    {
+      "n": 31,
+      "tool": "redis_cmd",
+      "args": {
+        "cmd_str": "SET admin:captcha:u1 abc123 EX 300"
+      },
+      "result": "OK"
+    },
+    {
+      "n": 32,
+      "tool": "send_http",
+      "args": {
+        "body": "{\"username\":\"admin\",\"password\":\"admin\",\"uuid\":\"u1\",\"verCode\":\"abc123\"}",
+        "headers_json": "{\"Content-Type\":\"application/json\"}",
+        "method": "POST",
+        "url": "http://localhost:8080/jwt/token"
+      },
+      "result": "HTTP 500\nContent-Type: application/json\n\n{\"statusCode\":500,\"message\":\"nested exception is org.apache.ibatis.builder.BuilderException: Error invoking SqlProvider method (tk.mybatis.mapper.provider.base.BaseSelectProvider.dynamicSQL).  Cause: java.lang.InstantiationException: tk.mybatis.mapper.provider.base.BaseSelectProvider\"}"
+    },
+    {
+      "n": 33,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "Cloud-Platform",
+        "pattern": "getUserByUsername"
+      },
+      "result": "examples/SiteWhere/service-instance-management/src/main/java/com/sitewhere/instance/grpc/user/UserManagementImpl.java:147:     * getUserByUsername(com.sitewhere.grpc.service.GGetUserByUsernameRequest,\nexamples/SiteWhere/service-instance-management/src/main/java/com/sitewhere/instance/grpc/user/UserManagementImpl.java:151:    public void getUserByUsername(GGetUserByUsernameRequest request,\nexamples/SiteWhere/service-instance-management/src/main/java/com/sitewhere/instance/grpc/user/UserManagementImpl.java:155:\t    IUser apiResult = getUserMangagement().getUserByUsername(request.getUsername());\nexamples/SiteWhere/service-instance-management/src/main/java/com/sitewhere/instance/microservice/InstanceBootstrapper.java:229:\tIUser system = getUserManagement().getUserByUsername(settings.getKeycloakSystemUsername());\nexamples/SiteWhere/service-instance-management/src/main/java/com/sitewhere/web/rest/controllers/Users.java:119:    public Response getUserByUsername(\nexamples/SiteWhere/service-instance-management/src/main/java/com/sitewhere/web/rest/controllers/Users.java:122:\tIUser user = getUserManagement().getUserByUsername(username);\nexamples/SiteWhere/service-instance-management/src/main/java/com/sitewhere/web/auth/controllers/JwtService.java:76:\t    IUser user = getMicroservice().getUserManagement().getUserByUsername(auth.getUsername());\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/AbstractTokenGranter.java:128:                    defUser = defUserService.getUserByUsername(\"lamp\");\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/AbstractTokenGranter.java:131:                    defUser = defUserService.getUserByUsername(\"test1\");\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/PasswordTokenGranter.java:78:        return defUserService.getUserByUsername(username);\nexamples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/s"
+    },
+    {
+      "n": 34,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-cloud-platform-ace-admin",
+        "tail": 30
+      },
+      "result": "\tat io.undertow.server.Connectors.executeRootHandler(Connectors.java:387)\n\tat io.undertow.server.HttpServerExchange$1.run(HttpServerExchange.java:841)\n\tat org.jboss.threads.ContextClassLoaderSavingRunnable.run(ContextClassLoaderSavingRunnable.java:35)\n\tat org.jboss.threads.EnhancedQueueExecutor.safeRun(EnhancedQueueExecutor.java:2019)\n\tat org.jboss.threads.EnhancedQueueExecutor$ThreadBody.doRunTask(EnhancedQueueExecutor.java:1558)\n\tat org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1449)\n\tat java.lang.Thread.run(Thread.java:750)\nCaused by: org.apache.ibatis.builder.BuilderException: Error invoking SqlProvider method (tk.mybatis.mapper.provider.base.BaseSelectProvider.dynamicSQL).  Cause: java.lang.InstantiationException: tk.mybatis.mapper.provider.base.BaseSelectProvider\n\tat org.apache.ibatis.builder.annotation.ProviderSqlSource.createSqlSource(ProviderSqlSource.java:103)\n\tat org.apache.ibatis.builder.annotation.ProviderSqlSource.getBoundSql(ProviderSqlSource.java:73)\n\tat org.apache.ibatis.mapping.MappedStatement.getBoundSql(MappedStatement.java:292)\n\tat org.apache.ibatis.executor.CachingExecutor.query(CachingExecutor.java:81)\n\tat org.apache.ibatis.session.defaults.DefaultSqlSession.selectList(DefaultSqlSession.java:148)\n\tat org.apache.ibatis.session.defaults.DefaultSqlSession.selectList(DefaultSqlSession.java:141)\n\tat org.apache.ibatis.session.defaults.DefaultSqlSession.selectOne(DefaultSqlSession.java:77)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.lang.reflect.Method.invoke(Method.java:498)\n\tat org.mybatis.spring.SqlSessionTemplate$SqlSessionInterceptor.invoke(SqlSessionTemplate.java:433)\n\t... 169 common frames omitted\nCaused by: java.lang.InstantiationException: tk.mybatis.mapper.provider.base.BaseSelectProvider\n\tat java.lang.Class"
+    },
+    {
+      "n": 35,
+      "tool": "read_source",
+      "args": {
+        "path": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/CaptchaController.java",
+        "start": 1,
+        "end": 70
+      },
+      "result": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/auth/controller/CaptchaController.java (L1-55, 共55行)\n   1 | package com.github.wxiaoqi.security.modules.auth.controller;\n   2 | \n   3 | import com.alibaba.druid.util.Base64;\n   4 | import com.github.wxiaoqi.security.common.msg.ObjectRestResponse;\n   5 | import com.github.wxiaoqi.security.common.util.UUIDUtils;\n   6 | import com.wf.captcha.SpecCaptcha;\n   7 | import com.wf.captcha.base.Captcha;\n   8 | import org.springframework.beans.factory.annotation.Autowired;\n   9 | import org.springframework.data.redis.core.StringRedisTemplate;\n  10 | import org.springframework.web.bind.annotation.RequestMapping;\n  11 | import org.springframework.web.bind.annotation.RestController;\n  12 | \n  13 | import java.awt.*;\n  14 | import java.io.ByteArrayOutputStream;\n  15 | import java.util.HashMap;\n  16 | import java.util.Map;\n  17 | import java.util.concurrent.TimeUnit;\n  18 | \n  19 | import static com.github.wxiaoqi.security.modules.admin.constant.AdminCommonConstant.LOGIN_CAPTCHA_EXPIRATION;\n  20 | import static com.github.wxiaoqi.security.common.constant.RedisKeyConstant.REDIS_KEY_CAPTCHA;\n  21 | \n  22 | /**\n  23 |  * @author Ths Sun\n  24 |  * @create 2020/7/26.\n  25 |  */\n  26 | @RestController\n  27 | public class CaptchaController {\n  28 | \n  29 |     @Autowired\n  30 |     private StringRedisTemplate stringRedisTemplate;\n  31 | \n  32 | \n  33 |     @RequestMapping(\"/captcha\")\n  34 |     public ObjectRestResponse captcha() throws Exception {\n  35 |         // 三个参数分别为宽、高、位数\n  36 |         SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);\n  37 |         // 设置字体\n  38 |         specCaptcha.setFont(new Font(\"Verdana\", Font.PLAIN, 32));  // 有默认字体，可以不用设置\n  39 |         // 设置类型，纯数字、纯字母、字母数字混合\n  40 |         specCaptcha.setCharType(Captcha.TYPE_ONLY_NUMBER);\n  41 | \n  42 |         String uuid = UUIDUtils.generateShortUuid();\n  43 |         String text = specCaptcha.text().toLowerCase();\n  44 |       "
+    },
+    {
+      "n": 36,
+      "tool": "read_source",
+      "args": {
+        "path": "Cloud-Platform/ace-modules/ace-admin/src/main/resources/application.yml",
+        "start": 100,
+        "end": 160
+      },
+      "result": "Cloud-Platform/ace-modules/ace-admin/src/main/resources/application.yml (L100-138, 共138行)\n 100 | # 配置swagger\n 101 | swagger:\n 102 |     enabled: true\n 103 |     base-package: com.github.wxiaoqi.security.admin\n 104 |     title: ace-admin\n 105 |     version: 1.0.0.SNAPSHOT\n 106 |     description: 管理后端服务\n 107 |     contact:\n 108 |         name: admin\n 109 | \n 110 | #redis-cache 相关\n 111 | redis:\n 112 |   pool:\n 113 |    maxActive: 300\n 114 |    maxIdle: 100\n 115 |    maxWait: 1000\n 116 |   host: ${REDIS_HOST:127.0.0.1}\n 117 |   port:  ${REDIS_PORT:6379}\n 118 |   password:\n 119 |   timeout: 2000\n 120 |   # 服务或应用名\n 121 |   sysName: cloud-admin\n 122 |   enable: true\n 123 |   database: 0\n 124 | \n 125 | management:\n 126 |   endpoints:\n 127 |     web:\n 128 |       exposure:\n 129 |         include: '*'\n 130 |         exclude: heapdump,dump,threaddump,configprops,env\n 131 |   security:\n 132 |     enabled: true\n 133 | \n 134 | # 自定义Jwt认证服务\n 135 | jwt:\n 136 |   token-header: Authorization\n 137 |   expire: 14400\n 138 |   rsa-secret: xx1WET12^%3^(WE45"
+    },
+    {
+      "n": 37,
+      "tool": "send_http",
+      "args": {
+        "body": "{\"username\":\"<<SINK_REACHED>>\",\"password\":\"admin\",\"uuid\":\"u1\",\"verCode\":\"abc123\"}",
+        "headers_json": "{\"Content-Type\":\"application/json\"}",
+        "method": "POST",
+        "url": "http://localhost:8080/jwt/token"
+      },
+      "result": "HTTP 500\nContent-Type: application/json\n\n{\"statusCode\":500,\"message\":\"nested exception is org.apache.ibatis.builder.BuilderException: Error invoking SqlProvider method (tk.mybatis.mapper.provider.base.BaseSelectProvider.dynamicSQL).  Cause: java.lang.InstantiationException: tk.mybatis.mapper.provider.base.BaseSelectProvider\"}"
+    },
+    {
+      "n": 38,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:8080/captcha"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"statusCode\":200,\"message\":null,\"data\":{\"captcha\":\"iVBORw0KGgoAAAANSUhEUgAAAIIAAAAwCAIAAABSYzXUAAAIaUlEQVR42u2aC2zT1R7H5/URNMZ4c31gNBHMbsJNiMFgFI0SjJoYY4zmcnMvCT5ikNc2BYUwRQeKi2KGjITouoeMMTZhY+0GQ9gKFcdAgZVt3Vb2bPcoW7d17dZ1Xdd1P79np7Sj+68P9v8XbvL/5Z+m/M/pOez7+f9ep40h2W4Bi5ElkDHIJjYGt4dSL9Ir+TTvR3qjgLJrZW2jjgEMlh1k6qsNZLDRsRZasp9WlsjyRhfD9gpargwEAxKyT0QVw8JM0vUG3oRPwD9kix6GmG8FbnYO0WN7ZYWjiCE2jZoHAm8iTyBjyxY9DBvUFF8WeBMRCbWTbNHDYHfRgnRGgvsE8gQyNmonJGrZoto3gAR8AtEJeQIZG7WTzEDuomUMsomAYbCZzOdp3ClLc1MxnNtAihjKuIOKnmbvW36hIYMsU9Qx1KRQ4SJGYup1YC6dfIsNdVfIjhINDDGKS+FfIjiK0UiHD9PXX9PGjRQXR59/Tj/8QCdOUE+P6H/qkYYjixWLfdeN/5ftrpym/lVnjM8o9Y8frJ2Tqb0nSzs/T/fvstb8FovbMxFVDA8ryvyOokuNOKM4HJSdTatXz3iJaj32nqX7loqCIbgsTxbUN9qc0cPwWf5u2nf/dbErcw4pl7CM0lZIw50hGCQnB2MgNoa40jhI//rB16XGgGvugZpep1vCgrXd7vpbOtsJr4YhF7tl1VNjNlWsDZZRTBoas1+30J49frl37aLqahocpPFxstupqYmUSkpKEpFBkb6IS1/ZUTl7DLH5uvizHXnNlqo+x1XHmMsz0TU8pu4a+k95q4/ER5UdEmLYesHEt3nteJPAMLTuUpP2G/r1jUBHQekFTqClz6Tyw34GKhVNTJCU5gtHSRqGdvYYgthXVVe5PvPyaqXCgOTzyIEavo3KYJ1pmqraujKrbUFS3ctJxVt27jyV9d5Q3lMMA+eRFkMJ//Uy2LGOmnPJopMUAw9Hr+a8Ojg6KDWGfqeb63NXRpVUGArbBvgej+bWjAs9woZ+19PJDYt2NGSe7dN3O/HPY7W2b0qvzvus9s09OlvbbyyTH1zhd4XU+/1JBW2K5n02Af7k7BNLF6VeyUU/1XaK35EUg8017q1fcmqkwvDKsSa+x7ZLpumjzebRx7bU7tX0Cpz6jXpW5RjhH312N4v7nMH2RJY2ypdTfmxgUsGFmAYw6v/Rpe2shUS/EjznBw1Hm8s2+25KimF3rZlL9K7GIAmGlsHR2yY3uD29qnPYNT1eLdxejwc/yApfqEyv7WlibQHHcPSof8xlZULX7aWz8azWCsgrU6+8eVT8Ap1eSec30eXvWHWA/I+w5uievmN8aTzkfin7JcuIRToMCAvmEXdljx2dBK9fHsqpRm8hCYbNf3Ryzm+eaJk+mn2uf8l3+uCdC0Zjv9A5N23xYqiZdNvWVkpPp8REWr+ePvmEdu6k4mKyWllcQiMClf9MZB4DNqi7ZmIztTY7tICOLoMbKYvf5nIf+30rQ9V/mTWb404RMQhWq0tLrrRHyCBcDKjJHtxfzbcpbbcJxKvdTbl/WEKuk6o2j6xP8GJAnwzF16wR6BiApLxc4PMeN5MSmgIPXAEOgXQC0SH9/gem8uhR3LVUsQhaJyj+GYDKjwEfhFeheEPcgyNyx+q9yLYIKK/DxrDiVNsV640c9oSFATWyrw4TfOLvTdDqTCMh18Ecz5q1Xq3BIHj7Vloa8V+D/IEAZdLEFyyH0C9mPNt9+gOmNRRHuYyAlnGHH0NI38L8goXct+jMKkYLFQRooYiYpCXoDbdNJobhCL/zCgsDHI3vkaztFl5l9aVw1ukccA2vifOqvHaSx7ZtdOGCt3fDK96jceM"
+    },
+    {
+      "n": 39,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-cloud-platform-ace-admin",
+        "tail": 120
+      },
+      "result": "ter.java:894)\n\tat org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:808)\n\tat org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)\n\tat org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1061)\n\tat org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:961)\n\tat org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)\n\tat org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)\n\tat javax.servlet.http.HttpServlet.service(HttpServlet.java:517)\n\tat org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)\n\tat javax.servlet.http.HttpServlet.service(HttpServlet.java:584)\n\tat io.undertow.servlet.handlers.ServletHandler.handleRequest(ServletHandler.java:74)\n\tat io.undertow.servlet.handlers.FilterHandler$FilterChainImpl.doFilter(FilterHandler.java:129)\n\tat org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\n\tat io.undertow.servlet.core.ManagedFilter.doFilter(ManagedFilter.java:61)\n\tat io.undertow.servlet.handlers.FilterHandler$FilterChainImpl.doFilter(FilterHandler.java:131)\n\tat org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\n\tat io.undertow.servlet.core.ManagedFilter.doFilter(ManagedFilter.java:61)\n\tat io.undertow.servlet.handlers.FilterHandler$FilterChainImpl.doFilter(FilterHandler.java:131)\n\tat org.springframework.boot.actuate.metrics.web.servlet.WebMvcMetricsFilter.doFilterInternal(WebMvcMetricsFilter.java:93)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\n\t"
+    },
+    {
+      "n": 40,
+      "tool": "read_source",
+      "args": {
+        "path": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/biz/UserBiz.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/modules/admin/biz/UserBiz.java (L1-46, 共46行)\n   1 | package com.github.wxiaoqi.security.modules.admin.biz;\n   2 | \n   3 | import com.github.wxiaoqi.security.common.biz.BaseBiz;\n   4 | import com.github.wxiaoqi.security.modules.admin.entity.User;\n   5 | import com.github.wxiaoqi.security.modules.admin.mapper.UserMapper;\n   6 | import com.github.wxiaoqi.security.modules.admin.util.Sha256PasswordEncoder;\n   7 | import org.springframework.stereotype.Service;\n   8 | import org.springframework.transaction.annotation.Transactional;\n   9 | \n  10 | /**\n  11 |  * ${DESCRIPTION}\n  12 |  *\n  13 |  * @author the sun\n  14 |  * @create 2017-06-08 16:23\n  15 |  */\n  16 | @Service\n  17 | @Transactional(rollbackFor = Exception.class)\n  18 | public class UserBiz extends BaseBiz<UserMapper,User> {\n  19 | \n  20 |     private Sha256PasswordEncoder encoder = new Sha256PasswordEncoder();\n  21 | \n  22 |     @Override\n  23 |     public void insertSelective(User entity) {\n  24 |         String password = encoder.encode(entity.getPassword());\n  25 |         entity.setPassword(password);\n  26 |         super.insertSelective(entity);\n  27 |     }\n  28 | \n  29 |     @Override\n  30 |     public void updateSelectiveById(User entity) {\n  31 |         super.updateSelectiveById(entity);\n  32 |     }\n  33 | \n  34 |     /**\n  35 |      * 根据用户名获取用户信息\n  36 |      * @param username\n  37 |      * @return\n  38 |      */\n  39 |     public User getUserByUsername(String username){\n  40 |         User user = new User();\n  41 |         user.setUsername(username);\n  42 |         return mapper.selectOne(user);\n  43 |     }\n  44 | \n  45 | \n  46 | }"
+    }
+  ],
+  "final_text": "budget_exceeded"
+}
