@@ -1,0 +1,380 @@
+{
+  "reached": true,
+  "turns": 1,
+  "tool_calls": 40,
+  "elapsed": 1186.8572227954865,
+  "tool_log": [
+    {
+      "n": 1,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java",
+        "start": 160,
+        "end": 230
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java (L160-230, 共350行)\n 160 |     @Async\n 161 |     public void sendWalletRechargerPaidMessage(Long payOrderId, PayWalletRechargeDO walletRecharge) {\n 162 |         // 1. 构建并发送模版消息\n 163 |         PayWalletDO wallet = payWalletService.getWallet(walletRecharge.getWalletId());\n 164 |         socialClientApi.sendWxaSubscribeMessage(new SocialWxaSubscribeMessageSendReqDTO()\n 165 |                 .setUserId(wallet.getUserId()).setUserType(wallet.getUserType())\n 166 |                 .setTemplateTitle(WXA_WALLET_RECHARGER_PAID)\n 167 |                 .setPage(\"pages/user/wallet/money\") // 钱包详情界面\n 168 |                 .addMessage(\"character_string1\", String.valueOf(payOrderId)) // 支付单编号\n 169 |                 .addMessage(\"amount2\", fenToYuanStr(walletRecharge.getTotalPrice())) // 充值金额\n 170 |                 .addMessage(\"time3\", LocalDateTimeUtil.formatNormal(walletRecharge.getCreateTime())) // 充值时间\n 171 |                 .addMessage(\"phrase4\", \"充值成功\")).checkError(); // 充值状态\n 172 | \n 173 |         // 2. 调用接口上传虚拟物品发货信息\n 174 |         // 注意：只有微信小程序支付的订单，才需要同步\n 175 |         PayOrderDO payOrder = payOrderService.getOrder(payOrderId);\n 176 |         if (ObjUtil.notEqual(payOrder.getChannelCode(), PayChannelEnum.WX_LITE.getCode())) {\n 177 |             return;\n 178 |         }\n 179 |         SocialWxaOrderUploadShippingInfoReqDTO reqDTO = new SocialWxaOrderUploadShippingInfoReqDTO()\n 180 |                 .setTransactionId(payOrder.getChannelOrderNo())\n 181 |                 .setOpenid(payOrder.getChannelUserId())\n 182 |                 .setItemDesc(payOrder.getSubject())\n 183 |                 .setLogisticsType(SocialWxaOrderUploadShippingInfoReqDTO.LOGISTICS_TYPE_VIRTUAL); // 虚拟物品发货类型\n 184 |         try {\n 185 |             socialClientApi.uploadWxaOrderShippingInfo(UserTypeEnum.MEMBER.getValue(), reqDTO).checkError();\n 186 |         } cat"
+    },
+    {
+      "n": 2,
+      "tool": "search_code",
+      "args": {
+        "pattern": "wallet-recharge/refund"
+      },
+      "result": "无匹配: wallet-recharge/refund"
+    },
+    {
+      "n": 3,
+      "tool": "search_code",
+      "args": {
+        "pattern": "refundWalletRecharge",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java:43:    public CommonResult<Boolean> refundWalletRecharge(@RequestParam(\"id\") Long id) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java:44:        walletRechargeService.refundWalletRecharge(id, getClientIP());\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:193:    public void refundWalletRecharge(Long id, String userIp) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:197:            log.error(\"[refundWalletRecharge][钱包充值记录不存在，钱包充值记录 id({})]\", id);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeService.java:53:    void refundWalletRecharge(Long id, String userIp);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java:43:    public CommonResult<Boolean> refundWalletRecharge(@RequestParam(\"id\") Long id) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java:44:        walletRechargeService.refundWalletRecharge(id, getClientIP());\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:193:    public void refundWalletRecharge(Long id, String userIp) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.ja"
+    },
+    {
+      "n": 4,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, wallet_id, user_id, user_type, status, total_price, pay_price, refund_status, pay_refund_id FROM pay_wallet_recharge ORDER BY id DESC LIMIT 10"
+      },
+      "result": "[stderr] ERROR 1054 (42S22) at line 1: Unknown column 'user_id' in 'field list'"
+    },
+    {
+      "n": 5,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java",
+        "start": 1,
+        "end": 60
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java (L1-59, 共59行)\n   1 | package cn.iocoder.yudao.module.pay.controller.admin.wallet;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   4 | import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;\n   5 | import cn.iocoder.yudao.module.pay.api.notify.dto.PayRefundNotifyReqDTO;\n   6 | import cn.iocoder.yudao.module.pay.service.wallet.PayWalletRechargeService;\n   7 | import io.swagger.v3.oas.annotations.Operation;\n   8 | import io.swagger.v3.oas.annotations.Parameter;\n   9 | import io.swagger.v3.oas.annotations.tags.Tag;\n  10 | import lombok.extern.slf4j.Slf4j;\n  11 | import org.springframework.validation.annotation.Validated;\n  12 | import org.springframework.web.bind.annotation.*;\n  13 | \n  14 | import javax.annotation.Resource;\n  15 | import javax.annotation.security.PermitAll;\n  16 | import javax.validation.Valid;\n  17 | \n  18 | import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;\n  19 | import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;\n  20 | \n  21 | @Tag(name = \"管理后台 - 钱包充值\")\n  22 | @RestController\n  23 | @RequestMapping(\"/pay/wallet-recharge\")\n  24 | @Validated\n  25 | @Slf4j\n  26 | public class PayWalletRechargeController {\n  27 | \n  28 |     @Resource\n  29 |     private PayWalletRechargeService walletRechargeService;\n  30 | \n  31 |     @PostMapping(\"/update-paid\")\n  32 |     @Operation(summary = \"更新钱包充值为已充值\") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob\n  33 |     @PermitAll // 无需登录， 内部校验实现\n  34 |     public CommonResult<Boolean> updateWalletRechargerPaid(@Valid @RequestBody PayOrderNotifyReqDTO notifyReqDTO) {\n  35 |         walletRechargeService.updateWalletRechargerPaid(Long.valueOf(notifyReqDTO.getMerchantOrderId()),\n  36 |                 notifyReqDTO.getPayOrderId());\n  37 |         return success(true);\n  38 |  "
+    },
+    {
+      "n": 6,
+      "tool": "query_db",
+      "args": {
+        "sql": "DESC pay_wallet_recharge"
+      },
+      "result": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tbigint\tNO\tPRI\tNULL\tauto_increment\nwallet_id\tbigint\tNO\t\t1\t\ntotal_price\tint\tNO\t\t100\t\npay_price\tint\tNO\t\t100\t\nbonus_price\tint\tNO\t\t0\t\npackage_id\tbigint\tYES\t\tNULL\t\npay_status\tbit(1)\tNO\t\tb'0'\t\npay_order_id\tbigint\tYES\t\tNULL\t\npay_channel_code\tvarchar(64)\tYES\t\tNULL\t\npay_time\tdatetime\tYES\t\tNULL\t\npay_refund_id\tbigint\tYES\t\tNULL\t\nrefund_total_price\tint\tYES\t\tNULL\t\nrefund_pay_price\tint\tYES\t\tNULL\t\nrefund_bonus_price\tint\tYES\t\tNULL\t\nrefund_time\tdatetime\tYES\t\tNULL\t\nrefund_status\ttinyint\tYES\t\tNULL\t\ncreator\tvarchar(64)\tYES\t\t\t\ncreate_time\tdatetime\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED\nupdater\tvarchar(64)\tYES\t\t\t\nupdate_time\tdatetime\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\ndeleted\tbit(1)\tNO\t\tb'0'\t\ntenant_id\tbigint\tNO\t\t0"
+    },
+    {
+      "n": 7,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class Xss(Filter|HttpServletRequestWrapper|Utils|Properties)"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:30:public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:30:public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {\nexamples/RuoYi-Cloud/ruoyi-gateway/src/main/java/com/ruoyi/gateway/config/properties/XssProperties.java:17:public class XssProperties\nexamples/RuoYi-Cloud/ruoyi-gateway/src/main/java/com/ruoyi/gateway/filter/XssFilter.java:35:public class XssFilter implements GlobalFilter, Ordered\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-web/src/main/java/org/dromara/common/web/config/properties/XssProperties.java:18:public class XssProperties {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-web/src/main/java/org/dromara/common/web/filter/XssFilter.java:19:public class XssFilter implements Filter {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-web/src/main/java/org/dromara/common/web/filter/XssHttpServletRequestWrapper.java:27:public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {\nexamples/novel-cloud/novel-core/novel-config/src/main/java/io/github/xxyopen/novel/config/wrapper/XssHttpServletRequestWrapper.java:14:public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {\nexamples/novel-cloud/novel-core/novel-config/src/main/java/io/github/xxyopen/novel/config/filter/XssFilter.java:33:public class XssFilter implements Filter {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/config/XssProperties.java:18:public class XssProp"
+    },
+    {
+      "n": 8,
+      "tool": "search_code",
+      "args": {
+        "pattern": "access-log",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/config/YudaoApiLogAutoConfiguration.java:26:    @ConditionalOnProperty(prefix = \"yudao.access-log\", value = \"enable\", matchIfMissing = true) // 允许使用 yudao.access-log.enable=false 禁用访问日志\nexamples/yudao-cloud/yudao-framework/yudao-common/src/main/java/cn/iocoder/yudao/framework/common/biz/infra/logger/ApiAccessLogCommonApi.java:19:    String PREFIX = RpcConstants.INFRA_PREFIX + \"/api-access-log\";\nexamples/yudao-cloud/yudao-module-infra/yudao-module-infra-server/src/main/java/cn/iocoder/yudao/module/infra/controller/admin/logger/ApiAccessLogController.java:34:@RequestMapping(\"/infra/api-access-log\")\nexamples/yudao-cloud/yudao-module-infra/yudao-module-infra-server/src/main/java/cn/iocoder/yudao/module/infra/controller/admin/logger/ApiAccessLogController.java:44:    @PreAuthorize(\"@ss.hasPermission('infra:api-access-log:query')\")\nexamples/yudao-cloud/yudao-module-infra/yudao-module-infra-server/src/main/java/cn/iocoder/yudao/module/infra/controller/admin/logger/ApiAccessLogController.java:52:    @PreAuthorize(\"@ss.hasPermission('infra:api-access-log:query')\")\nexamples/yudao-cloud/yudao-module-infra/yudao-module-infra-server/src/main/java/cn/iocoder/yudao/module/infra/controller/admin/logger/ApiAccessLogController.java:60:    @PreAuthorize(\"@ss.hasPermission('infra:api-access-log:export')\")\nexamples/yudao-cloud/sql/sqlserver/ruoyi-vue-pro.sql:5419:INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, component_name, status, visible, keep_alive, always_show, creator, create_time, updater, update_time, deleted) VALUES (1078, N'访问日志', N'', 2, 1, 1083, N'api-access-log', N'ep:place', N'infra/apiAccessLog/index', N'InfraApiAccessLog', 0, N'1', N'1', N'1', N'', N'2021-02-26 01:32:59', N'1', N'2024-02-29 08:54:57', N'0')\nexamples/yudao-cloud/sql/sqlserver/ruoyi-vue-pro.sql:5421:INSERT INTO system_menu (id, name, permission, ty"
+    },
+    {
+      "n": 9,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssFilter.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssFilter.java (L1-52, 共52行)\n   1 | package cn.iocoder.yudao.framework.xss.core.filter;\n   2 | \n   3 | import cn.iocoder.yudao.framework.xss.config.XssProperties;\n   4 | import cn.iocoder.yudao.framework.xss.core.clean.XssCleaner;\n   5 | import lombok.AllArgsConstructor;\n   6 | import org.springframework.util.PathMatcher;\n   7 | import org.springframework.web.filter.OncePerRequestFilter;\n   8 | \n   9 | import javax.servlet.FilterChain;\n  10 | import javax.servlet.ServletException;\n  11 | import javax.servlet.http.HttpServletRequest;\n  12 | import javax.servlet.http.HttpServletResponse;\n  13 | import java.io.IOException;\n  14 | \n  15 | /**\n  16 |  * Xss 过滤器\n  17 |  *\n  18 |  * @author 芋道源码\n  19 |  */\n  20 | @AllArgsConstructor\n  21 | public class XssFilter extends OncePerRequestFilter {\n  22 | \n  23 |     /**\n  24 |      * 属性\n  25 |      */\n  26 |     private final XssProperties properties;\n  27 |     /**\n  28 |      * 路径匹配器\n  29 |      */\n  30 |     private final PathMatcher pathMatcher;\n  31 | \n  32 |     private final XssCleaner xssCleaner;\n  33 | \n  34 |     @Override\n  35 |     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)\n  36 |             throws IOException, ServletException {\n  37 |         filterChain.doFilter(new XssRequestWrapper(request, xssCleaner), response);\n  38 |     }\n  39 | \n  40 |     @Override\n  41 |     protected boolean shouldNotFilter(HttpServletRequest request) {\n  42 |         // 如果关闭，则不过滤\n  43 |         if (!properties.isEnable()) {\n  44 |             return true;\n  45 |         }\n  46 | \n  47 |         // 如果匹配到无需过滤，则不过滤\n  48 |         String uri = request.getRequestURI();\n  49 |         return properties.getExcludeUrls().stream().anyMatch(excludeUrl -> pathMatcher.match(excludeUrl, uri));\n  50 |     }\n  51 | \n  52 | }"
+    },
+    {
+      "n": 10,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class XssHttpServletRequestWrapper|XssCleaner",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:30:public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:30:public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {\nexamples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/PigXssAutoConfiguration.java:49:\tpublic XssCleaner xssCleaner(PigXssProperties properties) {\nexamples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/PigXssAutoConfiguration.java:50:\t\treturn new DefaultXssCleaner(properties);\nexamples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/PigXssAutoConfiguration.java:55:\tpublic FormXssClean formXssClean(PigXssProperties properties, XssCleaner xssCleaner) {\nexamples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/PigXssAutoConfiguration.java:61:\t\t\tPigXssProperties properties, XssCleaner xssCleaner) {\nexamples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/core/FormXssClean.java:41:\tprivate final XssCleaner xssCleaner;\nexamples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/core/FormXssClean.java:53:\t\tprivate final XssCleaner xssCleaner;\nexamples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/core/DefaultXssCleaner.java:36:public class DefaultXssCleaner implements XssCleaner {\nexamples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/core/JacksonXssClean.java:38:\tprivate final XssCleaner xssCleaner;\nexamples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/core/JacksonXssClean.java:40:\tpublic JacksonXssClean(PigXssProperties properties, XssCleaner xssCleaner) {\nexamples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/core/XssCleaner.java:24:public inte"
+    },
+    {
+      "n": 11,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssRequestWrapper.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssRequestWrapper.java (L1-80, 共92行)\n   1 | package cn.iocoder.yudao.framework.xss.core.filter;\n   2 | \n   3 | import cn.iocoder.yudao.framework.xss.core.clean.XssCleaner;\n   4 | \n   5 | import javax.servlet.http.HttpServletRequest;\n   6 | import javax.servlet.http.HttpServletRequestWrapper;\n   7 | import java.util.LinkedHashMap;\n   8 | import java.util.Map;\n   9 | \n  10 | /**\n  11 |  * Xss 请求 Wrapper\n  12 |  *\n  13 |  * @author 芋道源码\n  14 |  */\n  15 | public class XssRequestWrapper extends HttpServletRequestWrapper {\n  16 | \n  17 |     private final XssCleaner xssCleaner;\n  18 | \n  19 |     public XssRequestWrapper(HttpServletRequest request, XssCleaner xssCleaner) {\n  20 |         super(request);\n  21 |         this.xssCleaner = xssCleaner;\n  22 |     }\n  23 | \n  24 |     // ============================ parameter ============================\n  25 |     @Override\n  26 |     public Map<String, String[]> getParameterMap() {\n  27 |         Map<String, String[]> map = new LinkedHashMap<>();\n  28 |         Map<String, String[]> parameters = super.getParameterMap();\n  29 |         for (Map.Entry<String, String[]> entry : parameters.entrySet()) {\n  30 |             String[] values = entry.getValue();\n  31 |             for (int i = 0; i < values.length; i++) {\n  32 |                 values[i] = xssCleaner.clean(values[i]);\n  33 |             }\n  34 |             map.put(entry.getKey(), values);\n  35 |         }\n  36 |         return map;\n  37 |     }\n  38 | \n  39 |     @Override\n  40 |     public String[] getParameterValues(String name) {\n  41 |         String[] values = super.getParameterValues(name);\n  42 |         if (values == null) {\n  43 |             return null;\n  44 |         }\n  45 |         int count = values.length;\n  46 |         String[] encodedValues = new String[count];\n  47 |         for (int i = 0; i < count; i++) {\n  48 |             encoded"
+    },
+    {
+      "n": 12,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/clean/JsoupXssCleaner.java",
+        "start": 1,
+        "end": 70
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/clean/JsoupXssCleaner.java (L1-64, 共64行)\n   1 | package cn.iocoder.yudao.framework.xss.core.clean;\n   2 | \n   3 | import org.jsoup.Jsoup;\n   4 | import org.jsoup.nodes.Document;\n   5 | import org.jsoup.safety.Safelist;\n   6 | \n   7 | /**\n   8 |  * 基于 JSONP 实现 XSS 过滤字符串\n   9 |  */\n  10 | public class JsoupXssCleaner implements XssCleaner {\n  11 | \n  12 |     private final Safelist safelist;\n  13 | \n  14 |     /**\n  15 |      * 用于在 src 属性使用相对路径时，强制转换为绝对路径。 为空时不处理，值应为绝对路径的前缀（包含协议部分）\n  16 |      */\n  17 |     private final String baseUri;\n  18 | \n  19 |     /**\n  20 |      * 无参构造，默认使用 {@link JsoupXssCleaner#buildSafelist} 方法构建一个安全列表\n  21 |      */\n  22 |     public JsoupXssCleaner() {\n  23 |         this.safelist = buildSafelist();\n  24 |         this.baseUri = \"\";\n  25 |     }\n  26 | \n  27 |     /**\n  28 |      * 构建一个 Xss 清理的 Safelist 规则。\n  29 |      * 基于 Safelist#relaxed() 的基础上:\n  30 |      * 1. 扩展支持了 style 和 class 属性\n  31 |      * 2. a 标签额外支持了 target 属性\n  32 |      * 3. img 标签额外支持了 data 协议，便于支持 base64\n  33 |      *\n  34 |      * @return Safelist\n  35 |      */\n  36 |     private Safelist buildSafelist() {\n  37 |         // 使用 jsoup 提供的默认的\n  38 |         Safelist relaxedSafelist = Safelist.relaxed();\n  39 |         // 富文本编辑时一些样式是使用 style 来进行实现的\n  40 |         // 比如红色字体 style=\"color:red;\", 所以需要给所有标签添加 style 属性\n  41 |         // 注意：style 属性会有注入风险 <img STYLE=\"background-image:url(javascript:alert('XSS'))\">\n  42 |         relaxedSafelist.addAttributes(\":all\", \"style\", \"class\");\n  43 |         // 保留 a 标签的 target 属性\n  44 |         relaxedSafelist.addAttributes(\"a\", \"target\");\n  45 |         // 支持img 为base64\n  46 |         relaxedSafelist.addProtocols(\"img\", \"src\", \"data\");\n  47 | \n  48 |         // 保留相对路径, 保留相对路径时，必须提供对应的 baseUri 属性，否则依然会被删除\n  49 |         // WHITELIST.preserveRelativeLinks(false);\n  50 | \n  51 |         // 移除 a 标签和 img 标签的一些协议限制，这会导致 xss 防注入失效，如 <img"
+    },
+    {
+      "n": 13,
+      "tool": "search_code",
+      "args": {
+        "pattern": "ApiAccessLogFilter|ApiAccessLogUtils",
+        "path_prefix": "yudao-cloud/yudao-framework"
+      },
+      "result": "examples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/config/YudaoApiLogAutoConfiguration.java:3:import cn.iocoder.yudao.framework.apilog.core.filter.ApiAccessLogFilter;\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/config/YudaoApiLogAutoConfiguration.java:23:     * 创建 ApiAccessLogFilter Bean，记录 API 请求日志\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/config/YudaoApiLogAutoConfiguration.java:27:    public FilterRegistrationBean<ApiAccessLogFilter> apiAccessLogFilter(WebProperties webProperties,\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/config/YudaoApiLogAutoConfiguration.java:30:        ApiAccessLogFilter filter = new ApiAccessLogFilter(webProperties, applicationName, apiAccessLogApi);\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/core/filter/ApiAccessLogFilter.java:50:public class ApiAccessLogFilter extends ApiRequestFilter {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/core/filter/ApiAccessLogFilter.java:58:    public ApiAccessLogFilter(WebProperties webProperties, String applicationName, ApiAccessLogCommonApi apiAccessLogApi) {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/core/interceptor/ApiAccessLogInterceptor.java:38:        // 记录 HandlerMethod，提供给 ApiAccessLogFilter 使用\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalResponseBodyHandler.java:21: * 方便 {@link cn.iocoder.yudao.framework.apilog.core.filter.ApiAccessLogFilter} 记录访问日志\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/"
+    },
+    {
+      "n": 14,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssRequestWrapper.java",
+        "start": 80,
+        "end": 92
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssRequestWrapper.java (L80-92, 共92行)\n  80 |     }\n  81 | \n  82 |     // ============================ queryString ============================\n  83 |     @Override\n  84 |     public String getQueryString() {\n  85 |         String value = super.getQueryString();\n  86 |         if (value == null) {\n  87 |             return null;\n  88 |         }\n  89 |         return xssCleaner.clean(value);\n  90 |     }\n  91 | \n  92 | }"
+    },
+    {
+      "n": 15,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/core/filter/ApiAccessLogFilter.java",
+        "start": 1,
+        "end": 160
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/core/filter/ApiAccessLogFilter.java (L1-160, 共253行)\n   1 | package cn.iocoder.yudao.framework.apilog.core.filter;\n   2 | \n   3 | import cn.hutool.core.collection.CollUtil;\n   4 | import cn.hutool.core.date.LocalDateTimeUtil;\n   5 | import cn.hutool.core.exceptions.ExceptionUtil;\n   6 | import cn.hutool.core.map.MapUtil;\n   7 | import cn.hutool.core.util.ArrayUtil;\n   8 | import cn.hutool.core.util.BooleanUtil;\n   9 | import cn.hutool.core.util.StrUtil;\n  10 | import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;\n  11 | import cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum;\n  12 | import cn.iocoder.yudao.framework.common.biz.infra.logger.ApiAccessLogCommonApi;\n  13 | import cn.iocoder.yudao.framework.common.biz.infra.logger.dto.ApiAccessLogCreateReqDTO;\n  14 | import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;\n  15 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n  16 | import cn.iocoder.yudao.framework.common.util.json.JsonUtils;\n  17 | import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;\n  18 | import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;\n  19 | import cn.iocoder.yudao.framework.web.config.WebProperties;\n  20 | import cn.iocoder.yudao.framework.web.core.filter.ApiRequestFilter;\n  21 | import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;\n  22 | import com.fasterxml.jackson.databind.JsonNode;\n  23 | import io.swagger.v3.oas.annotations.Operation;\n  24 | import io.swagger.v3.oas.annotations.tags.Tag;\n  25 | import lombok.extern.slf4j.Slf4j;\n  26 | import org.springframework.web.bind.annotation.RequestMethod;\n  27 | import org.springframework.web.method.HandlerMethod;\n  28 | \n  29 | import javax.servlet.FilterChain;\n  30 | import javax.servlet.ServletException;\n  31 | import javax.servlet.http.HttpServletRequest;\n  32 | import javax.servlet"
+    },
+    {
+      "n": 16,
+      "tool": "search_code",
+      "args": {
+        "pattern": "ServiceException.class|serviceException",
+        "path_prefix": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web"
+      },
+      "result": "examples/RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/handler/GlobalExceptionHandler.java:70:    @ExceptionHandler(ServiceException.class)\nexamples/Apollo/apollo-portal/src/test/java/com/ctrip/framework/apollo/portal/controller/ConfigsExportControllerTest.java:99:  @Test(expected = ServiceException.class)\nexamples/Apollo/apollo-portal/src/test/java/com/ctrip/framework/apollo/portal/RetryableRestTemplateTest.java:103:  @Test(expected = ServiceException.class)\nexamples/Apollo/apollo-portal/src/test/java/com/ctrip/framework/apollo/portal/RetryableRestTemplateTest.java:111:  @Test(expected = ServiceException.class)\nexamples/Apollo/apollo-portal/src/test/java/com/ctrip/framework/apollo/portal/ServiceExceptionTest.java:65:    errorAttributes.put(\"exception\", ServiceException.class.getName());\nexamples/Apollo/apollo-adminservice/src/test/java/com/ctrip/framework/apollo/adminservice/controller/ControllerExceptionTest.java:95:  @Test(expected = ServiceException.class)\nexamples/Apollo/apollo-adminservice/src/test/java/com/ctrip/framework/apollo/adminservice/aop/NamespaceLockTest.java:132:  @Test(expected = ServiceException.class)\nexamples/Apollo/apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/service/AdminServiceTest.java:81:  @Test(expected = ServiceException.class)\nexamples/Apollo/apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/service/ClusterServiceTest.java:36:  @Test(expected = ServiceException.class)\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-web/src/main/java/org/dromara/common/web/handler/GlobalExceptionHandler.java:59:    @ExceptionHandler(ServiceException.class)\nexamples/yudao-cloud/yudao-module-im/yudao-module-im-server/src/test/java/cn/iocoder/yudao/module/im/service/face/ImFacePackServiceImplTest.java:48:        ServiceException exception = assertThrows(ServiceException.class,\nexamples/yudao-cloud/yudao-module-im/yudao-module-im-server/src/test/java/cn/iocoder/yudao/module/im/service/face/ImFacePa"
+    },
+    {
+      "n": 17,
+      "tool": "docker_ps",
+      "args": {},
+      "result": "trace-real-yudao-cloud-trade-server\tUp 18 hours\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/yudao-cloud-yudao-module-trade-server:latest\ntrace-real-yudao-cloud-pay-server\tUp 18 hours\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/yudao-cloud-yudao-module-pay-server:latest\ntrace-real-nacos\tUp 2 days (healthy)\tnacos/nacos-server:v2.2.3\ntrace-real-piggymetrics-registry\tUp 2 days (healthy)\tsqshq/piggymetrics-registry\ntrace-real-redis\tUp 2 days (healthy)\tredis:7-alpine\ntrace-real-rabbitmq\tUp 2 days (healthy)\trabbitmq:3-management\ntrace-real-mysql\tUp 2 days (healthy)\tmysql:8.0\ntrace-real-mongo\tUp 2 days (healthy)\tmongo:4.4\ntrace-real-piggymetrics-config\tUp 2 days (healthy)\tsqshq/piggymetrics-config\n"
+    },
+    {
+      "n": 18,
+      "tool": "search_code",
+      "args": {
+        "pattern": "SecurityConfiguration",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/Apollo/apollo-portal/src/test/java/com/ctrip/framework/apollo/portal/filter/PortalOpenApiAuthenticationScenariosTest.java:82:  @Import({AuthFilterConfiguration.class, TestSecurityConfiguration.class,\nexamples/Apollo/apollo-portal/src/test/java/com/ctrip/framework/apollo/portal/filter/PortalOpenApiAuthenticationScenariosTest.java:92:  static class TestSecurityConfiguration {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-security/src/main/java/org/dromara/common/security/config/SecurityConfiguration.java:22:public class SecurityConfiguration implements WebMvcConfigurer {\nexamples/yudao-cloud/yudao-module-im/yudao-module-im-server/src/main/java/cn/iocoder/yudao/module/im/framework/security/config/SecurityConfiguration.java:12:@Configuration(proxyBeanMethods = false, value = \"imSecurityConfiguration\")\nexamples/yudao-cloud/yudao-module-im/yudao-module-im-server/src/main/java/cn/iocoder/yudao/module/im/framework/security/config/SecurityConfiguration.java:13:public class SecurityConfiguration {\nexamples/yudao-cloud/yudao-module-mp/yudao-module-mp-server/src/main/java/cn/iocoder/yudao/module/mp/framework/security/config/SecurityConfiguration.java:13:@Configuration(proxyBeanMethods = false, value = \"mpSecurityConfiguration\")\nexamples/yudao-cloud/yudao-module-mp/yudao-module-mp-server/src/main/java/cn/iocoder/yudao/module/mp/framework/security/config/SecurityConfiguration.java:14:public class SecurityConfiguration {\nexamples/yudao-cloud/yudao-module-report/yudao-module-report-server/src/main/java/cn/iocoder/yudao/module/report/framework/security/config/SecurityConfiguration.java:12:@Configuration(\"reportSecurityConfiguration\")\nexamples/yudao-cloud/yudao-module-report/yudao-module-report-server/src/main/java/cn/iocoder/yudao/module/report/framework/security/config/SecurityConfiguration.java:13:public class SecurityConfiguration {\nexamples/yudao-cloud/yudao-module-crm/yudao-module-crm-server/src/main/java/cn/iocoder/yudao/module/crm/framework/security/config/Secu"
+    },
+    {
+      "n": 19,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class TokenAuthenticationFilter",
+        "path_prefix": "yudao-cloud/yudao-framework"
+      },
+      "result": "examples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/core/filter/TokenAuthenticationFilter.java:38:public class TokenAuthenticationFilter extends OncePerRequestFilter {\nexamples/yudao-cloud/yudao-gateway/src/main/java/cn/iocoder/yudao/gateway/filter/security/TokenAuthenticationFilter.java:39:public class TokenAuthenticationFilter implements GlobalFilter, Ordered {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/core/filter/TokenAuthenticationFilter.java:38:public class TokenAuthenticationFilter extends OncePerRequestFilter {\n"
+    },
+    {
+      "n": 20,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/security/config/SecurityConfiguration.java",
+        "start": 1,
+        "end": 60
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/security/config/SecurityConfiguration.java (L1-39, 共39行)\n   1 | package cn.iocoder.yudao.module.pay.framework.security.config;\n   2 | \n   3 | import cn.iocoder.yudao.framework.security.config.AuthorizeRequestsCustomizer;\n   4 | import cn.iocoder.yudao.module.pay.enums.ApiConstants;\n   5 | import org.springframework.context.annotation.Bean;\n   6 | import org.springframework.context.annotation.Configuration;\n   7 | import org.springframework.security.config.annotation.web.builders.HttpSecurity;\n   8 | import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;\n   9 | \n  10 | /**\n  11 |  * Pay 模块的 Security 配置\n  12 |  */\n  13 | @Configuration(\"paySecurityConfiguration\")\n  14 | public class SecurityConfiguration {\n  15 | \n  16 |     @Bean(\"payAuthorizeRequestsCustomizer\")\n  17 |     public AuthorizeRequestsCustomizer authorizeRequestsCustomizer() {\n  18 |         return new AuthorizeRequestsCustomizer() {\n  19 | \n  20 |             @Override\n  21 |             public void customize(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {\n  22 |                 // Swagger 接口文档\n  23 |                 registry.requestMatchers(\"/v3/api-docs/**\").permitAll()\n  24 |                         .requestMatchers(\"/webjars/**\").permitAll()\n  25 |                         .requestMatchers(\"/swagger-ui\").permitAll()\n  26 |                         .requestMatchers(\"/swagger-ui/**\").permitAll();\n  27 |                 // Spring Boot Actuator 的安全配置\n  28 |                 registry.requestMatchers(\"/actuator\").permitAll()\n  29 |                         .requestMatchers(\"/actuator/**\").permitAll();\n  30 |                 // Druid 监控\n  31 |                 registry.requestMatchers(\"/druid/**\").permitAll();\n  32 |                 // RPC 服务的安全配置\n  33 |                 registry.requestMatchers(ApiConstants.P"
+    },
+    {
+      "n": 21,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/core/filter/TokenAuthenticationFilter.java",
+        "start": 1,
+        "end": 100
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/core/filter/TokenAuthenticationFilter.java (L1-100, 共157行)\n   1 | package cn.iocoder.yudao.framework.security.core.filter;\n   2 | \n   3 | import cn.hutool.core.util.ObjectUtil;\n   4 | import cn.hutool.core.util.StrUtil;\n   5 | import cn.iocoder.yudao.framework.common.biz.system.oauth2.OAuth2TokenCommonApi;\n   6 | import cn.iocoder.yudao.framework.common.biz.system.oauth2.dto.OAuth2AccessTokenCheckRespDTO;\n   7 | import cn.iocoder.yudao.framework.common.exception.ServiceException;\n   8 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   9 | import cn.iocoder.yudao.framework.common.util.json.JsonUtils;\n  10 | import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;\n  11 | import cn.iocoder.yudao.framework.security.config.SecurityProperties;\n  12 | import cn.iocoder.yudao.framework.security.core.LoginUser;\n  13 | import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;\n  14 | import cn.iocoder.yudao.framework.web.core.handler.GlobalExceptionHandler;\n  15 | import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;\n  16 | import lombok.RequiredArgsConstructor;\n  17 | import lombok.SneakyThrows;\n  18 | import lombok.extern.slf4j.Slf4j;\n  19 | import org.springframework.security.access.AccessDeniedException;\n  20 | import org.springframework.web.filter.OncePerRequestFilter;\n  21 | \n  22 | import javax.servlet.FilterChain;\n  23 | import javax.servlet.ServletException;\n  24 | import javax.servlet.http.HttpServletRequest;\n  25 | import javax.servlet.http.HttpServletResponse;\n  26 | import java.io.IOException;\n  27 | import java.net.URLDecoder;\n  28 | import java.nio.charset.StandardCharsets;\n  29 | \n  30 | /**\n  31 |  * Token 过滤器，验证 token 的有效性\n  32 |  * 验证通过后，获得 {@link LoginUser} 信息，并加入到 Spring Security 上下文\n  33 |  *\n  34 |  * @author 芋道源码\n  35 |  */\n  36 | @RequiredArgsConstructor\n  37 | @Slf4j\n  38 | public cla"
+    },
+    {
+      "n": 22,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/core/filter/TokenAuthenticationFilter.java",
+        "start": 100,
+        "end": 157
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/core/filter/TokenAuthenticationFilter.java (L100-157, 共157行)\n 100 |                     .setTenantId(accessToken.getTenantId()).setScopes(accessToken.getScopes())\n 101 |                     .setExpiresTime(accessToken.getExpiresTime());\n 102 |         } catch (ServiceException serviceException) {\n 103 |             // 校验 Token 不通过时，考虑到一些接口是无需登录的，所以直接返回 null 即可\n 104 |             return null;\n 105 |         }\n 106 |     }\n 107 | \n 108 |     /**\n 109 |      * 模拟登录用户，方便日常开发调试\n 110 |      *\n 111 |      * 注意，在线上环境下，一定要关闭该功能！！！\n 112 |      *\n 113 |      * @param request 请求\n 114 |      * @param token 模拟的 token，格式为 {@link SecurityProperties#getMockSecret()} + 用户编号\n 115 |      * @param userType 用户类型\n 116 |      * @return 模拟的 LoginUser\n 117 |      */\n 118 |     private LoginUser mockLoginUser(HttpServletRequest request, String token, Integer userType) {\n 119 |         if (!securityProperties.getMockEnable()) {\n 120 |             return null;\n 121 |         }\n 122 |         // 必须以 mockSecret 开头\n 123 |         if (!token.startsWith(securityProperties.getMockSecret())) {\n 124 |             return null;\n 125 |         }\n 126 |         // 构建模拟用户\n 127 |         Long userId = Long.valueOf(token.substring(securityProperties.getMockSecret().length()));\n 128 |         return new LoginUser().setId(userId).setUserType(userType)\n 129 |                 .setTenantId(WebFrameworkUtils.getTenantId(request));\n 130 |     }\n 131 | \n 132 |     @SneakyThrows\n 133 |     private LoginUser buildLoginUserByHeader(HttpServletRequest request) {\n 134 |         String loginUserStr = request.getHeader(SecurityFrameworkUtils.LOGIN_USER_HEADER);\n 135 |         if (StrUtil.isEmpty(loginUserStr)) {\n 136 |             return null;\n 137 |         }\n 138 |         try {\n 139 |             loginUserStr = URLDecoder.decode(loginUserStr, StandardCharsets.UTF_8.name()); // 解码，解决中文乱码问题\n 140 |             Lo"
+    },
+    {
+      "n": 23,
+      "tool": "search_code",
+      "args": {
+        "pattern": "ExceptionHandler\\(",
+        "path_prefix": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/exception/RRExceptionHandler.java:32:\t@ExceptionHandler(RRException.class)\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/exception/RRExceptionHandler.java:41:\t@ExceptionHandler(NoHandlerFoundException.class)\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/exception/RRExceptionHandler.java:47:\t@ExceptionHandler(DuplicateKeyException.class)\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/exception/RRExceptionHandler.java:53:\t@ExceptionHandler(AuthorizationException.class)\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/exception/RRExceptionHandler.java:59:\t@ExceptionHandler(Exception.class)\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/exception/PassjavaExceptionControllerAdvice.java:23:    @ExceptionHandler(value= MethodArgumentNotValidException.class)\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/exception/PassjavaExceptionControllerAdvice.java:36:    @ExceptionHandler(value=Throwable.class)\nexamples/zlt-microservices-platform/zlt-gateway/sc-gateway/src/main/java/com/central/gateway/error/JsonErrorWebExceptionHandler.java:25:    public JsonErrorWebExceptionHandler(ErrorAttributes errorAttributes, WebProperties.Resources resourceProperties,\nexamples/zlt-microservices-platform/zlt-gateway/sc-gateway/src/main/java/com/central/gateway/error/CustomErrorWebFluxAutoConfiguration.java:42:    public ErrorWebExceptionHandler errorWebExceptionHandler(ErrorAttributes errorAttributes,\nexamples/zlt-microservices-platform/zlt-gateway/sc-gateway/src/main/java/com/central/gateway/error/CustomErrorWebFluxAutoConfiguration.java:45:        JsonErrorWebExceptionHandler exceptionHandler = new JsonErrorWebExceptionHandler(errorAttributes,\nexamples/zlt-microservices-platform/zlt-commons/zlt-common-core/src/main/java/com/central/common/excep"
+    },
+    {
+      "n": 24,
+      "tool": "search_code",
+      "args": {
+        "pattern": "LOGIN_USER_HEADER|getLoginUserType|ADMIN-API_PREFIX",
+        "path_prefix": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web"
+      },
+      "result": "examples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-protection/src/main/java/cn/iocoder/yudao/framework/idempotent/core/keyresolver/impl/UserIdempotentKeyResolver.java:24:        Integer userType = WebFrameworkUtils.getLoginUserType();\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-protection/src/main/java/cn/iocoder/yudao/framework/ratelimiter/core/keyresolver/impl/UserRateLimiterKeyResolver.java:24:        Integer userType = WebFrameworkUtils.getLoginUserType();\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/core/filter/ApiAccessLogFilter.java:114:                .setUserType(WebFrameworkUtils.getLoginUserType(request));\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/util/WebFrameworkUtils.java:105:    public static Integer getLoginUserType(HttpServletRequest request) {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/util/WebFrameworkUtils.java:124:    public static Integer getLoginUserType() {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/util/WebFrameworkUtils.java:126:        return getLoginUserType(request);\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java:345:        errorLog.setUserType(WebFrameworkUtils.getLoginUserType(request));\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/core/rpc/LoginUserRequestInterceptor.java:32:            requestTemplate.header(SecurityFrameworkUtils.LOGIN_USER_HEADER, userStr);\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/core/util/SecurityFrameworkUtils.java:31:    public stati"
+    },
+    {
+      "n": 25,
+      "tool": "search_code",
+      "args": {
+        "pattern": "log\\.(warn|error)",
+        "path_prefix": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler"
+      },
+      "result": "examples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/exception/PassjavaExceptionControllerAdvice.java:25:        //log.error(\"数据校验出现问题{}，异常类型：{}\", e.getMessage(), e.getClass());\nexamples/PassJava-Platform/passjava-question/src/main/java/com/jackson0714/passjava/question/exception/PassjavaExceptionControllerAdvice.java:38:        //log.error(\"未知异常{}，异常类型：{}\", throwable.getMessage(), throwable.getClass());\nexamples/PassJava-Platform/passjava-gateway/src/main/java/com/jackson0714/passjava/gateway/filter/JwtAuthCheckFilter.java:142:        log.error(\"[鉴权异常处理]请求路径:{}\", exchange.getRequest().getPath());\nexamples/zlt-microservices-platform/zlt-business/file-center/src/main/java/com/central/file/utils/FileUtil.java:46:\t\t\tlog.error(\"fileMd5-error\", e);\nexamples/zlt-microservices-platform/zlt-business/file-center/src/main/java/com/central/file/utils/FileUtil.java:63:\t\t\tlog.error(\"saveFile-error\", e);\nexamples/zlt-microservices-platform/zlt-business/search-center/search-client/src/main/java/com/central/search/client/feign/fallback/SearchServiceFallbackFactory.java:21:            log.error(\"通过索引{}搜索异常:{}\", indexName, throwable);\nexamples/zlt-microservices-platform/zlt-business/search-center/search-client/src/main/java/com/central/search/client/feign/fallback/AggregationServiceFallbackFactory.java:20:            log.error(\"通过索引{}搜索异常:{}\", indexName, throwable);\nexamples/zlt-microservices-platform/zlt-business/user-center/src/main/java/com/central/user/controller/SysMenuController.java:68:            log.error(\"memu-delete-error\", ex);\nexamples/zlt-microservices-platform/zlt-business/user-center/src/main/java/com/central/user/controller/SysMenuController.java:154:            log.error(\"memu-saveOrUpdate-error\", ex);\nexamples/zlt-microservices-platform/zlt-business/user-center/src/main/java/com/central/user/controller/SysRoleController.java:83:            log.error(\"role-deleteRole-error\", e);\nexamples/zlt-microservices-platform/zlt-gateway/"
+    },
+    {
+      "n": 26,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java",
+        "start": 1,
+        "end": 140
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java (L1-140, 共458行)\n   1 | package cn.iocoder.yudao.framework.web.core.handler;\n   2 | \n   3 | import cn.hutool.core.collection.CollUtil;\n   4 | import cn.hutool.core.exceptions.ExceptionUtil;\n   5 | import cn.hutool.core.map.MapUtil;\n   6 | import cn.hutool.core.util.ObjUtil;\n   7 | import cn.hutool.core.util.StrUtil;\n   8 | import cn.iocoder.yudao.framework.common.biz.infra.logger.ApiErrorLogCommonApi;\n   9 | import cn.iocoder.yudao.framework.common.biz.infra.logger.dto.ApiErrorLogCreateReqDTO;\n  10 | import cn.iocoder.yudao.framework.common.exception.ServiceException;\n  11 | import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;\n  12 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n  13 | import cn.iocoder.yudao.framework.common.util.collection.SetUtils;\n  14 | import cn.iocoder.yudao.framework.common.util.json.JsonUtils;\n  15 | import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;\n  16 | import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;\n  17 | import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;\n  18 | import com.fasterxml.jackson.databind.exc.InvalidFormatException;\n  19 | import com.google.common.util.concurrent.UncheckedExecutionException;\n  20 | import lombok.AllArgsConstructor;\n  21 | import lombok.extern.slf4j.Slf4j;\n  22 | import org.springframework.http.converter.HttpMessageNotReadableException;\n  23 | import org.springframework.security.access.AccessDeniedException;\n  24 | import org.springframework.util.Assert;\n  25 | import org.springframework.validation.BindException;\n  26 | import org.springframework.validation.FieldError;\n  27 | import org.springframework.validation.ObjectError;\n  28 | import org.springframework.web.HttpMediaTypeNotSupportedException;\n  29 | import org.springframework.web.HttpRequestMethodNotSupportedException;\n  3"
+    },
+    {
+      "n": 27,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java",
+        "start": 150,
+        "end": 300
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java (L150-300, 共458行)\n 150 |             List<ObjectError> allErrors = ex.getBindingResult().getAllErrors();\n 151 |             if (CollUtil.isNotEmpty(allErrors)) {\n 152 |                 errorMessage = allErrors.get(0).getDefaultMessage();\n 153 |             }\n 154 |         } else {\n 155 |             errorMessage = fieldError.getDefaultMessage();\n 156 |         }\n 157 |         // 转换 CommonResult\n 158 |         if (StrUtil.isEmpty(errorMessage)) {\n 159 |             return CommonResult.error(BAD_REQUEST);\n 160 |         }\n 161 |         return CommonResult.error(BAD_REQUEST.getCode(), String.format(\"请求参数不正确:%s\", errorMessage));\n 162 |     }\n 163 | \n 164 |     /**\n 165 |      * 处理 SpringMVC 参数绑定不正确，本质上也是通过 Validator 校验\n 166 |      */\n 167 |     @ExceptionHandler(BindException.class)\n 168 |     public CommonResult<?> bindExceptionHandler(BindException ex) {\n 169 |         log.warn(\"[handleBindException]\", ex);\n 170 |         FieldError fieldError = ex.getFieldError();\n 171 |         assert fieldError != null; // 断言，避免告警\n 172 |         return CommonResult.error(BAD_REQUEST.getCode(), String.format(\"请求参数不正确:%s\", fieldError.getDefaultMessage()));\n 173 |     }\n 174 | \n 175 |     /**\n 176 |      * 处理 SpringMVC 请求参数类型错误\n 177 |      *\n 178 |      * 例如说，接口上设置了 @RequestBody 实体中 xx 属性类型为 Integer，结果传递 xx 参数类型为 String\n 179 |      */\n 180 |     @ExceptionHandler(HttpMessageNotReadableException.class)\n 181 |     @SuppressWarnings(\"PatternVariableCanBeUsed\")\n 182 |     public CommonResult<?> methodArgumentTypeInvalidFormatExceptionHandler(HttpMessageNotReadableException ex) {\n 183 |         log.warn(\"[methodArgumentTypeInvalidFormatExceptionHandler]\", ex);\n 184 |         if (ex.getCause() instanceof InvalidFormatException) {\n 185 |             InvalidFormatException invalidFormatException = (InvalidFormatException) ex.getCause();\n 186 |     "
+    },
+    {
+      "n": 28,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-common/src/main/java/cn/iocoder/yudao/framework/common/biz/infra/logger/ApiAccessLogCommonApi.java",
+        "start": 1,
+        "end": 40
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-common/src/main/java/cn/iocoder/yudao/framework/common/biz/infra/logger/ApiAccessLogCommonApi.java (L1-35, 共35行)\n   1 | package cn.iocoder.yudao.framework.common.biz.infra.logger;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.biz.infra.logger.dto.ApiAccessLogCreateReqDTO;\n   4 | import cn.iocoder.yudao.framework.common.enums.RpcConstants;\n   5 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   6 | import io.swagger.v3.oas.annotations.Operation;\n   7 | import io.swagger.v3.oas.annotations.tags.Tag;\n   8 | import org.springframework.cloud.openfeign.FeignClient;\n   9 | import org.springframework.scheduling.annotation.Async;\n  10 | import org.springframework.web.bind.annotation.PostMapping;\n  11 | import org.springframework.web.bind.annotation.RequestBody;\n  12 | \n  13 | import javax.validation.Valid;\n  14 | \n  15 | @FeignClient(name = RpcConstants.INFRA_NAME) // TODO 芋艿：fallbackFactory =\n  16 | @Tag(name = \"RPC 服务 - API 访问日志\")\n  17 | public interface ApiAccessLogCommonApi {\n  18 | \n  19 |     String PREFIX = RpcConstants.INFRA_PREFIX + \"/api-access-log\";\n  20 | \n  21 |     @PostMapping(PREFIX + \"/create\")\n  22 |     @Operation(summary = \"创建 API 访问日志\")\n  23 |     CommonResult<Boolean> createApiAccessLog(@Valid @RequestBody ApiAccessLogCreateReqDTO createDTO);\n  24 | \n  25 |     /**\n  26 |      * 【异步】创建 API 访问日志\n  27 |      *\n  28 |      * @param createDTO 访问日志 DTO\n  29 |      */\n  30 |     @Async\n  31 |     default void createApiAccessLogAsync(ApiAccessLogCreateReqDTO createDTO) {\n  32 |         createApiAccessLog(createDTO).checkError();\n  33 |     }\n  34 | \n  35 | }"
+    },
+    {
+      "n": 29,
+      "tool": "search_code",
+      "args": {
+        "pattern": "implements ApiAccessLogCommonApi",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/yudao-cloud/yudao-module-infra/yudao-module-infra-server/src/main/java/cn/iocoder/yudao/module/infra/api/logger/ApiAccessLogApiImpl.java:16:public class ApiAccessLogApiImpl implements ApiAccessLogCommonApi {\nexamples/yudao-cloud/yudao-module-infra/yudao-module-infra-server/src/main/java/cn/iocoder/yudao/module/infra/api/logger/ApiAccessLogApiImpl.java:16:public class ApiAccessLogApiImpl implements ApiAccessLogCommonApi {\n"
+    },
+    {
+      "n": 30,
+      "tool": "search_code",
+      "args": {
+        "pattern": "@EnableAsync",
+        "path_prefix": "yudao-cloud/yudao-framework"
+      },
+      "result": "examples/zlt-microservices-platform/zlt-commons/zlt-common-core/src/main/java/com/central/common/config/DefaultAsycTaskConfig.java:20:@EnableAsync(proxyTargetClass = true)\nexamples/gulimall-learning/gulimall-seckill/src/main/java/io/niceseason/gulimall/seckill/config/ScheduledConfig.java:7:@EnableAsync //开启对异步的支持，防止定时任务之间相互阻塞\nexamples/gulimall-learning/gulimall-seckill/src/main/java/io/niceseason/gulimall/seckill/schedule/HelloSchedule.java:11://@EnableAsync\nexamples/MoGuBlog/mogu_web/src/main/java/com/moxi/mogublog/web/WebApplication.java:21:@EnableAsync\nexamples/RuoYi-Cloud/ruoyi-common/ruoyi-common-security/src/main/java/com/ruoyi/common/security/annotation/EnableCustomConfig.java:25:@EnableAsync\nexamples/pig/pig-visual/pig-quartz/src/main/java/com/pig4cloud/pig/daemon/quartz/config/PigQuartzConfig.java:49:@EnableAsync\nexamples/pig/pig-common/pig-common-log/src/main/java/com/pig4cloud/pig/common/log/LogAutoConfiguration.java:41:@EnableAsync\nexamples/paascloud-master/paascloud-common/paascloud-common-core/src/main/java/com/paascloud/core/config/AsyncTaskExecutorConfiguration.java:35:@EnableAsync\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-core/src/main/java/org/dromara/common/core/config/ApplicationConfig.java:14:@EnableAsync(proxyTargetClass = true)\nexamples/Cloud-Platform/ace-modules/ace-admin/src/main/java/com/github/wxiaoqi/security/AdminBootstrap.java:26:@EnableAsync\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-job/src/main/java/cn/iocoder/yudao/framework/quartz/config/YudaoAsyncAutoConfiguration.java:16:@EnableAsync\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-job/src/main/java/cn/iocoder/yudao/framework/quartz/config/YudaoAsyncAutoConfiguration.java:16:@EnableAsync\n"
+    },
+    {
+      "n": 31,
+      "tool": "search_code",
+      "args": {
+        "pattern": "yudao:",
+        "path_prefix": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/resources"
+      },
+      "result": "无匹配: yudao:"
+    },
+    {
+      "n": 32,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-job/src/main/java/cn/iocoder/yudao/framework/quartz/config/YudaoAsyncAutoConfiguration.java",
+        "start": 1,
+        "end": 60
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-job/src/main/java/cn/iocoder/yudao/framework/quartz/config/YudaoAsyncAutoConfiguration.java (L1-45, 共45行)\n   1 | package cn.iocoder.yudao.framework.quartz.config;\n   2 | \n   3 | import com.alibaba.ttl.TtlRunnable;\n   4 | import org.springframework.beans.BeansException;\n   5 | import org.springframework.beans.factory.config.BeanPostProcessor;\n   6 | import org.springframework.boot.autoconfigure.AutoConfiguration;\n   7 | import org.springframework.context.annotation.Bean;\n   8 | import org.springframework.scheduling.annotation.EnableAsync;\n   9 | import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;\n  10 | import org.springframework.core.task.SimpleAsyncTaskExecutor;\n  11 | \n  12 | /**\n  13 |  * 异步任务 Configuration\n  14 |  */\n  15 | @AutoConfiguration\n  16 | @EnableAsync\n  17 | public class YudaoAsyncAutoConfiguration {\n  18 | \n  19 |     @Bean\n  20 |     public BeanPostProcessor threadPoolTaskExecutorBeanPostProcessor() {\n  21 |         return new BeanPostProcessor() {\n  22 | \n  23 |             @Override\n  24 |             @SuppressWarnings(\"PatternVariableCanBeUsed\")\n  25 |             public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {\n  26 |                 // 处理 ThreadPoolTaskExecutor\n  27 |                 if (bean instanceof ThreadPoolTaskExecutor) {\n  28 |                     ThreadPoolTaskExecutor executor = (ThreadPoolTaskExecutor) bean;\n  29 |                     executor.setTaskDecorator(TtlRunnable::get);\n  30 |                     return executor;\n  31 |                 }\n  32 |                 // 处理 SimpleAsyncTaskExecutor\n  33 |                 // 参考 https://t.zsxq.com/CBoks 增加\n  34 |                 if (bean instanceof SimpleAsyncTaskExecutor) {\n  35 |                     SimpleAsyncTaskExecutor executor = (SimpleAsyncTaskExecutor) bean;\n  36 |                     executor.setTaskDecorator(TtlRunnable::get);\n  37 |                  "
+    },
+    {
+      "n": 33,
+      "tool": "search_code",
+      "args": {
+        "pattern": "access-log|xss",
+        "path_prefix": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/resources"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:40:    public FilterRegistrationBean xssFilterRegistration() {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:45:        registration.setName(\"xssFilter\");\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:1:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:37: * source, and our contact details, can be found at http://xss-html-filter.sf.net\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/SQLFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:28:\t\tXssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:30:\t\tchain.doFilter(xssRequest, response);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:54:        //xss过滤\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:55:        json = xssEncode(json);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:82:        String value = super.getParameter(xssEncode(name));\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:84:            value = xssEncode(value);\nexamples/PassJ"
+    },
+    {
+      "n": 34,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-yudao-cloud-pay-server",
+        "tail": 30
+      },
+      "result": "\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)\n\tat cn.iocoder.yudao.framework.env.core.web.EnvWebFilter.doFilterInternal(EnvWebFilter.java:28)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)\n\tat org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)\n\tat org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)\n\tat org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)\n\tat org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)\n\tat org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)\n\tat org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)\n\tat org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)\n\tat org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)\n\tat org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:342)\n\tat org.apache.coyote.http11.Http11Processor."
+    },
+    {
+      "n": 35,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, wallet_id, pay_status, refund_status, tenant_id FROM pay_wallet_recharge ORDER BY id DESC LIMIT 5"
+      },
+      "result": "id\twallet_id\tpay_status\trefund_status\ttenant_id\n22\t1\t\u0001\t0\t1\n21\t1\t\u0001\t0\t1\n20\t1\t\u0001\t0\t1\n10\t1\t\\0\tNULL\t1\n1\t1\t\u0001\tNULL\t1"
+    },
+    {
+      "n": 36,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/util/WebFrameworkUtils.java",
+        "start": 95,
+        "end": 130
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/util/WebFrameworkUtils.java (L95-130, 共183行)\n  95 |         return (Long) request.getAttribute(REQUEST_ATTRIBUTE_LOGIN_USER_ID);\n  96 |     }\n  97 | \n  98 |     /**\n  99 |      * 获得当前用户的类型\n 100 |      * 注意：该方法仅限于 web 相关的 framework 组件使用！！！\n 101 |      *\n 102 |      * @param request 请求\n 103 |      * @return 用户编号\n 104 |      */\n 105 |     public static Integer getLoginUserType(HttpServletRequest request) {\n 106 |         if (request == null) {\n 107 |             return null;\n 108 |         }\n 109 |         // 1. 优先，从 Attribute 中获取\n 110 |         Integer userType = (Integer) request.getAttribute(REQUEST_ATTRIBUTE_LOGIN_USER_TYPE);\n 111 |         if (userType != null) {\n 112 |             return userType;\n 113 |         }\n 114 |         // 2. 其次，基于 URL 前缀的约定\n 115 |         if (request.getServletPath().startsWith(properties.getAdminApi().getPrefix())) {\n 116 |             return UserTypeEnum.ADMIN.getValue();\n 117 |         }\n 118 |         if (request.getServletPath().startsWith(properties.getAppApi().getPrefix())) {\n 119 |             return UserTypeEnum.MEMBER.getValue();\n 120 |         }\n 121 |         return null;\n 122 |     }\n 123 | \n 124 |     public static Integer getLoginUserType() {\n 125 |         HttpServletRequest request = getRequest();\n 126 |         return getLoginUserType(request);\n 127 |     }\n 128 | \n 129 |     public static Long getLoginUserId() {\n 130 |         HttpServletRequest request = getRequest();"
+    },
+    {
+      "n": 37,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class TenantDatabaseInterceptor|getTenantId\\(\\)",
+        "path_prefix": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-biz-tenant"
+      },
+      "result": "examples/zlt-microservices-platform/zlt-commons/zlt-db-spring-boot-starter/src/main/java/com/central/db/config/TenantAutoConfigure.java:31:            public Expression getTenantId() {\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/controller/TenantController.java:135:\t\t\tkv.set(\"tenantId\", tenant.getTenantId()).set(\"domain\", tenant.getDomain());\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/service/impl/TenantServiceImpl.java:167:\t\t\tqueryWrapper.lambda().eq(Tenant::getTenantId, SecureUtil.getTenantId());\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/service/impl/UserServiceImpl.java:75:\t\tif (Func.isEmpty(user.getTenantId())) {\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/service/impl/UserServiceImpl.java:105:\t\t\t\t.eq(User::getTenantId, user.getTenantId())\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/service/impl/UserServiceImpl.java:124:\t\tuserList.forEach(user -> bladeRedis.del(CacheNames.tenantKey(user.getTenantId(), CacheNames.USER_FAIL_KEY, user.getAccount())));\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/service/impl/UserServiceImpl.java:154:\t\t\tqueryWrapper.lambda().eq(User::getTenantId, SecureUtil.getTenantId());\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/service/impl/UserServiceImpl.java:251:\t\tString currentTenantId = SecureUtil.getTenantId();\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/service/impl/UserServiceImpl.java:283:\t\t\tqueryWrapper.lambda().eq(User::getTenantId, SecureUtil.getTenantId());\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/system/service/impl/UserServiceImpl.java:301:\t\tif (Func.isNotEmpty(userOauth.getTenantId())) {\nexamples/SpringBlade/blade-service/blade-system/src/main/java/org/springblade/syst"
+    },
+    {
+      "n": 38,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:9213/admin-api/pay/wallet-recharge/refund?id=999999",
+        "headers_json": "{\"login-user\": \"%7B%22id%22%3A1%2C%22userType%22%3A2%2C%22tenantId%22%3A1%7D\", \"tenant-id\": \"1\"}",
+        "body": ""
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":1007008000,\"msg\":\"钱包充值记录不存在\",\"data\":null}"
+    },
+    {
+      "n": 39,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-yudao-cloud-pay-server",
+        "tail": 80
+      },
+      "result": "\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)\n\tat org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)\n\tat org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)\n\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)\n\tat org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)\n\tat org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)\n\tat org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)\n\tat org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)\n\tat org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)\n\tat org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)\n\tat org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:342)\n\tat org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)\n\tat org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)\n\tat org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:928)\n\tat org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java"
+    },
+    {
+      "n": 40,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:9213/admin-api/pay/wallet-recharge/refund?id=999999&marker=%3C%3CSINK_REACHED%3E%3E",
+        "headers_json": "{\"login-user\": \"%7B%22id%22%3A1%2C%22userType%22%3A2%2C%22tenantId%22%3A1%7D\", \"tenant-id\": \"1\"}",
+        "body": ""
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":1007008000,\"msg\":\"钱包充值记录不存在\",\"data\":null}"
+    }
+  ],
+  "final_text": "budget_exceeded"
+}

@@ -133,6 +133,7 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | wallet_recharge_refund_not_found | PayWalletRechargeServiceImpl L267「退款单不存在」 | v1 | ✅ PASS | 24/541.2s |
 | wallet_recharge_refund_price_mismatch | PayWalletRechargeServiceImpl L272「退款金额不匹配」 | v1 | ✅ PASS | 23/867.7s |
 | wallet_recharge_refund_order_mismatch | PayWalletRechargeServiceImpl L278「商户退款单不匹配」 | v1 | ✅ PASS | 15/622.5s |
+| wallet_recharge_refund_record_not_found | PayWalletRechargeServiceImpl L197「钱包充值记录不存在」 | v1 | ✅ PASS | 40/1186.9s |
 | demo_withdraw_duplicate_notify | PayDemoWithdrawServiceImpl L143 同款幂等 | v1 | ✅ PASS | 40/409s |
 | demo_withdraw_not_found | PayDemoWithdrawServiceImpl L135「不存在提现单」 | v1 | ✅ PASS | 9/228.4s |
 | demo_withdraw_mismatch | PayDemoWithdrawServiceImpl L147「转账单不匹配」 | v1 | ✅ PASS | 27/593.7s |
