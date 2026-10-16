@@ -869,6 +869,20 @@ SINK_TASKS = {
         "container": "trace-real-yudao-cloud-pay-server",
         "log_match": "WalletPayClient:123",
     },
+    "yudao_pay_order_submit_extension_already_paid": {
+        "sink": "PayOrderServiceImpl.validateOrderCanSubmit 中的 "
+                "log.warn(\"[validateOrderCanSubmit][order({}) 的 extension({}) 已支付，可能是数据不一致]\", id, orderExtension.getId()) "
+                "(L220, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java)。"
+                "触发条件: 提交支付订单时, 待支付订单关联的支付拓展单在数据库中已处于已支付(status=10)状态, 触发拓展单已支付分支打印告警日志。",
+        "api": "POST http://localhost:9213/app-api/pay/order/submit "
+               "(body: {\"id\":510,\"channelCode\":\"mock\"}, 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_order 表 (已预置 id=510, status=0 的待支付订单) 与 pay_order_extension 表 (已预置 order_id=510, status=10 的拓展单)。"
+               "请直接向 pay-server 发送 POST /app-api/pay/order/submit 请求, 无需登录认证。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayOrderServiceImpl:220",
+    },
     "yudao_pay_wallet_recharge_duplicate_notify": {
         "sink": "PayWalletRechargeServiceImpl.updateWalletRechargerPaid 中的 "
                 "log.warn(\"[updateWalletRechargerPaid][recharge({}) 已支付，且支付单号相同({})，直接返回]\", recharge, payOrderId) "

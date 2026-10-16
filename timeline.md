@@ -69,6 +69,7 @@
 - ✅ `yudao_pay_demo_order_refund_order_mismatch` — PayDemoOrderServiceImpl L261（27 调用/790.3s, v1 PASS; 构造 update-refunded 回调传入商户退款单号不匹配的退款单 id 触发退款单不匹配二次校验分支命中目标日志）
 - ✅ `yudao_pay_order_create_order_exists` — PayOrderServiceImpl L124（13 调用/269.8s, v1 PASS; 调用 RPC createOrder 接口传入已存在的商户订单号触发重复支付单分支命中目标日志）
 - ✅ `yudao_pay_wallet_client_order_status_invalid` — WalletPayClient L123（40 调用/1297.0s, v1 PASS; 构造 app-api get order 并设置 sync=true 触发未支付状态同步异常分支命中目标日志）
+- ✅ `yudao_pay_order_submit_extension_already_paid` — PayOrderServiceImpl L220（17 调用/404.7s, v1 PASS; 构造 app-api submit order 且对应拓展单已为支付成功状态触发拓展单已支付告警分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_duplicate_notify` — PayWalletRechargeServiceImpl L131（30 调用/378.2s）
 - ✅ `yudao_pay_wallet_recharge_paid_mismatch` — PayWalletRechargeServiceImpl L135（16 调用/735.3s, v1 PASS; 构造 update-paid 回调传入不同 payOrderId 触发支付单号不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_not_found` — PayWalletRechargeServiceImpl L124（29 调用/524.9s, v1 PASS; 构造 update-paid 回调传入不存在的充值单 id 触发充值单不存在分支命中目标日志）
