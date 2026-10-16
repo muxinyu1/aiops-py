@@ -786,6 +786,146 @@ SINK_TASKS = {
         # 用目标日志前缀精确判定。
         "log_match": "[updateWalletRechargerPaid][recharge(",
     },
+    "yudao_pay_wallet_recharge_paid_mismatch": {
+        "sink": "PayWalletRechargeServiceImpl.updateWalletRechargerPaid 中的 "
+                "log.error(\"[updateWalletRechargerPaid][recharge({}) 已支付，但是支付单号不同({})，请进行处理！]\", recharge, payOrderId) "
+                "(L135, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值回调更新时, 充值单 pay_status=已支付 且请求的 payOrderId 与库中记录不同 (支付单号不匹配异常分支)。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-paid "
+               "(body: {\"merchantOrderId\":\"1\",\"payOrderId\":999999}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 pay_status=1, pay_order_id=60001 的充值单 id=1)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-paid 回调, 无需探索其他服务或从头创建充值单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        # 日志参数是 recharge 对象与 payOrderId (数值), 用类与行号特异匹配。
+        "log_match": "PayWalletRechargeServiceImpl:135",
+    },
+    "yudao_pay_wallet_recharge_not_found": {
+        "sink": "PayWalletRechargeServiceImpl.updateWalletRechargerPaid 中的 "
+                "log.error(\"[updateWalletRechargerPaid][recharge({}) payOrder({}) 不存在充值订单，请进行处理！]\", id, payOrderId) "
+                "(L124, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值回调更新时, 请求的充值单 id 在 pay_wallet_recharge 表中不存在。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-paid "
+               "(body: {\"merchantOrderId\":\"999999\",\"payOrderId\":1}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayWalletRechargeServiceImpl:124",
+    },
+    "yudao_pay_wallet_recharge_order_not_found": {
+        "sink": "PayWalletRechargeServiceImpl.validatePayOrderPaid 中的 "
+                "log.error(\"[validatePayOrderPaid][充值订单({}) payOrder({}) 不存在，请进行处理！]\", recharge.getId(), payOrderId) "
+                "(L315, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值回调更新时, 充值单处于待支付状态(pay_status=0), 校验支付订单时发现 payOrderId 在 pay_order 表中不存在。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-paid "
+               "(body: {\"merchantOrderId\":\"10\",\"payOrderId\":999999}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 pay_status=0 的待支付充值单 id=10)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-paid 回调, 无需探索其他服务或从头创建充值单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayWalletRechargeServiceImpl:315",
+    },
+    "yudao_pay_wallet_recharge_order_status_not_success": {
+        "sink": "PayWalletRechargeServiceImpl.validatePayOrderPaid 中的 "
+                "log.error(\"[validatePayOrderPaid][充值订单({}) payOrder({}) 未支付，请进行处理！payOrder 数据是：{}]\", recharge.getId(), payOrderId, ...) "
+                "(L322, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值回调更新时, 充值单处于待支付状态(pay_status=0), 校验支付订单时发现关联的 pay_order 状态不是支付成功 (如 status=0 未支付)。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-paid "
+               "(body: {\"merchantOrderId\":\"10\",\"payOrderId\":500}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 id=10) 与 pay_order 表 (已预置 status=0 的未支付单 id=500)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-paid 回调, 无需探索其他服务或从头创建充值单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayWalletRechargeServiceImpl:322",
+    },
+    "yudao_pay_wallet_recharge_order_price_mismatch": {
+        "sink": "PayWalletRechargeServiceImpl.validatePayOrderPaid 中的 "
+                "log.error(\"[validatePayOrderPaid][充值订单({}) payOrder({}) 支付金额不匹配，请进行处理！钱包 数据是：{}，payOrder 数据是：{}]\", ...) "
+                "(L328, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值回调更新时, 充值单处于待支付状态(pay_status=0, pay_price=100), 校验发现关联支付单金额不匹配 (如 pay_order 中 price=200)。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-paid "
+               "(body: {\"merchantOrderId\":\"10\",\"payOrderId\":501}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 id=10, pay_price=100) 与 pay_order 表 (已预置 status=10, price=200 的支付单 id=501)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-paid 回调, 无需探索其他服务或从头创建充值单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayWalletRechargeServiceImpl:328",
+    },
+    "yudao_pay_wallet_recharge_order_merchant_order_id_mismatch": {
+        "sink": "PayWalletRechargeServiceImpl.validatePayOrderPaid 中的 "
+                "log.error(\"[validatePayOrderPaid][充值订单({}) 支付单不匹配({})，请进行处理！payOrder 数据是：{}]\", recharge.getId(), payOrderId, ...) "
+                "(L334, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值回调更新时, 充值单处于待支付状态(pay_status=0, id=10), 校验发现关联支付单的 merchantOrderId 与充值单 id 不一致 (如 merchant_order_id='999')。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-paid "
+               "(body: {\"merchantOrderId\":\"10\",\"payOrderId\":502}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 id=10) 与 pay_order 表 (已预置 status=10, price=100, merchant_order_id='999' 的支付单 id=502)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-paid 回调, 无需探索其他服务或从头创建充值单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayWalletRechargeServiceImpl:334",
+    },
+    "yudao_pay_wallet_recharge_refund_id_mismatch": {
+        "sink": "PayWalletRechargeServiceImpl.validateWalletRechargeCanRefunded 中的 "
+                "log.error(\"[validateWalletRechargeCanRefunded][钱包充值({}) 退款单不匹配({})，请进行处理！钱包充值的数据是：{}]\", ...) "
+                "(L259, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值退款回调时, 充值单记录的 payRefundId 与回调请求中的 payRefundId 不匹配。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-refunded "
+               "(body: {\"merchantOrderId\":\"20\",\"merchantRefundId\":\"20-refund\",\"payRefundId\":888888}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 id=20, pay_refund_id=999999)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-refunded 回调, 无需探索其他服务或从头创建充值单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayWalletRechargeServiceImpl:259",
+    },
+    "yudao_pay_wallet_recharge_refund_not_found": {
+        "sink": "PayWalletRechargeServiceImpl.validateWalletRechargeCanRefunded 中的 "
+                "log.error(\"[validateWalletRechargeCanRefunded][payRefund({})不存在]\", payRefundId) "
+                "(L267, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值退款回调时, 请求中的 payRefundId 在 pay_refund 表中不存在。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-refunded "
+               "(body: {\"merchantOrderId\":\"20\",\"merchantRefundId\":\"20-refund\",\"payRefundId\":999999}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 id=20, pay_refund_id=999999)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-refunded 回调, 无需探索其他服务或从头创建充值单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayWalletRechargeServiceImpl:267",
+    },
+    "yudao_pay_wallet_recharge_refund_price_mismatch": {
+        "sink": "PayWalletRechargeServiceImpl.validateWalletRechargeCanRefunded 中的 "
+                "log.error(\"[validateWalletRechargeCanRefunded][钱包({}) payRefund({}) 退款金额不匹配，请进行处理！钱包数据是：{}，payRefund 数据是：{}]\", ...) "
+                "(L272, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值退款回调时, 退款单金额与充值单支付金额不一致 (如 pay_refund 中 refund_price=200, pay_price=100)。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-refunded "
+               "(body: {\"merchantOrderId\":\"21\",\"merchantRefundId\":\"21-refund\",\"payRefundId\":601}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 id=21, pay_price=100, pay_refund_id=601) 与 pay_refund 表 (已预置 refund_price=200 的 id=601)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-refunded 回调, 无需探索其他服务或从头创建充值单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayWalletRechargeServiceImpl:272",
+    },
+    "yudao_pay_wallet_recharge_refund_order_mismatch": {
+        "sink": "PayWalletRechargeServiceImpl.validateWalletRechargeCanRefunded 中的 "
+                "log.error(\"[validateWalletRechargeCanRefunded][钱包({}) 退款单不匹配({})，请进行处理！payRefund 数据是：{}]\", ...) "
+                "(L278, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java)。"
+                "触发条件: 钱包充值退款回调时, 退款单关联的商户退款单号与充值单期望的不一致 (如 pay_refund 中 merchant_refund_id='999', 期望 '22-refund')。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-refunded "
+               "(body: {\"merchantOrderId\":\"22\",\"merchantRefundId\":\"22-refund\",\"payRefundId\":602}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 id=22, pay_refund_id=602) 与 pay_refund 表 (已预置 merchant_refund_id='999' 的 id=602)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-refunded 回调, 无需探索其他服务或从头创建充值单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayWalletRechargeServiceImpl:278",
+    },
     "yudao_pay_demo_withdraw_duplicate_notify": {
         "sink": "PayDemoWithdrawServiceImpl.updateDemoWithdrawTransferred 中的 "
                 "log.warn(\"[updateDemoWithdrawStatus][withdraw({}) 已结束，且转账单编号相同({})，直接返回]\", withdraw, payTransferId) "
