@@ -128,8 +128,9 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | mall_brokerage_withdraw_duplicate_notify | BrokerageWithdrawServiceImpl L248「已结束,转账单号相同」 | v1 | ✅ PASS | 33/960s |
 | mall_trade_order_paid_duplicate_notify | TradeOrderUpdateServiceImpl L292「已支付,支付单号相同」 | v1 | ✅ PASS | 60/1741s |
 | mall_trade_order_mismatch | TradeOrderUpdateServiceImpl L295「支付单不匹配」 | v1 | ✅ PASS | 35/373.3s |
+| mall_trade_order_pay_order_not_found | TradeOrderUpdateServiceImpl L347「不存在，请进行处理！」 | v1 | ✅ PASS | 36/624.5s |
 
-**幂等/重复回调与异常分支日志模式累计 6/6 全命中** (pay 3 + mall 3) — db_state 池中最高价值模式。
+**幂等/重复回调与异常分支日志模式累计 7/7 全命中** (pay 3 + mall 4) — db_state 池中最高价值模式。
 
 ### 9.3 harness/工具层修复 (同"公平性"口径)
 

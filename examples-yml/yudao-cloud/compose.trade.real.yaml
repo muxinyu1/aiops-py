@@ -2,7 +2,7 @@ name: trace-real-yudao-cloud-trade-server
 include:
   - ../_shared/real-deps.compose.yaml
 services:
-  app:
+  trade:
     image: crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/yudao-cloud-yudao-module-trade-server:latest
     container_name: trace-real-yudao-cloud-trade-server
     network_mode: host
@@ -10,6 +10,8 @@ services:
     env_file:
       - ../common-real.env
     environment:
+      SPRING_CLOUD_DISCOVERY_ENABLED: "true"
+      SPRING_CLOUD_SERVICE_REGISTRY_AUTO_REGISTRATION_ENABLED: "true"
       JAVA_TOOL_OPTIONS: "-Xms512m -Xmx1200m -XX:MaxMetaspaceSize=256m -Djava.io.tmpdir=/tmp -javaagent:/opt/trace-agent.jar=packages=cn.iocoder.yudao"
       OTEL_SERVICE_NAME: yudao-cloud-yudao-module-trade-server
       TRACE_SMOKE_MODE: "false"
@@ -21,12 +23,16 @@ services:
       - --spring.config.location=optional:file:/tmp/trace-validation.yml
       - --spring.cloud.bootstrap.enabled=false
       - --spring.cloud.nacos.config.enabled=false
-      - --spring.cloud.nacos.discovery.enabled=false
+      - --spring.cloud.nacos.discovery.enabled=true
+      - --spring.cloud.nacos.discovery.server-addr=127.0.0.1:8848
+      - --spring.cloud.nacos.discovery.username=nacos
+      - --spring.cloud.nacos.discovery.password=nacos
+      - --spring.cloud.nacos.discovery.namespace=dev
       - --spring.cloud.nacos.config.import-check.enabled=false
       - --spring.cloud.config.enabled=false
       - --spring.cloud.config.import-check.enabled=false
-      - --spring.cloud.discovery.enabled=false
-      - --spring.cloud.service-registry.auto-registration.enabled=false
+      - --spring.cloud.discovery.enabled=true
+      - --spring.cloud.service-registry.auto-registration.enabled=true
       - --eureka.client.enabled=false
       - --seata.enabled=false
       - --spring.main.allow-bean-definition-overriding=true
@@ -68,6 +74,8 @@ services:
       - --yudao.trade.order.status-sync-to-wxa-enable=false
       - --spring.aop.auto=true
       - --spring.aop.proxy-target-class=true
+      - --feign.client.config.pay-server.url=http://127.0.0.1:9213
+      - --spring.cloud.discovery.client.simple.instances.pay-server[0].uri=http://127.0.0.1:9213
     tmpfs:
       - /tmp
     volumes:

@@ -840,6 +840,21 @@ SINK_TASKS = {
         # 日志参数是数值与 JSON 字符串, 用目标日志中的特异关键词判定。
         "log_match": "支付单不匹配",
     },
+    "yudao_mall_trade_order_pay_order_not_found": {
+        "sink": "TradeOrderUpdateServiceImpl.validatePayOrderPaid 中的 "
+                "log.error(\"[validatePayOrderPaid][order({}) payOrder({}) 不存在，请进行处理！]\", order.getId(), payOrderId) "
+                "(L347, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/order/TradeOrderUpdateServiceImpl.java)。"
+                "触发条件: 交易订单支付回调时, 订单处于待支付状态, 校验支付订单时发现 payOrderId 在支付模块中不存在 (支付单不存在异常分支)。",
+        "api": "POST http://localhost:9212/app-api/trade/order/update-paid "
+               "(body: {\"merchantOrderId\":\"<订单id>\",\"payOrderId\":\"<不存在的支付单id>\"}, @PermitAll 免登录; 注意是 app-api 前缀)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "关联服务: trace-real-yudao-cloud-pay-server (端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 trade_order 表 (已预置 status=0, pay_status=0 的待支付订单)。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值，用目标日志中的特异关键词判定。
+        "log_match": "不存在，请进行处理！",
+    },
     # ── small-swarm (mall-swarm mall-demo, 9215) ──
     "small_swarm_brand_create": {
         "sink": "DemoController.createBrand 中的 "
