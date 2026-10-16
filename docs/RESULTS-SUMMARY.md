@@ -135,6 +135,7 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | mall_trade_after_sale_refund_status_not_success | AfterSaleServiceImpl L435「无退款结果」 | v1 | ✅ PASS | 40/735.8s |
 | mall_trade_after_sale_refund_id_mismatch | AfterSaleServiceImpl L447「退款单不匹配」 | v1 | ✅ PASS | 22/961.1s |
 | mall_brokerage_transfer_status_not_success_or_closed | BrokerageWithdrawServiceImpl L279「转账单未结束」 | v1 | ✅ PASS | 40/1593.4s |
+| mall_brokerage_transfer_price_mismatch | BrokerageWithdrawServiceImpl L286「转账金额不匹配」 | v1 | ✅ PASS | 40/1194.1s |
 | mall_trade_after_sale_refund_price_mismatch | AfterSaleServiceImpl L441「退款金额不匹配」 | v1 | ⚠️ 预算耗尽 (curl 验证真实可达) | 40/894.0s |
 | mall_trade_order_merchant_order_id_mismatch | TradeOrderUpdateServiceImpl L365「支付单不匹配二次校验」 | v1/v2/v3 | ⚠️ 预算耗尽 (curl 验证真实可达) | 40/— |
 | mall_brokerage_withdraw_mismatch | BrokerageWithdrawServiceImpl L252「转账单不匹配」 | v1 | ⚠️ 预算耗尽 (curl 验证真实可达) | 40/977.7s |
