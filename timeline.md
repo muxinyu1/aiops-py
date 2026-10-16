@@ -80,10 +80,12 @@
 - ✅ `yudao_pay_wallet_recharge_refund_price_mismatch` — PayWalletRechargeServiceImpl L272（23 调用/867.7s, v1 PASS; 构造 update-refunded 回调传入金额不匹配的退款单 id 触发退款金额不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_refund_order_mismatch` — PayWalletRechargeServiceImpl L278（15 调用/622.5s, v1 PASS; 构造 update-refunded 回调传入商户退款单号不匹配的退款单 id 触发退款单不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_refund_record_not_found` — PayWalletRechargeServiceImpl L197（40 调用/1186.9s, v1 PASS; 调用 refund 接口传入不存在的充值记录 id 触发充值记录不存在分支命中目标日志）
+- ✅ `yudao_pay_wallet_recharge_update_refund_not_found` — PayWalletRechargeServiceImpl L227（16 调用/331.5s, v1 PASS; 构造 update-refunded 回调传入不存在的充值记录 id 触发充值记录不存在分支命中目标日志）
 - ✅ `yudao_pay_demo_withdraw_duplicate_notify` — PayDemoWithdrawServiceImpl L143（40 调用/408.6s）
 - ✅ `yudao_pay_demo_withdraw_not_found` — PayDemoWithdrawServiceImpl L135（9 调用/228.4s, v1 PASS; 构造 update-transferred 回调传入不存在的提现单 id 触发提现单不存在分支命中目标日志）
 - ✅ `yudao_pay_demo_withdraw_mismatch` — PayDemoWithdrawServiceImpl L147（27 调用/593.7s, v1 PASS; 构造 update-transferred 回调传入不匹配的 payTransferId 触发转账单不匹配分支命中目标日志）
-- ⛔ "找不到支付客户端"家族 ×5 — L75/L97/L119/L227/L246 静态不可达（validPayChannel 先抛异常）
+- ⛔ "找不到支付客户端"家族 ×8 — PayNotifyController L75/L97/L119 + PayOrderServiceImpl L227/L246 + PayRefundServiceImpl L102 + PayTransferServiceImpl L73/L312 静态不可达（validPayChannel 先抛异常，防御性死代码）
+- ⛔ "用户钱包不存在" — PayWalletController L61 静态不可达（getOrCreateWallet 自动加锁创建新钱包返回，永不为 null）
 
 ### yudao mall（9212, trace-real-yudao-cloud-trade-server）
 - ✅ `yudao_mall_brokerage_withdraw_duplicate_notify` — BrokerageWithdrawServiceImpl L248（33 调用/960.2s）

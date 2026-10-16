@@ -134,11 +134,14 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | wallet_recharge_refund_price_mismatch | PayWalletRechargeServiceImpl L272「退款金额不匹配」 | v1 | ✅ PASS | 23/867.7s |
 | wallet_recharge_refund_order_mismatch | PayWalletRechargeServiceImpl L278「商户退款单不匹配」 | v1 | ✅ PASS | 15/622.5s |
 | wallet_recharge_refund_record_not_found | PayWalletRechargeServiceImpl L197「钱包充值记录不存在」 | v1 | ✅ PASS | 40/1186.9s |
+| wallet_recharge_update_refund_not_found | PayWalletRechargeServiceImpl L227「钱包充值记录不存在」 | v1 | ✅ PASS | 16/331.5s |
 | demo_withdraw_duplicate_notify | PayDemoWithdrawServiceImpl L143 同款幂等 | v1 | ✅ PASS | 40/409s |
 | demo_withdraw_not_found | PayDemoWithdrawServiceImpl L135「不存在提现单」 | v1 | ✅ PASS | 9/228.4s |
 | demo_withdraw_mismatch | PayDemoWithdrawServiceImpl L147「转账单不匹配」 | v1 | ✅ PASS | 27/593.7s |
 
-**不可达家族结论**: 「找不到对应的支付客户端」5 处 (L75/L97/L119 + PayOrderServiceImpl L227/L246) 全部静态不可达 — `validPayChannel` 渠道缺失时直接抛 `CHANNEL_NOT_FOUND`, Controller 的 `if (payClient == null)` 是防御性死代码。运行时验证一致 (异常码 1007001000, 日志只到 L71 回调行)。
+**不可达家族结论**:
+- 「找不到对应的支付客户端」8 处 (PayNotifyController L75/L97/L119 + PayOrderServiceImpl L227/L246 + PayRefundServiceImpl L102 + PayTransferServiceImpl L73/L312) 全部静态不可达 — `validPayChannel` 渠道缺失时直接抛 `CHANNEL_NOT_FOUND`，后续 `if (client == null)` 是防御性死代码。
+- 「用户钱包不存在」1 处 (PayWalletController L61) 静态不可达 — `payWalletService.getOrCreateWallet` 在钱包不存在时自动上分布式锁创建并返回新钱包，返回值永不为 null，L60 的 `if (wallet == null)` 分支永远无法进入。
 
 ### 9.2 mall/trade 域 (2026-10-07, D2)
 
