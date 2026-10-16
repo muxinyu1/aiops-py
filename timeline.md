@@ -72,6 +72,7 @@
 - ⚠️ `yudao_pay_wallet_recharge_refund_id_mismatch` — PayWalletRechargeServiceImpl L259（40 调用/758.0s 预算超限未达，人工 curl 预验证返回 1007008008 并命中目标日志，确认真实可达，归档 v1）
 - ✅ `yudao_pay_wallet_recharge_refund_not_found` — PayWalletRechargeServiceImpl L267（24 调用/541.2s, v1 PASS; 构造 update-refunded 回调传入不存在的退款单 id 触发退款单不存在分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_refund_price_mismatch` — PayWalletRechargeServiceImpl L272（23 调用/867.7s, v1 PASS; 构造 update-refunded 回调传入金额不匹配的退款单 id 触发退款金额不匹配分支命中目标日志）
+- ✅ `yudao_pay_wallet_recharge_refund_order_mismatch` — PayWalletRechargeServiceImpl L278（15 调用/622.5s, v1 PASS; 构造 update-refunded 回调传入商户退款单号不匹配的退款单 id 触发退款单不匹配分支命中目标日志）
 - ✅ `yudao_pay_demo_withdraw_duplicate_notify` — PayDemoWithdrawServiceImpl L143（40 调用/408.6s）
 - ⛔ "找不到支付客户端"家族 ×5 — L75/L97/L119/L227/L246 静态不可达（validPayChannel 先抛异常）
 
