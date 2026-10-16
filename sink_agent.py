@@ -856,6 +856,19 @@ SINK_TASKS = {
         "container": "trace-real-yudao-cloud-pay-server",
         "log_match": "PayOrderServiceImpl:124",
     },
+    "yudao_pay_wallet_client_order_status_invalid": {
+        "sink": "WalletPayClient.doGetOrder 中的 "
+                "log.error(\"[doGetOrder] 支付单 {} 的状态不正确\", outTradeNo) "
+                "(L123, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/wallet/WalletPayClient.java)。"
+                "触发条件: 获取订单详情并请求同步(sync=true)时, 支付拓展单所关联的支付单处于未支付(status=0)状态, 触发状态不正确分支打印错误日志。",
+        "api": "GET http://localhost:9213/app-api/pay/order/get?id=500&sync=true (免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_order 表 (已存在 id=500, status=0), pay_channel 表 (已存在 id=1, code='wallet'), pay_order_extension 表 (已存在 order_id=500, channel_id=1)。"
+               "请直接向 pay-server 发送 GET /app-api/pay/order/get?id=500&sync=true 请求, 无需登录认证。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "WalletPayClient:123",
+    },
     "yudao_pay_wallet_recharge_duplicate_notify": {
         "sink": "PayWalletRechargeServiceImpl.updateWalletRechargerPaid 中的 "
                 "log.warn(\"[updateWalletRechargerPaid][recharge({}) 已支付，且支付单号相同({})，直接返回]\", recharge, payOrderId) "
