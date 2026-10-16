@@ -18,12 +18,16 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
 import requests
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(line_buffering=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 工具实现 — agent 的全部能力边界
@@ -812,6 +816,35 @@ SINK_TASKS = {
         # 日志参数是 withdraw 对象与 payTransferId (数值), marker 放不进参数。
         "log_match": "[updateBrokerageWithdrawTransferred][withdraw(",
     },
+    "yudao_mall_brokerage_withdraw_mismatch": {
+        "sink": "BrokerageWithdrawServiceImpl.updateBrokerageWithdrawTransferred 中的 "
+                "log.error(\"[updateBrokerageWithdrawTransferred][withdraw({}) 转账单不匹配({})，请进行处理！]\", withdraw, payTransferId) "
+                "(L252, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java)。"
+                "触发条件: 佣金提现转账回调时, 提现单 status 已结束(已成功11或已失败21) 且请求的 payTransferId 与库中记录不一致 (转账单不匹配异常分支)。",
+        "api": "POST http://localhost:9212/admin-api/trade/brokerage-withdraw/update-transferred "
+               "(body: {\"merchantTransferId\":\"<提现单id>\",\"payTransferId\":\"<不一致的转账单id>\"}, @PermitAll 免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_brokerage_withdraw 表 (已预置 status=11, pay_transfer_id=100 的测试提现单 id=1)。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是 withdraw 对象与 payTransferId (数值), 用目标日志中的特异关键词判定。
+        "log_match": "转账单不匹配",
+    },
+    "yudao_mall_trade_after_sale_pay_refund_not_found": {
+        "sink": "AfterSaleServiceImpl.validatePayRefund 中的 "
+                "log.error(\"[validatePayRefund][afterSale({}) payRefund({}) 不存在，请进行处理！]\", afterSale.getId(), payRefundId) "
+                "(L429, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/aftersale/AfterSaleServiceImpl.java)。"
+                "触发条件: 售后订单退款回调时, 售后单状态为等待退款 (WAIT_REFUND, 40), 校验退款单合法性时向 pay-server 查询退款单返回不存在 (退款单不存在异常分支)。",
+        "api": "POST http://localhost:9212/admin-api/trade/after-sale/update-refunded "
+               "(body: {\"merchantRefundId\":\"1\",\"merchantOrderId\":\"200\",\"payRefundId\":999999}, @PermitAll 免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_after_sale 表 (已预置 status=40, id=1 的待退款售后单)。"
+               "库中已预置测试记录, 请直接向 trade-server 发送 update-refunded 回调, 无需探索其他服务或从头创建售后单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值，用类与行号特异匹配。
+        "log_match": "AfterSaleServiceImpl:429",
+    },
     "yudao_mall_trade_order_paid_duplicate_notify": {
         "sink": "TradeOrderUpdateServiceImpl.updateOrderPaid 中的 "
                 "log.warn(\"[updateOrderPaid][order({}) 已支付，且支付单号相同({})，直接返回]\", order, payOrderId) "
@@ -886,6 +919,21 @@ SINK_TASKS = {
         "container": "trace-real-yudao-cloud-trade-server",
         # 日志参数是数值与 JSON 字符串，用目标日志中的特异关键词判定。
         "log_match": "支付金额不匹配，请进行处理！",
+    },
+    "yudao_mall_trade_order_merchant_order_id_mismatch": {
+        "sink": "TradeOrderUpdateServiceImpl.validatePayOrderPaid 中的 "
+                "log.error(\"[validatePayOrderPaid][order({}) 支付单不匹配({})，请进行处理！payOrder 数据是：{}]\", order.getId(), payOrderId, JsonUtils.toJsonString(payOrder)) "
+                "(L365, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/order/TradeOrderUpdateServiceImpl.java)。"
+                "触发条件: 交易订单支付回调时, 订单处于待支付状态, 校验支付订单时发现支付单关联的商户订单号 merchantOrderId 与交易订单 id 不一致 (支付单不匹配二次校验异常分支)。",
+        "api": "POST http://localhost:9212/app-api/trade/order/update-paid "
+               "(body: {\"merchantOrderId\":\"200\",\"payOrderId\":502}, @PermitAll 免登录; 注意是 app-api 前缀)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_order 表 (已预置 status=0 的待支付订单 id=200) 与 pay_order 表 (已预置 status=10, price=100, merchant_order_id='999' 的支付单 id=502)。"
+               "库中已预置测试记录, 请直接向 trade-server 发送 update-paid 回调, 无需探索其他服务或从头创建订单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值与 JSON 字符串，用类与行号特异匹配，与 L295 区分。
+        "log_match": "TradeOrderUpdateServiceImpl:365",
     },
     # ── small-swarm (mall-swarm mall-demo, 9215) ──
     "small_swarm_brand_create": {

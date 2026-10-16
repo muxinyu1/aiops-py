@@ -131,8 +131,11 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | mall_trade_order_pay_order_not_found | TradeOrderUpdateServiceImpl L347「不存在，请进行处理！」 | v1 | ✅ PASS | 36/624.5s |
 | mall_trade_order_pay_order_status_not_success | TradeOrderUpdateServiceImpl L353「未支付，请进行处理！」 | v1/v2<br>v3 | ❌ FAIL (预算耗尽搜索建单)<br>✅ PASS | 40/492s<br>40/738.5s |
 | mall_trade_order_price_mismatch | TradeOrderUpdateServiceImpl L359「支付金额不匹配，请进行处理！」 | v1 | ✅ PASS | 40/1234.1s |
+| mall_trade_order_merchant_order_id_mismatch | TradeOrderUpdateServiceImpl L365「支付单不匹配二次校验」 | v1/v2/v3 | ⚠️ 预算耗尽 (curl 验证真实可达) | 40/— |
+| mall_brokerage_withdraw_mismatch | BrokerageWithdrawServiceImpl L252「转账单不匹配」 | v1 | ⚠️ 预算耗尽 (curl 验证真实可达) | 40/977.7s |
 
-**幂等/重复回调与异常分支日志模式累计 9/9 全命中** (pay 3 + mall 6) — db_state 池中最高价值模式。
+**不可达死代码发现 (mall 域)**:
+- `BrokerageWithdrawServiceImpl L273`「payTransfer 不存在」— 静态不可达死代码。`PayTransferApiImpl` L42 在 transfer 为空时直接返回 `null`（HTTP 200 空包），Feign 客户端反序列化后为 `null`，在 L271 `.getCheckedData()` 时直接抛出 `java.lang.NullPointerException`（curl 实测触发 NPE），永远无法执行到 L272-274 的错误日志分支。
 
 ### 9.3 harness/工具层修复 (同"公平性"口径)
 

@@ -1,0 +1,367 @@
+{
+  "reached": false,
+  "turns": 1,
+  "tool_calls": 40,
+  "elapsed": 977.6766722202301,
+  "tool_log": [
+    {
+      "n": 1,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java",
+        "start": 220,
+        "end": 280
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java (L220-280, 共315行)\n 220 |     /**\n 221 |      * 校验提现金额要求\n 222 |      *\n 223 |      * @param withdrawPrice 提现金额\n 224 |      * @return 分销配置\n 225 |      */\n 226 |     private TradeConfigDO validateWithdrawPrice(Integer withdrawPrice) {\n 227 |         TradeConfigDO tradeConfig = tradeConfigService.getTradeConfig();\n 228 |         if (tradeConfig.getBrokerageWithdrawMinPrice() != null && withdrawPrice < tradeConfig.getBrokerageWithdrawMinPrice()) {\n 229 |             throw exception(BROKERAGE_WITHDRAW_MIN_PRICE, MoneyUtils.fenToYuanStr(tradeConfig.getBrokerageWithdrawMinPrice()));\n 230 |         }\n 231 |         return tradeConfig;\n 232 |     }\n 233 | \n 234 |     @Override\n 235 |     @Transactional(rollbackFor = Exception.class)\n 236 |     public void updateBrokerageWithdrawTransferred(Long id, Long payTransferId) {\n 237 |         // 1.1 校验提现单是否存在\n 238 |         BrokerageWithdrawDO withdraw = brokerageWithdrawMapper.selectById(id);\n 239 |         if (withdraw == null) {\n 240 |             log.error(\"[updateBrokerageWithdrawTransferred][withdraw({}) payTransfer({}) 不存在提现单，请进行处理！]\", id, payTransferId);\n 241 |             throw exception(BROKERAGE_WITHDRAW_NOT_EXISTS);\n 242 |         }\n 243 |         // 1.2 校验提现单已经结束（成功或失败）\n 244 |         if (ObjectUtils.equalsAny(withdraw.getStatus(), BrokerageWithdrawStatusEnum.WITHDRAW_SUCCESS.getStatus(),\n 245 |                 BrokerageWithdrawStatusEnum.WITHDRAW_FAIL.getStatus())) {\n 246 |             // 特殊：转账单编号相同，直接返回，说明重复回调\n 247 |             if (ObjectUtil.equal(withdraw.getPayTransferId(), payTransferId)) {\n 248 |                 log.warn(\"[updateBrokerageWithdrawTransferred][withdraw({}) 已结束，且转账单编号相同({})，直接返回]\", withdraw, payTransferId);\n 249 |                 return;\n 250 |             }\n 251 |             // 异常：转账单编号不同，说明转账单编号错误\n 252 |             log.error(\"[updateBrokerageWith"
+    },
+    {
+      "n": 2,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM trade_brokerage_withdraw WHERE id = 1"
+      },
+      "result": "id\tuser_id\tprice\tfee_price\ttotal_price\ttype\tuser_name\tuser_account\tqr_code_url\tbank_name\tbank_address\tstatus\taudit_reason\taudit_time\tremark\tpay_transfer_id\ttransfer_channel_code\ttransfer_time\ttransfer_error_msg\tcreator\tcreate_time\tupdater\tupdate_time\tdeleted\n1\t1\t100\t0\t100\t1\tNULL\tNULL\tNULL\tNULL\tNULL\t11\tNULL\tNULL\tNULL\t100\tNULL\tNULL\tNULL\t\t2026-10-16 21:17:58\t\t2026-10-16 21:17:58\t\\0"
+    },
+    {
+      "n": 3,
+      "tool": "search_code",
+      "args": {
+        "pattern": "update-transferred",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/demo/PayDemoWithdrawController.java:56:    @PostMapping(\"/update-transferred\")\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/admin/brokerage/BrokerageWithdrawController.java:85:    @PostMapping(\"/update-transferred\")\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/demo/PayDemoWithdrawController.java:56:    @PostMapping(\"/update-transferred\")\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/admin/brokerage/BrokerageWithdrawController.java:85:    @PostMapping(\"/update-transferred\")\n"
+    },
+    {
+      "n": 4,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class BrokerageWithdrawUpdateTransferredReqVO",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "无匹配: class BrokerageWithdrawUpdateTransferredReqVO"
+    },
+    {
+      "n": 5,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/admin/brokerage/BrokerageWithdrawController.java",
+        "start": 60,
+        "end": 110
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/admin/brokerage/BrokerageWithdrawController.java (L60-95, 共95行)\n  60 |         return success(true);\n  61 |     }\n  62 | \n  63 |     @GetMapping(\"/get\")\n  64 |     @Operation(summary = \"获得佣金提现\")\n  65 |     @Parameter(name = \"id\", description = \"编号\", required = true, example = \"1024\")\n  66 |     @PreAuthorize(\"@ss.hasPermission('trade:brokerage-withdraw:query')\")\n  67 |     public CommonResult<BrokerageWithdrawRespVO> getBrokerageWithdraw(@RequestParam(\"id\") Long id) {\n  68 |         BrokerageWithdrawDO brokerageWithdraw = brokerageWithdrawService.getBrokerageWithdraw(id);\n  69 |         return success(BrokerageWithdrawConvert.INSTANCE.convert(brokerageWithdraw));\n  70 |     }\n  71 | \n  72 |     @GetMapping(\"/page\")\n  73 |     @Operation(summary = \"获得佣金提现分页\")\n  74 |     @PreAuthorize(\"@ss.hasPermission('trade:brokerage-withdraw:query')\")\n  75 |     public CommonResult<PageResult<BrokerageWithdrawRespVO>> getBrokerageWithdrawPage(@Valid BrokerageWithdrawPageReqVO pageVO) {\n  76 |         // 分页查询\n  77 |         PageResult<BrokerageWithdrawDO> pageResult = brokerageWithdrawService.getBrokerageWithdrawPage(pageVO);\n  78 | \n  79 |         // 拼接信息\n  80 |         Map<Long, MemberUserRespDTO> userMap = memberUserApi.getUserMap(\n  81 |                 convertSet(pageResult.getList(), BrokerageWithdrawDO::getUserId));\n  82 |         return success(BrokerageWithdrawConvert.INSTANCE.convertPage(pageResult, userMap));\n  83 |     }\n  84 | \n  85 |     @PostMapping(\"/update-transferred\")\n  86 |     @Operation(summary = \"更新佣金提现的转账结果\") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob\n  87 |     @PermitAll // 无需登录，安全由 BrokerageWithdrawService 内部校验实现\n  88 |     public CommonResult<Boolean> updateBrokerageWithdrawTransferred(@RequestBody PayTransferNotifyReqDTO notifyReqDTO) {\n  89 |         log.info(\"[updateAfterRefund][notifyReqDTO({})]\", notifyReqDTO);\n  90 |         brokerageWithdr"
+    },
+    {
+      "n": 6,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "BrokerageWithdrawUpdateStatusReqVO"
+      },
+      "result": "无匹配: BrokerageWithdrawUpdateStatusReqVO"
+    },
+    {
+      "n": 7,
+      "tool": "read_source",
+      "args": {
+        "end": 59,
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/admin/brokerage/BrokerageWithdrawController.java",
+        "start": 1
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/admin/brokerage/BrokerageWithdrawController.java (L1-59, 共95行)\n   1 | package cn.iocoder.yudao.module.trade.controller.admin.brokerage;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   4 | import cn.iocoder.yudao.framework.common.pojo.PageResult;\n   5 | import cn.iocoder.yudao.module.member.api.user.MemberUserApi;\n   6 | import cn.iocoder.yudao.module.member.api.user.dto.MemberUserRespDTO;\n   7 | import cn.iocoder.yudao.module.pay.api.notify.dto.PayTransferNotifyReqDTO;\n   8 | import cn.iocoder.yudao.module.trade.controller.admin.brokerage.vo.withdraw.BrokerageWithdrawRejectReqVO;\n   9 | import cn.iocoder.yudao.module.trade.controller.admin.brokerage.vo.withdraw.BrokerageWithdrawPageReqVO;\n  10 | import cn.iocoder.yudao.module.trade.controller.admin.brokerage.vo.withdraw.BrokerageWithdrawRespVO;\n  11 | import cn.iocoder.yudao.module.trade.convert.brokerage.BrokerageWithdrawConvert;\n  12 | import cn.iocoder.yudao.module.trade.dal.dataobject.brokerage.BrokerageWithdrawDO;\n  13 | import cn.iocoder.yudao.module.trade.enums.brokerage.BrokerageWithdrawStatusEnum;\n  14 | import cn.iocoder.yudao.module.trade.service.brokerage.BrokerageWithdrawService;\n  15 | import io.swagger.v3.oas.annotations.Operation;\n  16 | import io.swagger.v3.oas.annotations.Parameter;\n  17 | import io.swagger.v3.oas.annotations.tags.Tag;\n  18 | import lombok.extern.slf4j.Slf4j;\n  19 | import org.springframework.security.access.prepost.PreAuthorize;\n  20 | import org.springframework.validation.annotation.Validated;\n  21 | import org.springframework.web.bind.annotation.*;\n  22 | \n  23 | import javax.annotation.Resource;\n  24 | import javax.annotation.security.PermitAll;\n  25 | import javax.validation.Valid;\n  26 | import java.util.Map;\n  27 | \n  28 | import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;\n  29 | import static cn.iocoder.yudao.fr"
+    },
+    {
+      "n": 8,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "class PayTransferNotifyReqDTO"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayTransferNotifyReqDTO.java:20:public class PayTransferNotifyReqDTO {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayTransferNotifyReqDTO.java:20:public class PayTransferNotifyReqDTO {\n"
+    },
+    {
+      "n": 9,
+      "tool": "read_source",
+      "args": {
+        "end": 60,
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayTransferNotifyReqDTO.java",
+        "start": 1
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayTransferNotifyReqDTO.java (L1-34, 共34行)\n   1 | package cn.iocoder.yudao.module.pay.api.notify.dto;\n   2 | \n   3 | import lombok.AllArgsConstructor;\n   4 | import lombok.Builder;\n   5 | import lombok.Data;\n   6 | import lombok.NoArgsConstructor;\n   7 | \n   8 | import javax.validation.constraints.NotEmpty;\n   9 | import javax.validation.constraints.NotNull;\n  10 | \n  11 | /**\n  12 |  * 转账单的通知 Request DTO\n  13 |  *\n  14 |  * @author jason\n  15 |  */\n  16 | @Data\n  17 | @Builder\n  18 | @NoArgsConstructor\n  19 | @AllArgsConstructor\n  20 | public class PayTransferNotifyReqDTO {\n  21 | \n  22 |     /**\n  23 |      * 商户转账单号\n  24 |      */\n  25 |     @NotEmpty(message = \"商户转账单号不能为空\")\n  26 |     private String merchantTransferId;\n  27 | \n  28 |     /**\n  29 |      * 转账订单编号\n  30 |      */\n  31 |     @NotNull(message = \"转账订单编号不能为空\")\n  32 |     private Long payTransferId;\n  33 | \n  34 | }"
+    },
+    {
+      "n": 10,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "class BrokerageWithdrawDO"
+      },
+      "result": "examples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/dal/dataobject/brokerage/BrokerageWithdrawDO.java:26:public class BrokerageWithdrawDO extends BaseDO {\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/dal/dataobject/brokerage/BrokerageWithdrawDO.java:26:public class BrokerageWithdrawDO extends BaseDO {\n"
+    },
+    {
+      "n": 11,
+      "tool": "read_source",
+      "args": {
+        "end": 140,
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/dal/dataobject/brokerage/BrokerageWithdrawDO.java",
+        "start": 1
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/dal/dataobject/brokerage/BrokerageWithdrawDO.java (L1-130, 共130行)\n   1 | package cn.iocoder.yudao.module.trade.dal.dataobject.brokerage;\n   2 | \n   3 | import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;\n   4 | import cn.iocoder.yudao.module.trade.enums.brokerage.BrokerageWithdrawStatusEnum;\n   5 | import cn.iocoder.yudao.module.trade.enums.brokerage.BrokerageWithdrawTypeEnum;\n   6 | import com.baomidou.mybatisplus.annotation.KeySequence;\n   7 | import com.baomidou.mybatisplus.annotation.TableId;\n   8 | import com.baomidou.mybatisplus.annotation.TableName;\n   9 | import lombok.*;\n  10 | \n  11 | import java.time.LocalDateTime;\n  12 | \n  13 | /**\n  14 |  * 佣金提现 DO\n  15 |  *\n  16 |  * @author 芋道源码\n  17 |  */\n  18 | @TableName(\"trade_brokerage_withdraw\")\n  19 | @KeySequence(\"trade_brokerage_withdraw_seq\") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。\n  20 | @Data\n  21 | @EqualsAndHashCode(callSuper = true)\n  22 | @ToString(callSuper = true)\n  23 | @Builder\n  24 | @NoArgsConstructor\n  25 | @AllArgsConstructor\n  26 | public class BrokerageWithdrawDO extends BaseDO {\n  27 | \n  28 |     /**\n  29 |      * 编号\n  30 |      */\n  31 |     @TableId\n  32 |     private Long id;\n  33 |     /**\n  34 |      * 用户编号\n  35 |      *\n  36 |      * 关联 MemberUserDO 的 id 字段\n  37 |      */\n  38 |     private Long userId;\n  39 | \n  40 |     /**\n  41 |      * 提现金额，单位：分\n  42 |      */\n  43 |     private Integer price;\n  44 |     /**\n  45 |      * 提现手续费，单位：分\n  46 |      */\n  47 |     private Integer feePrice;\n  48 |     /**\n  49 |      * 当前总佣金，单位：分\n  50 |      */\n  51 |     private Integer totalPrice;\n  52 |     /**\n  53 |      * 提现类型\n  54 |      * <p>\n  55 |      * 枚举 {@link BrokerageWithdrawTypeEnum}\n  56 |      */\n  57 |     private Integer type;\n  58 | \n  59 |     /**\n  60 |      * 提现姓名\n  61 |      * 1. {@link BrokerageWithdrawTypeEnum#BANK}：银行开户人\n  62 |      *"
+    },
+    {
+      "n": 12,
+      "tool": "get_api_catalog",
+      "args": {
+        "project": "yudao-cloud",
+        "tables": "trade_brokerage_withdraw"
+      },
+      "result": "无匹配 API (project=yudao-cloud, tables=trade_brokerage_withdraw)\n已知表: ['flow_category', 'flow_spel', 'gen_create_table', 'gen_datasource_conf', 'gen_field_type', 'gen_group', 'gen_table', 'gen_template', 'sys_area', 'sys_clarity_data', 'sys_client', 'sys_config', 'sys_dept', 'sys_dict', 'sys_dict_data', 'sys_dict_type', 'sys_file', 'sys_i18n', 'sys_log', 'sys_logininfor', 'sys_menu', 'sys_message', 'sys_notice', 'sys_oauth_client_details', 'sys_oper_log', 'sys_oss', 'sys_oss_config', 'sys_post', 'sys_public_param', 'sys_role']"
+    },
+    {
+      "n": 13,
+      "tool": "read_source",
+      "args": {
+        "end": 219,
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java",
+        "start": 1
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java (L1-219, 共315行)\n   1 | package cn.iocoder.yudao.module.trade.service.brokerage;\n   2 | \n   3 | import cn.hutool.core.collection.CollUtil;\n   4 | import cn.hutool.core.lang.Assert;\n   5 | import cn.hutool.core.util.ObjectUtil;\n   6 | import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;\n   7 | import cn.iocoder.yudao.framework.common.pojo.PageResult;\n   8 | import cn.iocoder.yudao.framework.common.util.json.JsonUtils;\n   9 | import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;\n  10 | import cn.iocoder.yudao.framework.common.util.object.BeanUtils;\n  11 | import cn.iocoder.yudao.framework.common.util.object.ObjectUtils;\n  12 | import cn.iocoder.yudao.module.pay.api.transfer.PayTransferApi;\n  13 | import cn.iocoder.yudao.module.pay.api.transfer.dto.PayTransferCreateReqDTO;\n  14 | import cn.iocoder.yudao.module.pay.api.transfer.dto.PayTransferCreateRespDTO;\n  15 | import cn.iocoder.yudao.module.pay.api.transfer.dto.PayTransferRespDTO;\n  16 | import cn.iocoder.yudao.module.pay.api.wallet.PayWalletApi;\n  17 | import cn.iocoder.yudao.module.pay.api.wallet.dto.PayWalletRespDTO;\n  18 | import cn.iocoder.yudao.module.pay.enums.PayChannelEnum;\n  19 | import cn.iocoder.yudao.module.pay.enums.transfer.PayTransferStatusEnum;\n  20 | import cn.iocoder.yudao.module.trade.controller.admin.brokerage.vo.withdraw.BrokerageWithdrawPageReqVO;\n  21 | import cn.iocoder.yudao.module.trade.controller.app.brokerage.vo.withdraw.AppBrokerageWithdrawCreateReqVO;\n  22 | import cn.iocoder.yudao.module.trade.dal.dataobject.brokerage.BrokerageWithdrawDO;\n  23 | import cn.iocoder.yudao.module.trade.dal.dataobject.config.TradeConfigDO;\n  24 | import cn.iocoder.yudao.module.trade.dal.mysql.brokerage.BrokerageWithdrawMapper;\n  25 | import cn.iocoder.yudao.module.trade.enums.brokerage.BrokerageRecordBizTypeEnum;\n  26 | import cn.iocoder.y"
+    },
+    {
+      "n": 14,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "enum BrokerageWithdrawStatusEnum"
+      },
+      "result": "examples/yudao-cloud/yudao-module-mall/yudao-module-trade-api/src/main/java/cn/iocoder/yudao/module/trade/enums/brokerage/BrokerageWithdrawStatusEnum.java:16:public enum BrokerageWithdrawStatusEnum implements ArrayValuable<Integer> {\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-api/src/main/java/cn/iocoder/yudao/module/trade/enums/brokerage/BrokerageWithdrawStatusEnum.java:16:public enum BrokerageWithdrawStatusEnum implements ArrayValuable<Integer> {\n"
+    },
+    {
+      "n": 15,
+      "tool": "read_source",
+      "args": {
+        "end": 70,
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-api/src/main/java/cn/iocoder/yudao/module/trade/enums/brokerage/BrokerageWithdrawStatusEnum.java",
+        "start": 1
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-api/src/main/java/cn/iocoder/yudao/module/trade/enums/brokerage/BrokerageWithdrawStatusEnum.java (L1-41, 共41行)\n   1 | package cn.iocoder.yudao.module.trade.enums.brokerage;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.core.ArrayValuable;\n   4 | import lombok.AllArgsConstructor;\n   5 | import lombok.Getter;\n   6 | \n   7 | import java.util.Arrays;\n   8 | \n   9 | /**\n  10 |  * 佣金提现状态枚举\n  11 |  *\n  12 |  * @author owen\n  13 |  */\n  14 | @AllArgsConstructor\n  15 | @Getter\n  16 | public enum BrokerageWithdrawStatusEnum implements ArrayValuable<Integer> {\n  17 | \n  18 |     AUDITING(0, \"审核中\"),\n  19 |     AUDIT_SUCCESS(10, \"审核通过\"),\n  20 |     WITHDRAW_SUCCESS(11, \"提现成功\"),\n  21 |     AUDIT_FAIL(20, \"审核不通过\"),\n  22 |     WITHDRAW_FAIL(21, \"提现失败\"),\n  23 |     ;\n  24 | \n  25 |     public static final Integer[] ARRAYS = Arrays.stream(values()).map(BrokerageWithdrawStatusEnum::getStatus).toArray(Integer[]::new);\n  26 | \n  27 |     /**\n  28 |      * 状态\n  29 |      */\n  30 |     private final Integer status;\n  31 |     /**\n  32 |      * 名字\n  33 |      */\n  34 |     private final String name;\n  35 | \n  36 |     @Override\n  37 |     public Integer[] array() {\n  38 |         return ARRAYS;\n  39 |     }\n  40 | \n  41 | }"
+    },
+    {
+      "n": 16,
+      "tool": "read_source",
+      "args": {
+        "end": 315,
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java",
+        "start": 143
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java (L143-315, 共315行)\n 143 |         } else if (Objects.equal(withdraw.getType(), BrokerageWithdrawTypeEnum.WALLET.getType())) {\n 144 |             PayWalletRespDTO wallet = payWalletApi.getOrCreateWallet(withdraw.getUserId(), UserTypeEnum.MEMBER.getValue()).getCheckedData();\n 145 |             Assert.notNull(wallet, \"钱包不存在\");\n 146 |             channelCode = PayChannelEnum.WALLET.getCode();\n 147 |             userAccount = wallet.getId().toString();\n 148 |         }\n 149 |         // 1.2 构建请求\n 150 |         Integer transferPrice = withdraw.getPrice() - withdraw.getFeePrice(); // 计算实际转账金额（提现金额 - 手续费）\n 151 |         PayTransferCreateReqDTO transferReqDTO = new PayTransferCreateReqDTO()\n 152 |                 .setAppKey(tradeOrderProperties.getPayAppKey()).setChannelCode(channelCode)\n 153 |                 .setMerchantTransferId(withdraw.getId().toString()).setSubject(\"佣金提现\").setPrice(transferPrice)\n 154 |                 .setUserAccount(userAccount).setUserName(userName).setUserIp(getClientIP())\n 155 |                 .setUserId(withdraw.getUserId()).setUserType(UserTypeEnum.MEMBER.getValue()) // 用户信息\n 156 |                 .setChannelExtras(channelExtras);\n 157 |         // 1.3 发起请求\n 158 |         PayTransferCreateRespDTO transferRespDTO = payTransferApi.createTransfer(transferReqDTO).getCheckedData();\n 159 | \n 160 |         // 2. 更新提现记录\n 161 |         brokerageWithdrawMapper.updateById(new BrokerageWithdrawDO().setId(withdraw.getId())\n 162 |                 .setPayTransferId(transferRespDTO.getId()).setTransferChannelCode(channelCode));\n 163 |     }\n 164 | \n 165 |     private BrokerageWithdrawDO validateBrokerageWithdrawExists(Long id) {\n 166 |         BrokerageWithdrawDO withdraw = brokerageWithdrawMapper.selectById(id);\n 167 |         if (withdraw == null) {\n 168 |             throw exception(BROKERAGE_WITHDRAW_NOT_EX"
+    },
+    {
+      "n": 17,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "class AppBrokerageWithdrawCreateReqVO"
+      },
+      "result": "examples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/brokerage/vo/withdraw/AppBrokerageWithdrawCreateReqVO.java:19:public class AppBrokerageWithdrawCreateReqVO {\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/brokerage/vo/withdraw/AppBrokerageWithdrawCreateReqVO.java:19:public class AppBrokerageWithdrawCreateReqVO {\n"
+    },
+    {
+      "n": 18,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "class AppBrokerageWithdrawController"
+      },
+      "result": "examples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/brokerage/AppBrokerageWithdrawController.java:38:public class AppBrokerageWithdrawController {\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/brokerage/AppBrokerageWithdrawController.java:38:public class AppBrokerageWithdrawController {\n"
+    },
+    {
+      "n": 19,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, username, password, nickname, status, tenant_id FROM sys_user WHERE deleted=0 LIMIT 10"
+      },
+      "result": "ERROR: query_db 仅允许只读 SELECT/SHOW/DESC 语句, 写操作请用 execute_sql"
+    },
+    {
+      "n": 20,
+      "tool": "read_source",
+      "args": {
+        "end": 100,
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/brokerage/vo/withdraw/AppBrokerageWithdrawCreateReqVO.java",
+        "start": 1
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/brokerage/vo/withdraw/AppBrokerageWithdrawCreateReqVO.java (L1-88, 共88行)\n   1 | package cn.iocoder.yudao.module.trade.controller.app.brokerage.vo.withdraw;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.util.validation.ValidationUtils;\n   4 | import cn.iocoder.yudao.framework.common.validation.InEnum;\n   5 | import cn.iocoder.yudao.module.pay.enums.PayChannelEnum;\n   6 | import cn.iocoder.yudao.module.trade.enums.brokerage.BrokerageWithdrawTypeEnum;\n   7 | import io.swagger.v3.oas.annotations.media.Schema;\n   8 | import javax.validation.constraints.Min;\n   9 | import lombok.Data;\n  10 | import org.hibernate.validator.constraints.URL;\n  11 | \n  12 | import javax.validation.Validator;\n  13 | import javax.validation.constraints.NotBlank;\n  14 | import javax.validation.constraints.NotNull;\n  15 | import javax.validation.constraints.PositiveOrZero;\n  16 | \n  17 | @Schema(description = \"用户 App - 分销提现创建 Request VO\")\n  18 | @Data\n  19 | public class AppBrokerageWithdrawCreateReqVO {\n  20 | \n  21 |     @Schema(description = \"提现方式\", requiredMode = Schema.RequiredMode.REQUIRED, example = \"1\")\n  22 |     @InEnum(value = BrokerageWithdrawTypeEnum.class, message = \"提现方式必须是 {value}\")\n  23 |     private Integer type;\n  24 | \n  25 |     @Schema(description = \"提现金额，单位：分\", requiredMode = Schema.RequiredMode.REQUIRED, example = \"1000\")\n  26 |     @PositiveOrZero(message = \"提现金额不能小于 0\")\n  27 |     @Min(value = 30, message = \"微信提现金额不能小于 0.3\", groups = {WechatApi.class})\n  28 |     @NotNull(message = \"提现金额不能为空\")\n  29 |     private Integer price;\n  30 | \n  31 |     @Schema(description = \"提现账号\", requiredMode = Schema.RequiredMode.REQUIRED, example = \"123456789\")\n  32 |     @NotBlank(message = \"提现账号不能为空\", groups = {Bank.class, WechatApi.class, AlipayApi.class})\n  33 |     private String userAccount;\n  34 | \n  35 |     @Schema(description = \"提现姓名\", example = \"张三\")\n  36 |"
+    },
+    {
+      "n": 21,
+      "tool": "read_source",
+      "args": {
+        "end": 80,
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/brokerage/AppBrokerageWithdrawController.java",
+        "start": 1
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/brokerage/AppBrokerageWithdrawController.java (L1-80, 共84行)\n   1 | package cn.iocoder.yudao.module.trade.controller.app.brokerage;\n   2 | \n   3 | import cn.hutool.core.util.ObjUtil;\n   4 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   5 | import cn.iocoder.yudao.framework.common.pojo.PageResult;\n   6 | import cn.iocoder.yudao.framework.common.util.object.BeanUtils;\n   7 | import cn.iocoder.yudao.framework.dict.core.DictFrameworkUtils;\n   8 | import cn.iocoder.yudao.module.pay.api.transfer.PayTransferApi;\n   9 | import cn.iocoder.yudao.module.pay.api.transfer.dto.PayTransferRespDTO;\n  10 | import cn.iocoder.yudao.module.trade.controller.admin.brokerage.vo.withdraw.BrokerageWithdrawPageReqVO;\n  11 | import cn.iocoder.yudao.module.trade.controller.app.brokerage.vo.withdraw.AppBrokerageWithdrawCreateReqVO;\n  12 | import cn.iocoder.yudao.module.trade.controller.app.brokerage.vo.withdraw.AppBrokerageWithdrawPageReqVO;\n  13 | import cn.iocoder.yudao.module.trade.controller.app.brokerage.vo.withdraw.AppBrokerageWithdrawRespVO;\n  14 | import cn.iocoder.yudao.module.trade.dal.dataobject.brokerage.BrokerageWithdrawDO;\n  15 | import cn.iocoder.yudao.module.trade.enums.DictTypeConstants;\n  16 | import cn.iocoder.yudao.module.trade.enums.brokerage.BrokerageWithdrawStatusEnum;\n  17 | import cn.iocoder.yudao.module.trade.enums.brokerage.BrokerageWithdrawTypeEnum;\n  18 | import cn.iocoder.yudao.module.trade.service.brokerage.BrokerageWithdrawService;\n  19 | import io.swagger.v3.oas.annotations.Operation;\n  20 | import io.swagger.v3.oas.annotations.Parameter;\n  21 | import io.swagger.v3.oas.annotations.tags.Tag;\n  22 | import javax.annotation.Resource;\n  23 | import javax.validation.Valid;\n  24 | import lombok.extern.slf4j.Slf4j;\n  25 | import org.springframework.validation.annotation.Validated;\n  26 | import org.springframework.web.bind.annotation.*;\n  "
+    },
+    {
+      "n": 22,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, username, password, status FROM sys_user"
+      },
+      "result": "[stderr] ERROR 1146 (42S02) at line 1: Table 'ruoyi-vue-pro.sys_user' doesn't exist"
+    },
+    {
+      "n": 23,
+      "tool": "query_db",
+      "args": {
+        "sql": "SHOW DATABASES"
+      },
+      "result": "Database\napolloconfigdb\napolloportaldb\nblade\ncloud_admin_v1\nfile-center\nfile_center\ninformation_schema\nlamp_nacos\nlamp_none\nlamp_sw\nlogger-center\nmall4cloud_auth\nmall_oms\nmall_pms\nmall_sms\nmall_ums\nmicroservice\nmogu_blog\nmogu_picture\nmysql\nnacos\nnacos_config\nnovel\nnovel-cloud\nnovel_test\noauth-center\noauth2_server\nperformance_schema\npig\nruoyi-vue-pro\nry-cloud\nry-config\nry-job\nry-seata\nry-workflow\nseata\nsys\ntest\nuser-center\nxxl_job\nyoulai_system"
+    },
+    {
+      "n": 24,
+      "tool": "read_source",
+      "args": {
+        "end": 60,
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-api/src/main/java/cn/iocoder/yudao/module/trade/enums/brokerage/BrokerageWithdrawTypeEnum.java",
+        "start": 1
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-api/src/main/java/cn/iocoder/yudao/module/trade/enums/brokerage/BrokerageWithdrawTypeEnum.java (L1-53, 共53行)\n   1 | package cn.iocoder.yudao.module.trade.enums.brokerage;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.core.ArrayValuable;\n   4 | import cn.iocoder.yudao.framework.common.util.object.ObjectUtils;\n   5 | import lombok.AllArgsConstructor;\n   6 | import lombok.Getter;\n   7 | \n   8 | import java.util.Arrays;\n   9 | \n  10 | /**\n  11 |  * 佣金提现类型枚举\n  12 |  *\n  13 |  * @author owen\n  14 |  */\n  15 | @AllArgsConstructor\n  16 | @Getter\n  17 | public enum BrokerageWithdrawTypeEnum implements ArrayValuable<Integer> {\n  18 | \n  19 |     WALLET(1, \"钱包\"),\n  20 |     BANK(2, \"银行卡\"),\n  21 |     WECHAT_QR(3, \"微信收款码\"), // 手动打款\n  22 |     ALIPAY_QR(4, \"支付宝收款码\"), // 手动打款\n  23 |     WECHAT_API(5, \"微信零钱\"), // 自动打款，通过微信转账 API\n  24 |     ALIPAY_API(6, \"支付宝余额\"), // 自动打款，通过支付宝转账 API\n  25 |     ;\n  26 | \n  27 |     public static final Integer[] ARRAYS = Arrays.stream(values()).map(BrokerageWithdrawTypeEnum::getType).toArray(Integer[]::new);\n  28 | \n  29 |     /**\n  30 |      * 类型\n  31 |      */\n  32 |     private final Integer type;\n  33 |     /**\n  34 |      * 名字\n  35 |      */\n  36 |     private final String name;\n  37 | \n  38 |     @Override\n  39 |     public Integer[] array() {\n  40 |         return ARRAYS;\n  41 |     }\n  42 | \n  43 |     /**\n  44 |      * 是否通过支付平台的 API 打款\n  45 |      *\n  46 |      * @param type 类型\n  47 |      * @return 是否\n  48 |      */\n  49 |     public static boolean isApi(Integer type) {\n  50 |         return ObjectUtils.equalsAny(type, WALLET.getType(), ALIPAY_API.getType(), WECHAT_API.getType());\n  51 |     }\n  52 | \n  53 | }"
+    },
+    {
+      "n": 25,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "public void reduceBrokerage"
+      },
+      "result": "无匹配: public void reduceBrokerage"
+    },
+    {
+      "n": 26,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "reduceBrokerage\\(Long"
+      },
+      "result": "examples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageRecordService.java:74:    default void reduceBrokerage(Long userId, BrokerageRecordBizTypeEnum bizType, String bizId, Integer brokeragePrice, String title) {\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageRecordService.java:74:    default void reduceBrokerage(Long userId, BrokerageRecordBizTypeEnum bizType, String bizId, Integer brokeragePrice, String title) {\n"
+    },
+    {
+      "n": 27,
+      "tool": "query_db",
+      "args": {
+        "sql": "SHOW TABLES FROM `ruoyi-vue-pro`"
+      },
+      "result": "Tables_in_ruoyi-vue-pro\ninfra_api_access_log\ninfra_api_error_log\ninfra_codegen_column\ninfra_codegen_table\ninfra_config\ninfra_data_source_config\ninfra_file\ninfra_file_config\ninfra_file_content\ninfra_job\ninfra_job_log\npay_app\npay_channel\npay_order\npay_refund\npay_transfer\nqrtz_blob_triggers\nqrtz_calendars\nqrtz_cron_triggers\nqrtz_fired_triggers\nqrtz_job_details\nqrtz_locks\nqrtz_paused_trigger_grps\nqrtz_scheduler_state\nqrtz_simple_triggers\nqrtz_simprop_triggers\nqrtz_triggers\nsystem_dept\nsystem_dict_data\nsystem_dict_type\nsystem_login_log\nsystem_mail_account\nsystem_mail_log\nsystem_mail_template\nsystem_menu\nsystem_notice\nsystem_notify_message\nsystem_notify_template\nsystem_oauth2_access_token\nsystem_oauth2_approve\nsystem_oauth2_client\nsystem_oauth2_code\nsystem_oauth2_refresh_token\nsystem_operate_log\nsystem_post\nsystem_role\nsystem_role_menu\nsystem_sms_channel\nsystem_sms_code\nsystem_sms_log\nsystem_sms_template\nsystem_social_client\nsystem_social_user\nsystem_social_user_bind\nsystem_tenant\nsystem_tenant_package\nsystem_user_post\nsystem_user_role\nsystem_users\ntrade_after_sale\ntrade_after_sale_log\ntrade_brokerage_withdraw\ntrade_order\ntrade_order_item\nyudao_demo01_contact\nyudao_demo02_category\nyudao_demo03_course\nyudao_demo03_grade\nyudao_demo03_student"
+    },
+    {
+      "n": 28,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, user_id, price, status, type, user_name, user_account, bank_name, bank_address, audit_reason, remark, pay_transfer_id FROM trade_brokerage_withdraw"
+      },
+      "result": "id\tuser_id\tprice\tstatus\ttype\tuser_name\tuser_account\tbank_name\tbank_address\taudit_reason\tremark\tpay_transfer_id\n1\t1\t100\t11\t1\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\t100\n2\t1\t100\t10\t1\ttest\ttest_account\tNULL\tNULL\tNULL\tNULL\tNULL"
+    },
+    {
+      "n": 29,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, app_key, channel_code, merchant_transfer_id, status, price, channel_transfer_no, success_time, channel_error_msg, user_id, user_type FROM pay_transfer LIMIT 20"
+      },
+      "result": "[stderr] ERROR 1054 (42S22) at line 1: Unknown column 'app_key' in 'field list'"
+    },
+    {
+      "n": 30,
+      "tool": "docker_ps",
+      "args": {},
+      "result": "trace-real-yudao-cloud-trade-server\tUp 12 hours\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/yudao-cloud-yudao-module-trade-server:latest\ntrace-real-yudao-cloud-pay-server\tUp 12 hours\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/yudao-cloud-yudao-module-pay-server:latest\ntrace-real-nacos\tUp 2 days (healthy)\tnacos/nacos-server:v2.2.3\ntrace-real-piggymetrics-registry\tUp 2 days (healthy)\tsqshq/piggymetrics-registry\ntrace-real-redis\tUp 2 days (healthy)\tredis:7-alpine\ntrace-real-rabbitmq\tUp 2 days (healthy)\trabbitmq:3-management\ntrace-real-mysql\tUp 2 days (healthy)\tmysql:8.0\ntrace-real-mongo\tUp 2 days (healthy)\tmongo:4.4\ntrace-real-piggymetrics-config\tUp 2 days (healthy)\tsqshq/piggymetrics-config\n"
+    },
+    {
+      "n": 31,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_transfer"
+      },
+      "result": "(空结果, 执行成功)"
+    },
+    {
+      "n": 32,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_app"
+      },
+      "result": "(空结果, 执行成功)"
+    },
+    {
+      "n": 33,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, code, name, status, config FROM pay_channel"
+      },
+      "result": "[stderr] ERROR 1054 (42S22) at line 1: Unknown column 'name' in 'field list'"
+    },
+    {
+      "n": 34,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_channel LIMIT 5"
+      },
+      "result": "(空结果, 执行成功)"
+    },
+    {
+      "n": 35,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "class PayTransferServiceImpl"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/transfer/PayTransferServiceImpl.java:47:public class PayTransferServiceImpl implements PayTransferService {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/transfer/PayTransferServiceImpl.java:47:public class PayTransferServiceImpl implements PayTransferService {\n"
+    },
+    {
+      "n": 36,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "XssHttpServletRequestWrapper|XssFilter"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:43:        registration.setFilter(new XssFilter());\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:28:\t\tXssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:30:public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:36:    public XssHttpServletRequestWrapper(HttpServletRequest request) {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:140:        if (request instanceof XssHttpServletRequestWrapper) {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:141:            return ((XssHttpServletRequestWrapper) request).getOrgRequest();\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/config/FilterConfig.java:43:        registration.setFilter(new XssFilter());\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:28:\t\tXssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:30:publi"
+    },
+    {
+      "n": 37,
+      "tool": "read_source",
+      "args": {
+        "end": 60,
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssFilter.java",
+        "start": 1
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssFilter.java (L1-52, 共52行)\n   1 | package cn.iocoder.yudao.framework.xss.core.filter;\n   2 | \n   3 | import cn.iocoder.yudao.framework.xss.config.XssProperties;\n   4 | import cn.iocoder.yudao.framework.xss.core.clean.XssCleaner;\n   5 | import lombok.AllArgsConstructor;\n   6 | import org.springframework.util.PathMatcher;\n   7 | import org.springframework.web.filter.OncePerRequestFilter;\n   8 | \n   9 | import javax.servlet.FilterChain;\n  10 | import javax.servlet.ServletException;\n  11 | import javax.servlet.http.HttpServletRequest;\n  12 | import javax.servlet.http.HttpServletResponse;\n  13 | import java.io.IOException;\n  14 | \n  15 | /**\n  16 |  * Xss 过滤器\n  17 |  *\n  18 |  * @author 芋道源码\n  19 |  */\n  20 | @AllArgsConstructor\n  21 | public class XssFilter extends OncePerRequestFilter {\n  22 | \n  23 |     /**\n  24 |      * 属性\n  25 |      */\n  26 |     private final XssProperties properties;\n  27 |     /**\n  28 |      * 路径匹配器\n  29 |      */\n  30 |     private final PathMatcher pathMatcher;\n  31 | \n  32 |     private final XssCleaner xssCleaner;\n  33 | \n  34 |     @Override\n  35 |     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)\n  36 |             throws IOException, ServletException {\n  37 |         filterChain.doFilter(new XssRequestWrapper(request, xssCleaner), response);\n  38 |     }\n  39 | \n  40 |     @Override\n  41 |     protected boolean shouldNotFilter(HttpServletRequest request) {\n  42 |         // 如果关闭，则不过滤\n  43 |         if (!properties.isEnable()) {\n  44 |             return true;\n  45 |         }\n  46 | \n  47 |         // 如果匹配到无需过滤，则不过滤\n  48 |         String uri = request.getRequestURI();\n  49 |         return properties.getExcludeUrls().stream().anyMatch(excludeUrl -> pathMatcher.match(excludeUrl, uri));\n  50 |     }\n  51 | \n  52 | }"
+    },
+    {
+      "n": 38,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud/yudao-framework",
+        "pattern": "class XssCleaner"
+      },
+      "result": "无匹配: class XssCleaner"
+    },
+    {
+      "n": 39,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud/yudao-framework",
+        "pattern": "implements XssCleaner"
+      },
+      "result": "examples/pig/pig-common/pig-common-xss/src/main/java/com/pig4cloud/pig/common/xss/core/DefaultXssCleaner.java:36:public class DefaultXssCleaner implements XssCleaner {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/clean/JsoupXssCleaner.java:10:public class JsoupXssCleaner implements XssCleaner {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/clean/JsoupXssCleaner.java:10:public class JsoupXssCleaner implements XssCleaner {\n"
+    },
+    {
+      "n": 40,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud/yudao-framework",
+        "pattern": "class XssRequestWrapper"
+      },
+      "result": "examples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssRequestWrapper.java:15:public class XssRequestWrapper extends HttpServletRequestWrapper {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssRequestWrapper.java:15:public class XssRequestWrapper extends HttpServletRequestWrapper {\n"
+    }
+  ],
+  "final_text": "budget_exceeded"
+}
