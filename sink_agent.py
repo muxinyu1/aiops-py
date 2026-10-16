@@ -771,6 +771,33 @@ SINK_TASKS = {
         # 用目标日志前缀精确判定, 不依赖 marker。
         "log_match": "[updateDemoOrderPaid][order(",
     },
+    "yudao_pay_demo_order_not_found": {
+        "sink": "PayDemoOrderServiceImpl.updateDemoOrderPaid 中的 "
+                "log.error(\"[updateDemoOrderPaid][order({}) payOrder({}) 不存在订单，请进行处理！]\", id, payOrderId) "
+                "(L119, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoOrderServiceImpl.java)。"
+                "触发条件: 回调更新示例订单时, 请求中的示例订单 id 在 pay_demo_order 表中不存在。",
+        "api": "POST http://localhost:9213/admin-api/pay/demo-order/update-paid "
+               "(body: {\"merchantOrderId\":\"999999\",\"payOrderId\":1}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_demo_order 表。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayDemoOrderServiceImpl:119",
+    },
+    "yudao_pay_demo_order_paid_mismatch": {
+        "sink": "PayDemoOrderServiceImpl.updateDemoOrderPaid 中的 "
+                "log.error(\"[updateDemoOrderPaid][order({}) 支付单不匹配({})，请进行处理！]\", order, payOrderId) "
+                "(L130, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoOrderServiceImpl.java)。"
+                "触发条件: 回调更新示例订单时, 示例订单处于已支付状态(pay_status=1, pay_order_id=50001), 请求传入的 payOrderId 与库中记录不一致。",
+        "api": "POST http://localhost:9213/admin-api/pay/demo-order/update-paid "
+               "(body: {\"merchantOrderId\":\"1\",\"payOrderId\":999999}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_demo_order 表 (已预置 pay_status=1, pay_order_id=50001 的订单 id=1)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-paid 回调, 无需探索其他服务或从头创建订单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayDemoOrderServiceImpl:130",
+    },
     "yudao_pay_wallet_recharge_duplicate_notify": {
         "sink": "PayWalletRechargeServiceImpl.updateWalletRechargerPaid 中的 "
                 "log.warn(\"[updateWalletRechargerPaid][recharge({}) 已支付，且支付单号相同({})，直接返回]\", recharge, payOrderId) "
@@ -940,6 +967,33 @@ SINK_TASKS = {
         # 日志参数是 withdraw 对象与 payTransferId (数值), marker 放不进参数;
         # 用目标日志前缀精确判定。
         "log_match": "[updateDemoWithdrawStatus][withdraw(",
+    },
+    "yudao_pay_demo_withdraw_not_found": {
+        "sink": "PayDemoWithdrawServiceImpl.updateDemoWithdrawTransferred 中的 "
+                "log.error(\"[updateDemoWithdrawStatus][withdraw({}) payOrder({}) 不存在提现单，请进行处理！]\", id, payTransferId) "
+                "(L135, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoWithdrawServiceImpl.java)。"
+                "触发条件: 提现转账回调更新时, 请求中的提现单 id 在 pay_demo_withdraw 表中不存在。",
+        "api": "POST http://localhost:9213/admin-api/pay/demo-withdraw/update-transferred "
+               "(body: {\"merchantTransferId\":\"999999\",\"payTransferId\":1}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_demo_withdraw 表。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayDemoWithdrawServiceImpl:135",
+    },
+    "yudao_pay_demo_withdraw_mismatch": {
+        "sink": "PayDemoWithdrawServiceImpl.updateDemoWithdrawTransferred 中的 "
+                "log.error(\"[updateDemoWithdrawStatus][withdraw({}) 转账单不匹配({})，请进行处理！]\", withdraw, payTransferId) "
+                "(L147, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoWithdrawServiceImpl.java)。"
+                "触发条件: 提现转账回调更新时, 提现单处于已结束状态(status=10, pay_transfer_id=100), 请求传入的 payTransferId 与库中记录不一致。",
+        "api": "POST http://localhost:9213/admin-api/pay/demo-withdraw/update-transferred "
+               "(body: {\"merchantTransferId\":\"1\",\"payTransferId\":999999}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_demo_withdraw 表 (已预置 status=10, pay_transfer_id=100 的提现单 id=1)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-transferred 回调, 无需探索其他服务或从头创建提现单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayDemoWithdrawServiceImpl:147",
     },
     # ── yudao mall/trade (9212, trade-server 已部署) ──
     "yudao_mall_brokerage_withdraw_duplicate_notify": {
