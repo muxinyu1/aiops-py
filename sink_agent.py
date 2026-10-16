@@ -845,6 +845,51 @@ SINK_TASKS = {
         # 日志参数是数值，用类与行号特异匹配。
         "log_match": "AfterSaleServiceImpl:429",
     },
+    "yudao_mall_trade_after_sale_refund_status_not_success": {
+        "sink": "AfterSaleServiceImpl.validatePayRefund 中的 "
+                "log.error(\"[validatePayRefund][afterSale({}) payRefund({}) 无退款结果，请进行处理！payRefund 数据是：{}]\", afterSale.getId(), payRefundId, toJsonString(payRefund)) "
+                "(L435, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/aftersale/AfterSaleServiceImpl.java)。"
+                "触发条件: 售后订单退款回调时, 售后单状态为等待退款 (WAIT_REFUND, 40), 校验退款单合法性时发现 pay-server 退款单状态既非成功(10)也非失败(20) (例如 status=0 未退款)。",
+        "api": "POST http://localhost:9212/admin-api/trade/after-sale/update-refunded "
+               "(body: {\"merchantRefundId\":\"1\",\"merchantOrderId\":\"200\",\"payRefundId\":600}, @PermitAll 免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_after_sale 表 (已预置 status=40, id=1 的售后单) 与 pay_refund 表 (已预置 status=0, refund_price=100 的退款单 id=600)。"
+               "库中已预置测试记录, 请直接向 trade-server 发送 update-refunded 回调, 无需探索其他服务或从头创建数据。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值与 JSON 字符串，用类与行号特异匹配。
+        "log_match": "AfterSaleServiceImpl:435",
+    },
+    "yudao_mall_trade_after_sale_refund_price_mismatch": {
+        "sink": "AfterSaleServiceImpl.validatePayRefund 中的 "
+                "log.error(\"[validatePayRefund][afterSale({}) payRefund({}) 退款金额不匹配，请进行处理！afterSale 数据是：{}，payRefund 数据是：{}]\", afterSale.getId(), payRefundId, ...) "
+                "(L441, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/aftersale/AfterSaleServiceImpl.java)。"
+                "触发条件: 售后订单退款回调时, 售后单状态为等待退款 (WAIT_REFUND, 40, 金额100), 校验退款单合法性时发现退款单金额与售后单金额不一致 (例如 pay_refund 中 refund_price=200)。",
+        "api": "POST http://localhost:9212/admin-api/trade/after-sale/update-refunded "
+               "(body: {\"merchantRefundId\":\"1\",\"merchantOrderId\":\"200\",\"payRefundId\":601}, @PermitAll 免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_after_sale 表 (已预置 status=40, refund_price=100, id=1 的售后单) 与 pay_refund 表 (已预置 status=10, refund_price=200 的退款单 id=601)。"
+               "库中已预置测试记录, 请直接向 trade-server 发送 update-refunded 回调, 无需探索其他服务或从头创建数据。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值与 JSON 字符串，用类与行号特异匹配。
+        "log_match": "AfterSaleServiceImpl:441",
+    },
+    "yudao_mall_trade_after_sale_refund_id_mismatch": {
+        "sink": "AfterSaleServiceImpl.validatePayRefund 中的 "
+                "log.error(\"[validatePayRefund][afterSale({}) 退款单不匹配({})，请进行处理！payRefund 数据是：{}]\", afterSale.getId(), payRefundId, ...) "
+                "(L447, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/aftersale/AfterSaleServiceImpl.java)。"
+                "触发条件: 售后订单退款回调时, 售后单状态为等待退款 (WAIT_REFUND, 40, id=1), 校验退款单合法性时发现退款单 merchantRefundId 与售后单 id 不一致 (例如 merchantRefundId='999')。",
+        "api": "POST http://localhost:9212/admin-api/trade/after-sale/update-refunded "
+               "(body: {\"merchantRefundId\":\"1\",\"merchantOrderId\":\"200\",\"payRefundId\":602}, @PermitAll 免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_after_sale 表 (已预置 status=40, id=1 的售后单) 与 pay_refund 表 (已预置 status=10, refund_price=100, merchant_refund_id='999' 的退款单 id=602)。"
+               "库中已预置测试记录, 请直接向 trade-server 发送 update-refunded 回调, 无需探索其他服务或从头创建数据。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值与 JSON 字符串，用类与行号特异匹配。
+        "log_match": "AfterSaleServiceImpl:447",
+    },
     "yudao_mall_trade_order_paid_duplicate_notify": {
         "sink": "TradeOrderUpdateServiceImpl.updateOrderPaid 中的 "
                 "log.warn(\"[updateOrderPaid][order({}) 已支付，且支付单号相同({})，直接返回]\", order, payOrderId) "

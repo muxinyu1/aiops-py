@@ -73,6 +73,7 @@
 - ✅ `yudao_mall_trade_order_pay_order_not_found` — TradeOrderUpdateServiceImpl L347（36 调用/624.5s）
 - ✅ `yudao_mall_trade_order_pay_order_status_not_success` — TradeOrderUpdateServiceImpl L353（v3 PASS, 40 调用/738.5s）
 - ✅ `yudao_mall_trade_order_price_mismatch` — TradeOrderUpdateServiceImpl L359（40 调用/1234.1s）
+- ✅ `yudao_mall_trade_after_sale_pay_refund_not_found` — AfterSaleServiceImpl L429（38 调用/991.5s, v1 PASS; 构造 update-refunded 回调触发退款单不存在分支命中目标日志）
 - ⚠️ `yudao_mall_trade_order_merchant_order_id_mismatch` — TradeOrderUpdateServiceImpl L365（40 调用预算超限未达，人工 curl 预验证触发成功并命中目标日志，确认真实可达，归档 v1-v3）
 - ⚠️ `yudao_mall_brokerage_withdraw_mismatch` — BrokerageWithdrawServiceImpl L252（40 调用/977.7s 预算超限未达，人工 curl 预验证触发成功并命中目标日志，确认真实可达，归档 v1）
 - ⛔ `BrokerageWithdrawServiceImpl L273`「payTransfer 不存在」— 静态不可达死代码。PayTransferApiImpl L42 在 transfer 为空时直接返回 null（HTTP 200 空包），Feign 反序列化后 CommonResult 为 null，在 L271 .getCheckedData() 时直接触发 NullPointerException，永远无法到达 L272-274 的判空日志。
