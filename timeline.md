@@ -65,6 +65,7 @@
 - ✅ `yudao_pay_demo_order_not_found` — PayDemoOrderServiceImpl L119（36 调用/888.4s, v1 PASS; 构造 update-paid 回调传入不存在的订单 id 触发示例订单不存在分支命中目标日志）
 - ✅ `yudao_pay_demo_order_paid_mismatch` — PayDemoOrderServiceImpl L130（31 调用/1333.9s, v1 PASS; 构造 update-paid 回调传入不匹配的 payOrderId 触发支付单不匹配分支命中目标日志）
 - ✅ `yudao_pay_demo_order_refund_mismatch` — PayDemoOrderServiceImpl L239（33 调用/873.0s, v1 PASS; 构造 update-refunded 回调传入不匹配的 payRefundId 触发退款单不匹配分支命中目标日志）
+- ✅ `yudao_pay_demo_order_refund_price_mismatch` — PayDemoOrderServiceImpl L255（34 调用/734.2s, v1 PASS; 构造 update-refunded 回调传入金额不匹配的退款单 id 触发退款金额不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_duplicate_notify` — PayWalletRechargeServiceImpl L131（30 调用/378.2s）
 - ✅ `yudao_pay_wallet_recharge_paid_mismatch` — PayWalletRechargeServiceImpl L135（16 调用/735.3s, v1 PASS; 构造 update-paid 回调传入不同 payOrderId 触发支付单号不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_not_found` — PayWalletRechargeServiceImpl L124（29 调用/524.9s, v1 PASS; 构造 update-paid 回调传入不存在的充值单 id 触发充值单不存在分支命中目标日志）
