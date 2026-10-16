@@ -132,6 +132,7 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | mall_trade_order_pay_order_status_not_success | TradeOrderUpdateServiceImpl L353「未支付，请进行处理！」 | v1/v2<br>v3 | ❌ FAIL (预算耗尽搜索建单)<br>✅ PASS | 40/492s<br>40/738.5s |
 | mall_trade_order_price_mismatch | TradeOrderUpdateServiceImpl L359「支付金额不匹配，请进行处理！」 | v1 | ✅ PASS | 40/1234.1s |
 | mall_trade_after_sale_pay_refund_not_found | AfterSaleServiceImpl L429「payRefund 不存在」 | v1 | ✅ PASS | 38/991.5s |
+| mall_trade_after_sale_refund_status_not_success | AfterSaleServiceImpl L435「无退款结果」 | v1 | ✅ PASS | 40/735.8s |
 | mall_trade_order_merchant_order_id_mismatch | TradeOrderUpdateServiceImpl L365「支付单不匹配二次校验」 | v1/v2/v3 | ⚠️ 预算耗尽 (curl 验证真实可达) | 40/— |
 | mall_brokerage_withdraw_mismatch | BrokerageWithdrawServiceImpl L252「转账单不匹配」 | v1 | ⚠️ 预算耗尽 (curl 验证真实可达) | 40/977.7s |
 
