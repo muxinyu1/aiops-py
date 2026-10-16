@@ -1,0 +1,368 @@
+{
+  "reached": false,
+  "turns": 1,
+  "tool_calls": 40,
+  "elapsed": 758.0067460536957,
+  "tool_log": [
+    {
+      "n": 1,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java",
+        "start": 220,
+        "end": 300
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java (L220-300, 共350行)\n 220 | \n 221 |     @Override\n 222 |     @Transactional(rollbackFor = Exception.class)\n 223 |     public void updateWalletRechargeRefunded(Long id, String refundId, Long payRefundId) {\n 224 |         // 1.1 获取钱包充值记录\n 225 |         PayWalletRechargeDO walletRecharge = walletRechargeMapper.selectById(id);\n 226 |         if (walletRecharge == null) {\n 227 |             log.error(\"[updateWalletRechargerPaid][钱包充值记录不存在，钱包充值记录 id({})]\", id);\n 228 |             throw exception(WALLET_RECHARGE_NOT_FOUND);\n 229 |         }\n 230 |         // 1.2 校验钱包充值是否可以更新已退款\n 231 |         PayRefundRespDTO payRefund = validateWalletRechargeCanRefunded(walletRecharge, payRefundId);\n 232 | \n 233 |         // 2. 处理退款结果\n 234 |         PayWalletRechargeDO updateObj = new PayWalletRechargeDO().setId(id);\n 235 |         // 情况一：退款成功\n 236 |         if (PayRefundStatusEnum.isSuccess(payRefund.getStatus())) {\n 237 |             // 2.1 更新钱包余额\n 238 |             payWalletService.reduceWalletBalance(walletRecharge.getWalletId(), id,\n 239 |                     PayWalletBizTypeEnum.RECHARGE_REFUND, walletRecharge.getTotalPrice());\n 240 | \n 241 |             updateObj.setRefundStatus(SUCCESS.getStatus()).setRefundTime(payRefund.getSuccessTime())\n 242 |                     .setRefundTotalPrice(walletRecharge.getTotalPrice()).setRefundPayPrice(walletRecharge.getPayPrice())\n 243 |                     .setRefundBonusPrice(walletRecharge.getBonusPrice());\n 244 |         // 情况二：退款失败\n 245 |         } else if (PayRefundStatusEnum.isFailure(payRefund.getStatus())) {\n 246 |             // 2.2 解冻余额\n 247 |             payWalletService.unfreezePrice(walletRecharge.getWalletId(), walletRecharge.getTotalPrice());\n 248 | \n 249 |             updateObj.setRefundStatus(FAILURE.getStatus());\n 250 |         }\n 251 | \n 252 |         // 3. 更新钱包充值的退款字段\n 253 |         wall"
+    },
+    {
+      "n": 2,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, merchant_order_id, merchant_refund_id, pay_refund_id, pay_order_id, status, price FROM pay_wallet_recharge WHERE id = 20"
+      },
+      "result": "[stderr] ERROR 1054 (42S22) at line 1: Unknown column 'merchant_order_id' in 'field list'"
+    },
+    {
+      "n": 3,
+      "tool": "query_db",
+      "args": {
+        "sql": "DESC pay_wallet_recharge"
+      },
+      "result": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tbigint\tNO\tPRI\tNULL\tauto_increment\nwallet_id\tbigint\tNO\t\t1\t\ntotal_price\tint\tNO\t\t100\t\npay_price\tint\tNO\t\t100\t\nbonus_price\tint\tNO\t\t0\t\npackage_id\tbigint\tYES\t\tNULL\t\npay_status\tbit(1)\tNO\t\tb'0'\t\npay_order_id\tbigint\tYES\t\tNULL\t\npay_channel_code\tvarchar(64)\tYES\t\tNULL\t\npay_time\tdatetime\tYES\t\tNULL\t\npay_refund_id\tbigint\tYES\t\tNULL\t\nrefund_total_price\tint\tYES\t\tNULL\t\nrefund_pay_price\tint\tYES\t\tNULL\t\nrefund_bonus_price\tint\tYES\t\tNULL\t\nrefund_time\tdatetime\tYES\t\tNULL\t\nrefund_status\ttinyint\tYES\t\tNULL\t\ncreator\tvarchar(64)\tYES\t\t\t\ncreate_time\tdatetime\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED\nupdater\tvarchar(64)\tYES\t\t\t\nupdate_time\tdatetime\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\ndeleted\tbit(1)\tNO\t\tb'0'\t\ntenant_id\tbigint\tNO\t\t0"
+    },
+    {
+      "n": 4,
+      "tool": "search_code",
+      "args": {
+        "pattern": "wallet-recharge/update-refunded",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "无匹配: wallet-recharge/update-refunded"
+    },
+    {
+      "n": 5,
+      "tool": "search_code",
+      "args": {
+        "pattern": "update-refunded",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java:48:    @PostMapping(\"/update-refunded\")\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/demo/PayDemoOrderController.java:66:    @PostMapping(\"/update-refunded\")\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/admin/aftersale/AfterSaleController.java:138:    @PostMapping(\"/update-refunded\")\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java:48:    @PostMapping(\"/update-refunded\")\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/demo/PayDemoOrderController.java:66:    @PostMapping(\"/update-refunded\")\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/admin/aftersale/AfterSaleController.java:138:    @PostMapping(\"/update-refunded\")\n"
+    },
+    {
+      "n": 6,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_wallet_recharge WHERE id = 20"
+      },
+      "result": "id\twallet_id\ttotal_price\tpay_price\tbonus_price\tpackage_id\tpay_status\tpay_order_id\tpay_channel_code\tpay_time\tpay_refund_id\trefund_total_price\trefund_pay_price\trefund_bonus_price\trefund_time\trefund_status\tcreator\tcreate_time\tupdater\tupdate_time\tdeleted\ttenant_id\n20\t1\t100\t100\t0\tNULL\t\u0001\t60001\tNULL\tNULL\t999999\tNULL\tNULL\tNULL\tNULL\t0\t\t2026-10-17 00:58:09\t\t2026-10-17 00:58:09\t\\0\t1"
+    },
+    {
+      "n": 7,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java",
+        "start": 1,
+        "end": 75
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java (L1-59, 共59行)\n   1 | package cn.iocoder.yudao.module.pay.controller.admin.wallet;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   4 | import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;\n   5 | import cn.iocoder.yudao.module.pay.api.notify.dto.PayRefundNotifyReqDTO;\n   6 | import cn.iocoder.yudao.module.pay.service.wallet.PayWalletRechargeService;\n   7 | import io.swagger.v3.oas.annotations.Operation;\n   8 | import io.swagger.v3.oas.annotations.Parameter;\n   9 | import io.swagger.v3.oas.annotations.tags.Tag;\n  10 | import lombok.extern.slf4j.Slf4j;\n  11 | import org.springframework.validation.annotation.Validated;\n  12 | import org.springframework.web.bind.annotation.*;\n  13 | \n  14 | import javax.annotation.Resource;\n  15 | import javax.annotation.security.PermitAll;\n  16 | import javax.validation.Valid;\n  17 | \n  18 | import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;\n  19 | import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;\n  20 | \n  21 | @Tag(name = \"管理后台 - 钱包充值\")\n  22 | @RestController\n  23 | @RequestMapping(\"/pay/wallet-recharge\")\n  24 | @Validated\n  25 | @Slf4j\n  26 | public class PayWalletRechargeController {\n  27 | \n  28 |     @Resource\n  29 |     private PayWalletRechargeService walletRechargeService;\n  30 | \n  31 |     @PostMapping(\"/update-paid\")\n  32 |     @Operation(summary = \"更新钱包充值为已充值\") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob\n  33 |     @PermitAll // 无需登录， 内部校验实现\n  34 |     public CommonResult<Boolean> updateWalletRechargerPaid(@Valid @RequestBody PayOrderNotifyReqDTO notifyReqDTO) {\n  35 |         walletRechargeService.updateWalletRechargerPaid(Long.valueOf(notifyReqDTO.getMerchantOrderId()),\n  36 |                 notifyReqDTO.getPayOrderId());\n  37 |         return success(true);\n  38 |  "
+    },
+    {
+      "n": 8,
+      "tool": "get_api_catalog",
+      "args": {
+        "project": "yudao-cloud",
+        "tables": "pay_wallet_recharge"
+      },
+      "result": "无匹配 API (project=yudao-cloud, tables=pay_wallet_recharge)\n已知表: ['flow_category', 'flow_spel', 'gen_create_table', 'gen_datasource_conf', 'gen_field_type', 'gen_group', 'gen_table', 'gen_template', 'sys_area', 'sys_clarity_data', 'sys_client', 'sys_config', 'sys_dept', 'sys_dict', 'sys_dict_data', 'sys_dict_type', 'sys_file', 'sys_i18n', 'sys_log', 'sys_logininfor', 'sys_menu', 'sys_message', 'sys_notice', 'sys_oauth_client_details', 'sys_oper_log', 'sys_oss', 'sys_oss_config', 'sys_post', 'sys_public_param', 'sys_role']"
+    },
+    {
+      "n": 9,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class PayRefundNotifyReqDTO",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayRefundNotifyReqDTO.java:20:public class PayRefundNotifyReqDTO {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayRefundNotifyReqDTO.java:20:public class PayRefundNotifyReqDTO {\n"
+    },
+    {
+      "n": 10,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayRefundNotifyReqDTO.java",
+        "start": 1,
+        "end": 50
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayRefundNotifyReqDTO.java (L1-40, 共40行)\n   1 | package cn.iocoder.yudao.module.pay.api.notify.dto;\n   2 | \n   3 | import lombok.AllArgsConstructor;\n   4 | import lombok.Builder;\n   5 | import lombok.Data;\n   6 | import lombok.NoArgsConstructor;\n   7 | \n   8 | import javax.validation.constraints.NotEmpty;\n   9 | import javax.validation.constraints.NotNull;\n  10 | \n  11 | /**\n  12 |  * 退款单的通知 Request DTO\n  13 |  *\n  14 |  * @author 芋道源码\n  15 |  */\n  16 | @Data\n  17 | @Builder\n  18 | @NoArgsConstructor\n  19 | @AllArgsConstructor\n  20 | public class PayRefundNotifyReqDTO {\n  21 | \n  22 |     /**\n  23 |      * 商户退款单编号\n  24 |      */\n  25 |     @NotEmpty(message = \"商户退款单编号不能为空\")\n  26 |     private String merchantOrderId;\n  27 | \n  28 |     /**\n  29 |      * 商户退款编号\n  30 |      */\n  31 |     @NotEmpty(message = \"商户退款编号不能为空\")\n  32 |     private String merchantRefundId;\n  33 | \n  34 |     /**\n  35 |      * 支付退款编号\n  36 |      */\n  37 |     @NotNull(message = \"支付退款编号不能为空\")\n  38 |     private Long payRefundId;\n  39 | \n  40 | }"
+    },
+    {
+      "n": 11,
+      "tool": "search_code",
+      "args": {
+        "pattern": "createWalletRecharge|createRecharge|payChannelCode",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/dal/dataobject/wallet/PayWalletRechargeDO.java:77:    private String payChannelCode;\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/dal/dataobject/demo/PayDemoOrderDO.java:71:    private String payChannelCode;\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/app/wallet/vo/recharge/AppPayWalletRechargeRespVO.java:25:    private String payChannelCode;\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/app/wallet/AppPayWalletRechargeController.java:51:    public CommonResult<AppPayWalletRechargeCreateRespVO> createWalletRecharge(\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/app/wallet/AppPayWalletRechargeController.java:53:        PayWalletRechargeDO walletRecharge = walletRechargeService.createWalletRecharge(\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargePackageController.java:37:    public CommonResult<Long> createWalletRechargePackage(@Valid @RequestBody WalletRechargePackageCreateReqVO createReqVO) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargePackageController.java:38:        return success(walletRechargePackageService.createWalletRechargePackage(createReqVO));\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/demo/vo/order/PayDemoOrderRespVO.java:40:    private String payChannelCode;\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargePackageServiceImpl.java:50"
+    },
+    {
+      "n": 12,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java",
+        "start": 1,
+        "end": 220
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java (L1-220, 共350行)\n   1 | package cn.iocoder.yudao.module.pay.service.wallet;\n   2 | \n   3 | import cn.hutool.core.date.LocalDateTimeUtil;\n   4 | import cn.hutool.core.lang.Assert;\n   5 | import cn.hutool.core.util.ObjUtil;\n   6 | import cn.hutool.core.util.ObjectUtil;\n   7 | import cn.hutool.extra.spring.SpringUtil;\n   8 | import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;\n   9 | import cn.iocoder.yudao.framework.common.pojo.PageParam;\n  10 | import cn.iocoder.yudao.framework.common.pojo.PageResult;\n  11 | import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;\n  12 | import cn.iocoder.yudao.module.pay.api.refund.PayRefundApi;\n  13 | import cn.iocoder.yudao.module.pay.api.refund.dto.PayRefundCreateReqDTO;\n  14 | import cn.iocoder.yudao.module.pay.api.refund.dto.PayRefundRespDTO;\n  15 | import cn.iocoder.yudao.module.pay.controller.app.wallet.vo.recharge.AppPayWalletRechargeCreateReqVO;\n  16 | import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderDO;\n  17 | import cn.iocoder.yudao.module.pay.dal.dataobject.wallet.PayWalletDO;\n  18 | import cn.iocoder.yudao.module.pay.dal.dataobject.wallet.PayWalletRechargeDO;\n  19 | import cn.iocoder.yudao.module.pay.dal.dataobject.wallet.PayWalletRechargePackageDO;\n  20 | import cn.iocoder.yudao.module.pay.dal.mysql.wallet.PayWalletRechargeMapper;\n  21 | import cn.iocoder.yudao.module.pay.enums.PayChannelEnum;\n  22 | import cn.iocoder.yudao.module.pay.enums.order.PayOrderStatusEnum;\n  23 | import cn.iocoder.yudao.module.pay.enums.refund.PayRefundStatusEnum;\n  24 | import cn.iocoder.yudao.module.pay.enums.wallet.PayWalletBizTypeEnum;\n  25 | import cn.iocoder.yudao.module.pay.framework.pay.config.PayProperties;\n  26 | import cn.iocoder.yudao.module.pay.service.order.PayOrderService;\n  27 | import cn.iocoder.yudao.module.system.api.social.SocialClientApi;\n  28 |"
+    },
+    {
+      "n": 13,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java",
+        "start": 140,
+        "end": 220
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java (L140-220, 共350行)\n 140 |         PayOrderDO payOrderDO = validatePayOrderPaid(recharge, payOrderId);\n 141 | \n 142 |         // 3. 更新钱包充值的支付状态\n 143 |         int updateCount = walletRechargeMapper.updateByIdAndPaid(id, false,\n 144 |                 new PayWalletRechargeDO().setId(id).setPayStatus(true).setPayTime(LocalDateTime.now())\n 145 |                         .setPayChannelCode(payOrderDO.getChannelCode()));\n 146 |         if (updateCount == 0) {\n 147 |             throw exception(WALLET_RECHARGE_UPDATE_PAID_STATUS_NOT_UNPAID);\n 148 |         }\n 149 | \n 150 |         // 4. 更新钱包余额\n 151 |         // TODO @jason：这样的话，未来提现会不会把充值的，也提现走哈。类似先充 100，送 110；然后提现 110；\n 152 |         // TODO 需要钱包中加个可提现余额\n 153 |         payWalletService.addWalletBalance(recharge.getWalletId(), String.valueOf(id),\n 154 |                 PayWalletBizTypeEnum.RECHARGE, recharge.getTotalPrice());\n 155 | \n 156 |         // 5. 发送订阅消息\n 157 |         getSelf().sendWalletRechargerPaidMessage(payOrderId, recharge);\n 158 |     }\n 159 | \n 160 |     @Async\n 161 |     public void sendWalletRechargerPaidMessage(Long payOrderId, PayWalletRechargeDO walletRecharge) {\n 162 |         // 1. 构建并发送模版消息\n 163 |         PayWalletDO wallet = payWalletService.getWallet(walletRecharge.getWalletId());\n 164 |         socialClientApi.sendWxaSubscribeMessage(new SocialWxaSubscribeMessageSendReqDTO()\n 165 |                 .setUserId(wallet.getUserId()).setUserType(wallet.getUserType())\n 166 |                 .setTemplateTitle(WXA_WALLET_RECHARGER_PAID)\n 167 |                 .setPage(\"pages/user/wallet/money\") // 钱包详情界面\n 168 |                 .addMessage(\"character_string1\", String.valueOf(payOrderId)) // 支付单编号\n 169 |                 .addMessage(\"amount2\", fenToYuanStr(walletRecharge.getTotalPrice())) // 充值金额\n 170 |                 .addMessage(\"time3\", LocalDateTimeUtil.formatNormal"
+    },
+    {
+      "n": 14,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, app_key, merchant_order_id, status, price, channel_code, channel_order_no, subject, expire_time FROM pay_order WHERE id = 60001"
+      },
+      "result": "[stderr] ERROR 1054 (42S22) at line 1: Unknown column 'app_key' in 'field list'"
+    },
+    {
+      "n": 15,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java",
+        "start": 300,
+        "end": 350
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java (L300-350, 共350行)\n 300 |         // TODO @芋艿：需要考虑下，赠送的金额，会不会导致提现超过；\n 301 |         return wallet;\n 302 |     }\n 303 | \n 304 |     /**\n 305 |      * 校验支付订单的合法性\n 306 |      *\n 307 |      * @param recharge 充值订单\n 308 |      * @param payOrderId 支付订单编号\n 309 |      * @return 支付订单\n 310 |      */\n 311 |     private PayOrderDO validatePayOrderPaid(PayWalletRechargeDO recharge, Long payOrderId) {\n 312 |         // 1. 校验支付单是否存在\n 313 |         PayOrderDO payOrder = payOrderService.getOrder(payOrderId);\n 314 |         if (payOrder == null) {\n 315 |             log.error(\"[validatePayOrderPaid][充值订单({}) payOrder({}) 不存在，请进行处理！]\",\n 316 |                     recharge.getId(), payOrderId);\n 317 |             throw exception(PAY_ORDER_NOT_FOUND);\n 318 |         }\n 319 | \n 320 |         // 2.1 校验支付单已支付\n 321 |         if (!PayOrderStatusEnum.isSuccess(payOrder.getStatus())) {\n 322 |             log.error(\"[validatePayOrderPaid][充值订单({}) payOrder({}) 未支付，请进行处理！payOrder 数据是：{}]\",\n 323 |                     recharge.getId(), payOrderId, toJsonString(payOrder));\n 324 |             throw exception(WALLET_RECHARGE_UPDATE_PAID_PAY_ORDER_STATUS_NOT_SUCCESS);\n 325 |         }\n 326 |         // 2.2 校验支付金额一致\n 327 |         if (notEqual(payOrder.getPrice(), recharge.getPayPrice())) {\n 328 |             log.error(\"[validatePayOrderPaid][充值订单({}) payOrder({}) 支付金额不匹配，请进行处理！钱包 数据是：{}，payOrder 数据是：{}]\",\n 329 |                     recharge.getId(), payOrderId, toJsonString(recharge), toJsonString(payOrder));\n 330 |             throw exception(WALLET_RECHARGE_UPDATE_PAID_PAY_PRICE_NOT_MATCH);\n 331 |         }\n 332 |         // 2.3 校验支付订单的商户订单匹配\n 333 |         if (notEqual(payOrder.getMerchantOrderId(), recharge.getId().toString())) {\n 334 |             log.error(\"[validatePayOrderPaid][充值订单({}) 支付单不匹配({})，请进行处理！payOrder 数据是：{}]\",\n 335 |                     rechar"
+    },
+    {
+      "n": 16,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_order WHERE id = 60001"
+      },
+      "result": "(空结果, 执行成功)"
+    },
+    {
+      "n": 17,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT COUNT(*) AS c FROM pay_order"
+      },
+      "result": "c\n3"
+    },
+    {
+      "n": 18,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_wallet"
+      },
+      "result": "[stderr] ERROR 1146 (42S02) at line 1: Table 'ruoyi-vue-pro.pay_wallet' doesn't exist"
+    },
+    {
+      "n": 19,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, app_key, merchant_order_id, merchant_refund_id, pay_order_id, status, price, refund_price, channel_id, channel_order_no FROM pay_refund LIMIT 10"
+      },
+      "result": "[stderr] ERROR 1054 (42S22) at line 1: Unknown column 'app_key' in 'field list'"
+    },
+    {
+      "n": 20,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_order"
+      },
+      "result": "id\tapp_id\tchannel_id\tchannel_code\tuser_id\tuser_type\tmerchant_order_id\tsubject\tbody\tnotify_url\tprice\tchannel_fee_rate\tchannel_fee_price\tstatus\tuser_ip\texpire_time\tsuccess_time\tnotify_time\textension_id\tno\trefund_price\tchannel_user_id\tchannel_order_no\tcreator\tcreate_time\tupdater\tupdate_time\tdeleted\n500\t1\tNULL\tNULL\tNULL\tNULL\t200\t测试商品\t测试\thttp://localhost\t100\t0\t0\t0\t127.0.0.1\t2026-10-16 11:29:50\tNULL\tNULL\tNULL\tNULL\t0\tNULL\tNULL\t\t2026-10-16 11:29:50\t\t2026-10-16 11:29:50\t\\0\n501\t1\tNULL\tNULL\tNULL\tNULL\t200\t测试商品价格不匹配\t测试\thttp://localhost\t200\t0\t0\t10\t127.0.0.1\t2026-10-16 12:03:11\tNULL\tNULL\tNULL\tNULL\t0\tNULL\tNULL\t\t2026-10-16 12:03:11\t\t2026-10-16 12:03:11\t\\0\n502\t1\tNULL\tNULL\tNULL\tNULL\t999\t测试商户订单号不匹配\t测试\thttp://localhost\t100\t0\t0\t10\t127.0.0.1\t2026-10-16 12:03:32\tNULL\tNULL\tNULL\tNULL\t0\tNULL\tNULL\t\t2026-10-16 12:03:32\t\t2026-10-16 12:03:32\t\\0"
+    },
+    {
+      "n": 21,
+      "tool": "query_db",
+      "args": {
+        "sql": "DESC pay_refund"
+      },
+      "result": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tbigint\tNO\tPRI\tNULL\tauto_increment\nno\tvarchar(64)\tNO\t\t\t\napp_id\tbigint\tNO\t\t0\t\nchannel_id\tbigint\tNO\t\t0\t\nchannel_code\tvarchar(32)\tNO\t\t\t\norder_id\tbigint\tNO\t\t0\t\norder_no\tvarchar(64)\tNO\t\t\t\nmerchant_order_id\tvarchar(64)\tNO\t\t\t\nmerchant_refund_id\tvarchar(64)\tNO\t\t\t\nnotify_url\tvarchar(1024)\tNO\t\t\t\nstatus\ttinyint\tNO\t\t0\t\npay_price\tbigint\tNO\t\t0\t\nrefund_price\tbigint\tNO\t\t0\t\nreason\tvarchar(256)\tNO\t\t\t\nuser_ip\tvarchar(50)\tYES\t\tNULL\t\nuser_id\tbigint\tYES\t\tNULL\t\nuser_type\ttinyint\tYES\t\tNULL\t\nchannel_order_no\tvarchar(64)\tNO\t\t\t\nchannel_refund_no\tvarchar(64)\tYES\t\tNULL\t\nsuccess_time\tdatetime\tYES\t\tNULL\t\nchannel_error_code\tvarchar(128)\tYES\t\tNULL\t\nchannel_error_msg\tvarchar(256)\tYES\t\tNULL\t\nchannel_notify_data\tvarchar(1024)\tYES\t\tNULL\t\ncreator\tvarchar(64)\tYES\t\t\t\ncreate_time\tdatetime\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED\nupdater\tvarchar(64)\tYES\t\t\t\nupdate_time\tdatetime\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\ndeleted\tbit(1)\tNO\t\tb'0'"
+    },
+    {
+      "n": 22,
+      "tool": "query_db",
+      "args": {
+        "sql": "SHOW TABLES LIKE 'pay%'"
+      },
+      "result": "Tables_in_ruoyi-vue-pro (pay%)\npay_app\npay_channel\npay_order\npay_refund\npay_transfer\npay_wallet_recharge"
+    },
+    {
+      "n": 23,
+      "tool": "search_code",
+      "args": {
+        "pattern": "updateByIdAndRefunded|updateByIdAndPaid",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/dal/mysql/wallet/PayWalletRechargeMapper.java:14:    default int updateByIdAndPaid(Long id, boolean wherePayStatus, PayWalletRechargeDO updateObj) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/dal/mysql/wallet/PayWalletRechargeMapper.java:19:    default int updateByIdAndRefunded(Long id, Integer whereRefundStatus, PayWalletRechargeDO updateObj) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:143:        int updateCount = walletRechargeMapper.updateByIdAndPaid(id, false,\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:253:        walletRechargeMapper.updateByIdAndRefunded(id, WAITING.getStatus(), updateObj);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/dal/mysql/wallet/PayWalletRechargeMapper.java:14:    default int updateByIdAndPaid(Long id, boolean wherePayStatus, PayWalletRechargeDO updateObj) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/dal/mysql/wallet/PayWalletRechargeMapper.java:19:    default int updateByIdAndRefunded(Long id, Integer whereRefundStatus, PayWalletRechargeDO updateObj) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:143:        int updateCount = walletRechargeMapper.updateByIdAndPaid(id, false,\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:253:        walletRechargeMapper.updateByIdAndRefunded(id, WAITING.getStatus(), updateObj);\n"
+    },
+    {
+      "n": 24,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/dal/dataobject/wallet/PayWalletRechargeDO.java",
+        "start": 1,
+        "end": 120
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/dal/dataobject/wallet/PayWalletRechargeDO.java (L1-116, 共116行)\n   1 | package cn.iocoder.yudao.module.pay.dal.dataobject.wallet;\n   2 | \n   3 | import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;\n   4 | import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderDO;\n   5 | import cn.iocoder.yudao.module.pay.dal.dataobject.refund.PayRefundDO;\n   6 | import cn.iocoder.yudao.module.pay.enums.refund.PayRefundStatusEnum;\n   7 | import com.baomidou.mybatisplus.annotation.KeySequence;\n   8 | import com.baomidou.mybatisplus.annotation.TableId;\n   9 | import com.baomidou.mybatisplus.annotation.TableName;\n  10 | import lombok.Data;\n  11 | \n  12 | import java.time.LocalDateTime;\n  13 | \n  14 | /**\n  15 |  * 会员钱包充值\n  16 |  */\n  17 | @TableName(value =\"pay_wallet_recharge\")\n  18 | @KeySequence(\"pay_wallet_recharge_seq\") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。\n  19 | @Data\n  20 | public class PayWalletRechargeDO extends BaseDO {\n  21 | \n  22 |     /**\n  23 |      * 编号\n  24 |      */\n  25 |     @TableId\n  26 |     private Long id;\n  27 | \n  28 |     /**\n  29 |      * 钱包编号\n  30 |      *\n  31 |      * 关联 {@link PayWalletDO#getId()}\n  32 |      */\n  33 |     private Long walletId;\n  34 | \n  35 |     /**\n  36 |      * 用户实际到账余额\n  37 |      *\n  38 |      * 例如充 100 送 20，则该值是 120\n  39 |      */\n  40 |     private Integer totalPrice;\n  41 |     /**\n  42 |      * 实际支付金额\n  43 |      */\n  44 |     private Integer payPrice;\n  45 |     /**\n  46 |      * 钱包赠送金额\n  47 |      */\n  48 |     private Integer bonusPrice;\n  49 | \n  50 |     /**\n  51 |      * 充值套餐编号\n  52 |      *\n  53 |      * 关联 {@link PayWalletRechargeDO#getPackageId()} 字段\n  54 |      */\n  55 |     private Long packageId;\n  56 | \n  57 |     /**\n  58 |      * 是否已支付\n  59 |      *\n  60 |      * true - 已支付\n  61 |      * false - 未支付\n  62 |      */\n  63 |     private Boolean payStatus;\n  64 | \n  65 |  "
+    },
+    {
+      "n": 25,
+      "tool": "search_code",
+      "args": {
+        "pattern": "public void addWalletBalance|public void freezePrice|public void reduceWalletBalance",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletServiceImpl.java:231:    public void freezePrice(Long id, Integer price) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletServiceImpl.java:231:    public void freezePrice(Long id, Integer price) {\n"
+    },
+    {
+      "n": 26,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class DefaultDBFieldHandler",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-mybatis/src/main/java/cn/iocoder/yudao/framework/mybatis/core/handler/DefaultDBFieldHandler.java:18:public class DefaultDBFieldHandler implements MetaObjectHandler {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-mybatis/src/main/java/cn/iocoder/yudao/framework/mybatis/core/handler/DefaultDBFieldHandler.java:18:public class DefaultDBFieldHandler implements MetaObjectHandler {\n"
+    },
+    {
+      "n": 27,
+      "tool": "search_code",
+      "args": {
+        "pattern": "addWalletBalance|unfreezePrice|reduceWalletBalance|getOrCreateWallet",
+        "path_prefix": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletServiceImpl.java"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/wallet/PayWalletApi.java:27:    CommonResult<Boolean> addWalletBalance(@Valid @RequestBody PayWalletAddBalanceReqDTO reqDTO);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/wallet/PayWalletApi.java:35:    CommonResult<PayWalletRespDTO> getOrCreateWallet(@RequestParam(\"userId\") Long userId,\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/app/order/AppPayOrderController.java:90:            PayWalletDO wallet = payWalletService.getOrCreateWallet(getLoginUserId(), getLoginUserType());\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/app/wallet/AppPayWalletController.java:35:        PayWalletDO wallet = payWalletService.getOrCreateWallet(getLoginUserId(), UserTypeEnum.MEMBER.getValue());\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/order/PayOrderController.java:102:            PayWalletDO wallet = payWalletService.getOrCreateWallet(getLoginUserId(), getLoginUserType());\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletController.java:42:        PayWalletDO wallet = payWalletService.getOrCreateWallet(reqVO.getUserId(), MEMBER.getValue());\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletController.java:59:        PayWalletDO wallet = payWalletService.getOrCreateWallet(updateReqVO.getUserId(), MEMBER.getValue());\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletController.java:66:        payWalletService.addWalletBalance(wallet.getId(), String.value"
+    },
+    {
+      "n": 28,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-mybatis/src/main/java/cn/iocoder/yudao/framework/mybatis/core/handler/DefaultDBFieldHandler.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-mybatis/src/main/java/cn/iocoder/yudao/framework/mybatis/core/handler/DefaultDBFieldHandler.java (L1-63, 共63行)\n   1 | package cn.iocoder.yudao.framework.mybatis.core.handler;\n   2 | \n   3 | import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;\n   4 | import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;\n   5 | import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;\n   6 | import org.apache.ibatis.reflection.MetaObject;\n   7 | \n   8 | import java.time.LocalDateTime;\n   9 | import java.util.Objects;\n  10 | \n  11 | /**\n  12 |  * 通用参数填充实现类\n  13 |  *\n  14 |  * 如果没有显式的对通用参数进行赋值，这里会对通用参数进行填充、赋值\n  15 |  *\n  16 |  * @author hexiaowu\n  17 |  */\n  18 | public class DefaultDBFieldHandler implements MetaObjectHandler {\n  19 | \n  20 |     @Override\n  21 |     @SuppressWarnings(\"PatternVariableCanBeUsed\")\n  22 |     public void insertFill(MetaObject metaObject) {\n  23 |         if (Objects.nonNull(metaObject) && metaObject.getOriginalObject() instanceof BaseDO) {\n  24 |             BaseDO baseDO = (BaseDO) metaObject.getOriginalObject();\n  25 | \n  26 |             LocalDateTime current = LocalDateTime.now();\n  27 |             // 创建时间为空，则以当前时间为插入时间\n  28 |             if (Objects.isNull(baseDO.getCreateTime())) {\n  29 |                 baseDO.setCreateTime(current);\n  30 |             }\n  31 |             // 更新时间为空，则以当前时间为更新时间\n  32 |             if (Objects.isNull(baseDO.getUpdateTime())) {\n  33 |                 baseDO.setUpdateTime(current);\n  34 |             }\n  35 | \n  36 |             Long userId = SecurityFrameworkUtils.getLoginUserId();\n  37 |             // 当前登录用户不为空，创建人为空，则当前登录用户为创建人\n  38 |             if (Objects.nonNull(userId) && Objects.isNull(baseDO.getCreator())) {\n  39 |                 baseDO.setCreator(userId.toString());\n  40 |             }\n  41 |             // 当前登录用户不为空，更新人为空，则当前登录用户为更新人\n  42 |             if (Objects.nonNull(userId) && Objects.isNull(baseDO.getU"
+    },
+    {
+      "n": 29,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletServiceImpl.java",
+        "start": 55,
+        "end": 240
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletServiceImpl.java (L55-240, 共246行)\n  55 |     private PayOrderService orderService;\n  56 |     @Resource\n  57 |     @Lazy // 延迟加载，避免循环依赖\n  58 |     private PayRefundService refundService;\n  59 | \n  60 |     @Override\n  61 |     @SneakyThrows\n  62 |     public PayWalletDO getOrCreateWallet(Long userId, Integer userType) {\n  63 |         PayWalletDO wallet = walletMapper.selectByUserIdAndType(userId, userType);\n  64 |         if (wallet == null) {\n  65 |             // 使用双重检查锁，保证钱包创建并发问题\n  66 |             // https://gitee.com/zhijiantianya/ruoyi-vue-pro/pulls/1475/files\n  67 |             wallet = lockRedisDAO.lock(userId, UPDATE_TIMEOUT_MILLIS, () -> {\n  68 |                 PayWalletDO newWallet = walletMapper.selectByUserIdAndType(userId, userType);\n  69 |                 if (newWallet == null) {\n  70 |                     newWallet = new PayWalletDO().setUserId(userId).setUserType(userType)\n  71 |                             .setBalance(0).setTotalExpense(0).setTotalRecharge(0);\n  72 |                     newWallet.setCreateTime(LocalDateTime.now());\n  73 |                     walletMapper.insert(newWallet);\n  74 |                 }\n  75 |                 return newWallet;\n  76 |             });\n  77 |         }\n  78 |         return wallet;\n  79 |     }\n  80 | \n  81 |     @Override\n  82 |     public PayWalletDO getWallet(Long walletId) {\n  83 |         return walletMapper.selectById(walletId);\n  84 |     }\n  85 | \n  86 |     @Override\n  87 |     public PageResult<PayWalletDO> getWalletPage(PayWalletPageReqVO pageReqVO) {\n  88 |         return walletMapper.selectPage(pageReqVO);\n  89 |     }\n  90 | \n  91 |     @Override\n  92 |     @Transactional(rollbackFor = Exception.class)\n  93 |     public PayWalletTransactionDO orderPay(Long walletId, String outTradeNo, Integer price) {\n  94 |         // 1. 判断支付交易拓展单是否存\n  95 |         PayOrderExtensionDO orde"
+    },
+    {
+      "n": 30,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_channel"
+      },
+      "result": "(空结果, 执行成功)"
+    },
+    {
+      "n": 31,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_app"
+      },
+      "result": "(空结果, 执行成功)"
+    },
+    {
+      "n": 32,
+      "tool": "search_code",
+      "args": {
+        "pattern": "WALLET_RECHARGE_REFUND_FAIL_REFUND_ORDER_ID_ERROR",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/enums/ErrorCodeConstants.java:60:    ErrorCode WALLET_RECHARGE_REFUND_FAIL_REFUND_ORDER_ID_ERROR = new ErrorCode(1_007_008_008, \"钱包退款更新失败，钱包退款单编号不匹配\");\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:261:            throw exception(WALLET_RECHARGE_REFUND_FAIL_REFUND_ORDER_ID_ERROR);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:280:            throw exception(WALLET_RECHARGE_REFUND_FAIL_REFUND_ORDER_ID_ERROR);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/enums/ErrorCodeConstants.java:60:    ErrorCode WALLET_RECHARGE_REFUND_FAIL_REFUND_ORDER_ID_ERROR = new ErrorCode(1_007_008_008, \"钱包退款更新失败，钱包退款单编号不匹配\");\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:261:            throw exception(WALLET_RECHARGE_REFUND_FAIL_REFUND_ORDER_ID_ERROR);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:280:            throw exception(WALLET_RECHARGE_REFUND_FAIL_REFUND_ORDER_ID_ERROR);\n"
+    },
+    {
+      "n": 33,
+      "tool": "search_code",
+      "args": {
+        "pattern": "serviceExceptionHandler|methodArgumentTypeMismatch",
+        "path_prefix": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web"
+      },
+      "result": "examples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java:82:            return methodArgumentTypeMismatchExceptionHandler((MethodArgumentTypeMismatchException) ex);\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java:109:            return serviceExceptionHandler((ServiceException) ex);\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java:134:    public CommonResult<?> methodArgumentTypeMismatchExceptionHandler(MethodArgumentTypeMismatchException ex) {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java:135:        log.warn(\"[methodArgumentTypeMismatchExceptionHandler]\", ex);\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java:285:    public CommonResult<?> serviceExceptionHandler(ServiceException ex) {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java:293:                        log.warn(\"[serviceExceptionHandler]\\n\\t{}\", stackTrace);\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java:312:            return serviceExceptionHandler((ServiceException) ex.getCause());\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java:82:            return methodArgumentTypeMismatchExceptionHandler((MethodArgumentTypeMismatchException) ex);\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot"
+    },
+    {
+      "n": 34,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java",
+        "start": 280,
+        "end": 320
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/web/core/handler/GlobalExceptionHandler.java (L280-320, 共458行)\n 280 |      * 处理业务异常 ServiceException\n 281 |      *\n 282 |      * 例如说，商品库存不足，用户手机号已存在。\n 283 |      */\n 284 |     @ExceptionHandler(value = ServiceException.class)\n 285 |     public CommonResult<?> serviceExceptionHandler(ServiceException ex) {\n 286 |         // 不包含的时候，才进行打印，避免 ex 堆栈过多\n 287 |         if (!IGNORE_ERROR_MESSAGES.contains(ex.getMessage())) {\n 288 |             // 即使打印，也只打印第一层 StackTraceElement，并且使用 warn 在控制台输出，更容易看到\n 289 |             try {\n 290 |                 StackTraceElement[] stackTraces = ex.getStackTrace();\n 291 |                 for (StackTraceElement stackTrace : stackTraces) {\n 292 |                     if (ObjUtil.notEqual(stackTrace.getClassName(), ServiceExceptionUtil.class.getName())) {\n 293 |                         log.warn(\"[serviceExceptionHandler]\\n\\t{}\", stackTrace);\n 294 |                         break;\n 295 |                     }\n 296 |                 }\n 297 |             } catch (Exception ignored) {\n 298 |                 // 忽略日志，避免影响主流程\n 299 |             }\n 300 |         }\n 301 |         return CommonResult.error(ex.getCode(), ex.getMessage());\n 302 |     }\n 303 | \n 304 |     /**\n 305 |      * 处理系统异常，兜底处理所有的一切\n 306 |      */\n 307 |     @ExceptionHandler(value = Exception.class)\n 308 |     public CommonResult<?> defaultExceptionHandler(HttpServletRequest req, Throwable ex) {\n 309 |         // 特殊：如果是 ServiceException 的异常，则直接返回\n 310 |         // 例如说：https://gitee.com/zhijiantianya/yudao-cloud/issues/ICSSRM、https://gitee.com/zhijiantianya/yudao-cloud/issues/ICT6FM\n 311 |         if (ex.getCause() != null && ex.getCause() instanceof ServiceException) {\n 312 |             return serviceExceptionHandler((ServiceException) ex.getCause());\n 313 |         }\n 314 | \n 315 |         // 情况一：处理表不存在的异常\n 316 |         CommonResult<?> tableNotExistsResult = handleTableNotExists(ex);"
+    },
+    {
+      "n": 35,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class XssFilter|XssProperties|xss",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:40:    public FilterRegistrationBean xssFilterRegistration() {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:45:        registration.setName(\"xssFilter\");\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:1:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:37: * source, and our contact details, can be found at http://xss-html-filter.sf.net\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/SQLFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:28:\t\tXssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:30:\t\tchain.doFilter(xssRequest, response);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:54:        //xss过滤\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:55:        json = xssEncode(json);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:82:        String value = super.getParameter(xssEncode(name));\nexamples/PassJava-Platform/r"
+    },
+    {
+      "n": 36,
+      "tool": "search_code",
+      "args": {
+        "pattern": "XssFilter",
+        "path_prefix": "yudao-cloud/yudao-framework"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:43:        registration.setFilter(new XssFilter());\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/config/FilterConfig.java:43:        registration.setFilter(new XssFilter());\nexamples/gulimall-learning/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:20:public class XssFilter implements Filter {\nexamples/RuoYi-Cloud/ruoyi-gateway/src/main/java/com/ruoyi/gateway/filter/XssFilter.java:35:public class XssFilter implements GlobalFilter, Ordered\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-web/src/main/java/org/dromara/common/web/config/FilterConfig.java:5:import org.dromara.common.web.filter.XssFilter;\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-web/src/main/java/org/dromara/common/web/config/FilterConfig.java:30:    public XssFilter xssFilter() {\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-web/src/main/java/org/dromara/common/web/config/FilterConfig.java:31:        return new XssFilter();\nexamples/RuoYi-Cloud-Plus/ruoyi-common/ruoyi-common-web/src/main/java/org/dromara/common/web/filter/XssFilter.java:19:public class XssFilter implements Filter {\nexamples/novel-cloud/novel-core/novel-config/src/main/java/io/github/xxyopen/novel/config/filter/XssFilter.java:33:public class XssFilter implements Filter {\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/apilog/core/filter/ApiAccessLogFilter.java:70:        // 提前获得参数，避免 XssFilter 过滤处理\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-s"
+    },
+    {
+      "n": 37,
+      "tool": "search_code",
+      "args": {
+        "pattern": "xss",
+        "path_prefix": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/resources"
+      },
+      "result": "examples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:11:import io.renren.common.xss.XssFilter;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:40:    public FilterRegistrationBean xssFilterRegistration() {\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/config/FilterConfig.java:45:        registration.setName(\"xssFilter\");\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:1:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/HTMLFilter.java:37: * source, and our contact details, can be found at http://xss-html-filter.sf.net\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/SQLFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:28:\t\tXssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssFilter.java:30:\t\tchain.doFilter(xssRequest, response);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:9:package io.renren.common.xss;\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:54:        //xss过滤\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:55:        json = xssEncode(json);\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:82:        String value = super.getParameter(xssEncode(name));\nexamples/PassJava-Platform/renren-fast/src/main/java/io/renren/common/xss/XssHttpServletRequestWrapper.java:84:            value = xssEncode(value);\nexamples/PassJ"
+    },
+    {
+      "n": 38,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssFilter.java",
+        "start": 1,
+        "end": 70
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/filter/XssFilter.java (L1-52, 共52行)\n   1 | package cn.iocoder.yudao.framework.xss.core.filter;\n   2 | \n   3 | import cn.iocoder.yudao.framework.xss.config.XssProperties;\n   4 | import cn.iocoder.yudao.framework.xss.core.clean.XssCleaner;\n   5 | import lombok.AllArgsConstructor;\n   6 | import org.springframework.util.PathMatcher;\n   7 | import org.springframework.web.filter.OncePerRequestFilter;\n   8 | \n   9 | import javax.servlet.FilterChain;\n  10 | import javax.servlet.ServletException;\n  11 | import javax.servlet.http.HttpServletRequest;\n  12 | import javax.servlet.http.HttpServletResponse;\n  13 | import java.io.IOException;\n  14 | \n  15 | /**\n  16 |  * Xss 过滤器\n  17 |  *\n  18 |  * @author 芋道源码\n  19 |  */\n  20 | @AllArgsConstructor\n  21 | public class XssFilter extends OncePerRequestFilter {\n  22 | \n  23 |     /**\n  24 |      * 属性\n  25 |      */\n  26 |     private final XssProperties properties;\n  27 |     /**\n  28 |      * 路径匹配器\n  29 |      */\n  30 |     private final PathMatcher pathMatcher;\n  31 | \n  32 |     private final XssCleaner xssCleaner;\n  33 | \n  34 |     @Override\n  35 |     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)\n  36 |             throws IOException, ServletException {\n  37 |         filterChain.doFilter(new XssRequestWrapper(request, xssCleaner), response);\n  38 |     }\n  39 | \n  40 |     @Override\n  41 |     protected boolean shouldNotFilter(HttpServletRequest request) {\n  42 |         // 如果关闭，则不过滤\n  43 |         if (!properties.isEnable()) {\n  44 |             return true;\n  45 |         }\n  46 | \n  47 |         // 如果匹配到无需过滤，则不过滤\n  48 |         String uri = request.getRequestURI();\n  49 |         return properties.getExcludeUrls().stream().anyMatch(excludeUrl -> pathMatcher.match(excludeUrl, uri));\n  50 |     }\n  51 | \n  52 | }"
+    },
+    {
+      "n": 39,
+      "tool": "search_code",
+      "args": {
+        "pattern": "yudao:\\s*$|xss:|enable:",
+        "path_prefix": "yudao-cloud/yudao-module-pay/yudao-module-pay-server"
+      },
+      "result": "examples/zlt-microservices-platform/zlt-business/file-center/src/main/resources/application.yml:23:  enable: true\nexamples/zlt-microservices-platform/zlt-business/file-center/src/main/resources/application.yml:39:    enable: true\nexamples/zlt-microservices-platform/zlt-business/search-center/search-server/src/main/resources/application.yml:14:  enable: true\nexamples/zlt-microservices-platform/zlt-business/user-center/src/main/resources/application.yml:23:  enable: true\nexamples/zlt-microservices-platform/zlt-business/user-center/src/main/resources/application.yml:36:    enable: true\nexamples/zlt-microservices-platform/zlt-demo/dubbo-demo/src/main/resources/application.yml:19:    enable: true\nexamples/zlt-microservices-platform/zlt-gateway/sc-gateway/src/main/resources/application.yml:124:        enable: false\nexamples/zlt-microservices-platform/zlt-gateway/sc-gateway/src/main/resources/application.yml:135:        enable: true\nexamples/zlt-microservices-platform/zlt-uaa/src/main/resources/application.yml:23:  enable: true\nexamples/zlt-microservices-platform/zlt-uaa/src/main/resources/application.yml:39:    enable: true\nexamples/SpringBlade/blade-ops/blade-seata-storage/src/main/resources/application-dev.yml:31:      report-success-enable: false\nexamples/SpringBlade/blade-ops/blade-resource/src/main/resources/application.yml:6:  enable: true\nexamples/SpringBlade/blade-ops/blade-seata-order/src/main/resources/application-dev.yml:31:      report-success-enable: false\nexamples/PiggyMetrics/config/target/classes/shared/notification-service.yml:50:            enable: true\nexamples/PiggyMetrics/config/src/main/resources/shared/notification-service.yml:50:            enable: true\nexamples/PiggyMetrics/notification-service/target/test-classes/application.yml:33:            enable: true\nexamples/PiggyMetrics/notification-service/src/test/resources/application.yml:33:            enable: true\nexamples/MoGuBlog/doc/docker-compose/yaml/mysql/init/nacos_config.sql:46:insert  into `"
+    },
+    {
+      "n": 40,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/clean/XssCleanerImpl.java",
+        "start": 1,
+        "end": 60
+      },
+      "result": "ERROR: 文件不存在: yudao-cloud/yudao-framework/yudao-spring-boot-starter-web/src/main/java/cn/iocoder/yudao/framework/xss/core/clean/XssCleanerImpl.java"
+    }
+  ],
+  "final_text": "budget_exceeded"
+}
