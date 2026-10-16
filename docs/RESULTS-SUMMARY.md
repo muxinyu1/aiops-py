@@ -122,6 +122,7 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | wallet_recharge_order_not_found | PayWalletRechargeServiceImpl L315「支付单不存在」 | v1 | ✅ PASS | 19/591.0s |
 | wallet_recharge_order_status_not_success | PayWalletRechargeServiceImpl L322「未支付」 | v1 | ⚠️ 预算耗尽 (curl 验证真实可达) | 40/471.2s |
 | wallet_recharge_order_price_mismatch | PayWalletRechargeServiceImpl L328「支付金额不匹配」 | v1 | ✅ PASS | 35/1249.2s |
+| wallet_recharge_order_merchant_order_id_mismatch | PayWalletRechargeServiceImpl L334「支付单不匹配」 | v1 | ✅ PASS | 40/913.0s |
 | demo_withdraw_duplicate_notify | PayDemoWithdrawServiceImpl L143 同款幂等 | v1 | ✅ PASS | 40/409s |
 
 **不可达家族结论**: 「找不到对应的支付客户端」5 处 (L75/L97/L119 + PayOrderServiceImpl L227/L246) 全部静态不可达 — `validPayChannel` 渠道缺失时直接抛 `CHANNEL_NOT_FOUND`, Controller 的 `if (payClient == null)` 是防御性死代码。运行时验证一致 (异常码 1007001000, 日志只到 L71 回调行)。
