@@ -855,6 +855,22 @@ SINK_TASKS = {
         # 日志参数是数值，用目标日志中的特异关键词判定。
         "log_match": "不存在，请进行处理！",
     },
+    "yudao_mall_trade_order_pay_order_status_not_success": {
+        "sink": "TradeOrderUpdateServiceImpl.validatePayOrderPaid 中的 "
+                "log.error(\"[validatePayOrderPaid][order({}) payOrder({}) 未支付，请进行处理！payOrder 数据是：{}]\", order.getId(), payOrderId, JsonUtils.toJsonString(payOrder)) "
+                "(L353, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/order/TradeOrderUpdateServiceImpl.java)。"
+                "触发条件: 交易订单支付回调时, 订单处于待支付状态, 校验支付订单时发现支付单状态不是支付成功 (未支付/退款/关闭等状态)。",
+        "api": "POST http://localhost:9212/app-api/trade/order/update-paid "
+               "(body: {\"merchantOrderId\":\"<订单id>\",\"payOrderId\":\"<非成功状态的支付单id>\"}, @PermitAll 免登录; 注意是 app-api 前缀)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "关联服务: trace-real-yudao-cloud-pay-server (端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 trade_order 表 (已预置 status=0 的待支付订单 id=200) 与 pay_order 表 (已预置 status=0 的未支付单 id=500)。"
+               "库中已预置测试记录, 请直接查现有记录 trade_order id=200 与 pay_order id=500 进行回调, 无需从头创建订单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值与 JSON 字符串，用目标日志中的特异关键词判定。
+        "log_match": "未支付，请进行处理！",
+    },
     # ── small-swarm (mall-swarm mall-demo, 9215) ──
     "small_swarm_brand_create": {
         "sink": "DemoController.createBrand 中的 "
