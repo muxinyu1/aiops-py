@@ -65,6 +65,7 @@
 - ✅ `yudao_pay_wallet_recharge_duplicate_notify` — PayWalletRechargeServiceImpl L131（30 调用/378.2s）
 - ✅ `yudao_pay_wallet_recharge_paid_mismatch` — PayWalletRechargeServiceImpl L135（16 调用/735.3s, v1 PASS; 构造 update-paid 回调传入不同 payOrderId 触发支付单号不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_not_found` — PayWalletRechargeServiceImpl L124（29 调用/524.9s, v1 PASS; 构造 update-paid 回调传入不存在的充值单 id 触发充值单不存在分支命中目标日志）
+- ✅ `yudao_pay_wallet_recharge_order_not_found` — PayWalletRechargeServiceImpl L315（19 调用/591.0s, v1 PASS; 构造 update-paid 回调传入不存在的支付单 id 触发支付单不存在分支命中目标日志）
 - ✅ `yudao_pay_demo_withdraw_duplicate_notify` — PayDemoWithdrawServiceImpl L143（40 调用/408.6s）
 - ⛔ "找不到支付客户端"家族 ×5 — L75/L97/L119/L227/L246 静态不可达（validPayChannel 先抛异常）
 
