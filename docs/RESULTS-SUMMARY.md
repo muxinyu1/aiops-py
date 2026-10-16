@@ -130,6 +130,7 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | wallet_recharge_refund_price_mismatch | PayWalletRechargeServiceImpl L272「退款金额不匹配」 | v1 | ✅ PASS | 23/867.7s |
 | wallet_recharge_refund_order_mismatch | PayWalletRechargeServiceImpl L278「商户退款单不匹配」 | v1 | ✅ PASS | 15/622.5s |
 | demo_withdraw_duplicate_notify | PayDemoWithdrawServiceImpl L143 同款幂等 | v1 | ✅ PASS | 40/409s |
+| demo_withdraw_not_found | PayDemoWithdrawServiceImpl L135「不存在提现单」 | v1 | ✅ PASS | 9/228.4s |
 
 **不可达家族结论**: 「找不到对应的支付客户端」5 处 (L75/L97/L119 + PayOrderServiceImpl L227/L246) 全部静态不可达 — `validPayChannel` 渠道缺失时直接抛 `CHANNEL_NOT_FOUND`, Controller 的 `if (payClient == null)` 是防御性死代码。运行时验证一致 (异常码 1007001000, 日志只到 L71 回调行)。
 
