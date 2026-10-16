@@ -798,6 +798,50 @@ SINK_TASKS = {
         "container": "trace-real-yudao-cloud-pay-server",
         "log_match": "PayDemoOrderServiceImpl:130",
     },
+    "yudao_pay_demo_order_refund_mismatch": {
+        "sink": "PayDemoOrderServiceImpl.updateDemoOrderRefunded 中的 "
+                "log.error(\"[validateDemoOrderCanRefunded][order({}) 退款单不匹配({})，请进行处理！order 数据是：{}]\", id, payRefundId, toJsonString(order)) "
+                "(L239, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoOrderServiceImpl.java)。"
+                "触发条件: 退款回调更新时, 订单记录中的退款单号(pay_refund_id=70001)与请求传入的 payRefundId(999999) 不一致。",
+        "api": "POST http://localhost:9213/admin-api/pay/demo-order/update-refunded "
+               "(body: {\"merchantOrderId\":\"2\",\"merchantRefundId\":\"2-refund\",\"payRefundId\":999999}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_demo_order 表 (已预置 pay_refund_id=70001 的订单 id=2)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-refunded 回调, 无需探索其他服务或从头创建订单。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayDemoOrderServiceImpl:239",
+    },
+    "yudao_pay_demo_order_refund_price_mismatch": {
+        "sink": "PayDemoOrderServiceImpl.updateDemoOrderRefunded 中的 "
+                "log.error(\"[validateDemoOrderCanRefunded][order({}) payRefund({}) 退款金额不匹配，请进行处理！order 数据是：{}，payRefund 数据是：{}]\", id, payRefundId, toJsonString(order), toJsonString(payRefund)) "
+                "(L255, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoOrderServiceImpl.java)。"
+                "触发条件: 退款回调更新时, 退款单金额(payRefund.refundPrice=200)与示例订单金额(order.price=100)不一致。",
+        "api": "POST http://localhost:9213/admin-api/pay/demo-order/update-refunded "
+               "(body: {\"merchantOrderId\":\"3\",\"merchantRefundId\":\"3-refund\",\"payRefundId\":601}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_demo_order 表 (已预置 price=100, pay_refund_id=601 的订单 id=3) "
+               "与 pay_refund 表 (已预置 status=10, refund_price=200 的退款单 id=601)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-refunded 回调。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayDemoOrderServiceImpl:255",
+    },
+    "yudao_pay_demo_order_refund_order_mismatch": {
+        "sink": "PayDemoOrderServiceImpl.updateDemoOrderRefunded 中的 "
+                "log.error(\"[validateDemoOrderCanRefunded][order({}) 退款单不匹配({})，请进行处理！payRefund 数据是：{}]\", id, payRefundId, toJsonString(payRefund)) "
+                "(L261, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoOrderServiceImpl.java)。"
+                "触发条件: 退款回调更新时, 退款单中的商户退款单号(payRefund.merchantRefundId='999')与示例订单生成的退款单号('4-refund')不一致。",
+        "api": "POST http://localhost:9213/admin-api/pay/demo-order/update-refunded "
+               "(body: {\"merchantOrderId\":\"4\",\"merchantRefundId\":\"4-refund\",\"payRefundId\":602}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_demo_order 表 (已预置 price=100, pay_refund_id=602 的订单 id=4) "
+               "与 pay_refund 表 (已预置 status=10, refund_price=100, merchant_refund_id='999' 的退款单 id=602)。"
+               "库中已预置测试记录, 请直接向 pay-server 发送 update-refunded 回调。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayDemoOrderServiceImpl:261",
+    },
     "yudao_pay_wallet_recharge_duplicate_notify": {
         "sink": "PayWalletRechargeServiceImpl.updateWalletRechargerPaid 中的 "
                 "log.warn(\"[updateWalletRechargerPaid][recharge({}) 已支付，且支付单号相同({})，直接返回]\", recharge, payOrderId) "
