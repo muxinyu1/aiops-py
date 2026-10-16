@@ -121,6 +121,7 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | demo_order_refund_mismatch | PayDemoOrderServiceImpl L239「退款单不匹配」 | v1 | ✅ PASS | 33/873.0s |
 | demo_order_refund_price_mismatch | PayDemoOrderServiceImpl L255「退款金额不匹配」 | v1 | ✅ PASS | 34/734.2s |
 | demo_order_refund_order_mismatch | PayDemoOrderServiceImpl L261「退款单不匹配」 | v1 | ✅ PASS | 27/790.3s |
+| order_create_order_exists | PayOrderServiceImpl L124「已存在对应的支付单」 | v1 | ✅ PASS | 13/269.8s |
 | wallet_recharge_duplicate_notify | PayWalletRechargeServiceImpl L131 同款幂等 | v1 | ✅ PASS | 30/378s |
 | wallet_recharge_paid_mismatch | PayWalletRechargeServiceImpl L135「支付单号不同」 | v1 | ✅ PASS | 16/735.3s |
 | wallet_recharge_not_found | PayWalletRechargeServiceImpl L124「充值订单不存在」 | v1 | ✅ PASS | 29/524.9s |
