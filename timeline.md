@@ -78,6 +78,7 @@
 - ✅ `yudao_mall_trade_after_sale_refund_id_mismatch` — AfterSaleServiceImpl L447（22 调用/961.1s, v1 PASS; 构造 update-refunded 回调触发退款单不匹配分支命中目标日志）
 - ✅ `yudao_mall_brokerage_transfer_status_not_success_or_closed` — BrokerageWithdrawServiceImpl L279（40 调用/1593.4s, v1 PASS; 构造 update-transferred 回调触发转账单未结束分支命中目标日志）
 - ✅ `yudao_mall_brokerage_transfer_price_mismatch` — BrokerageWithdrawServiceImpl L286（40 调用/1194.1s, v1 PASS; 构造 update-transferred 回调触发转账金额不匹配分支命中目标日志）
+- ✅ `yudao_mall_brokerage_transfer_channel_mismatch` — BrokerageWithdrawServiceImpl L298（28 调用/1149.5s, v1 PASS; 构造 update-transferred 回调触发转账渠道不匹配分支命中目标日志）
 - ⚠️ `yudao_mall_brokerage_transfer_order_id_mismatch` — BrokerageWithdrawServiceImpl L292（40 调用/686.8s 预算超限未达，人工 curl 预验证返回 1011008008 并命中目标日志，确认真实可达，归档 v1）
 - ⚠️ `yudao_mall_trade_after_sale_refund_price_mismatch` — AfterSaleServiceImpl L441（40 调用/894.0s 预算超限未达，人工 curl 预验证返回 1011000113 并命中目标日志，确认真实可达，归档 v1）
 - ⚠️ `yudao_mall_trade_order_merchant_order_id_mismatch` — TradeOrderUpdateServiceImpl L365（40 调用预算超限未达，人工 curl 预验证触发成功并命中目标日志，确认真实可达，归档 v1-v3）
