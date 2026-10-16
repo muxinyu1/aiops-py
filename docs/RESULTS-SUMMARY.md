@@ -130,8 +130,9 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | mall_trade_order_mismatch | TradeOrderUpdateServiceImpl L295「支付单不匹配」 | v1 | ✅ PASS | 35/373.3s |
 | mall_trade_order_pay_order_not_found | TradeOrderUpdateServiceImpl L347「不存在，请进行处理！」 | v1 | ✅ PASS | 36/624.5s |
 | mall_trade_order_pay_order_status_not_success | TradeOrderUpdateServiceImpl L353「未支付，请进行处理！」 | v1/v2<br>v3 | ❌ FAIL (预算耗尽搜索建单)<br>✅ PASS | 40/492s<br>40/738.5s |
+| mall_trade_order_price_mismatch | TradeOrderUpdateServiceImpl L359「支付金额不匹配，请进行处理！」 | v1 | ✅ PASS | 40/1234.1s |
 
-**幂等/重复回调与异常分支日志模式累计 8/8 全命中** (pay 3 + mall 5) — db_state 池中最高价值模式。
+**幂等/重复回调与异常分支日志模式累计 9/9 全命中** (pay 3 + mall 6) — db_state 池中最高价值模式。
 
 ### 9.3 harness/工具层修复 (同"公平性"口径)
 
