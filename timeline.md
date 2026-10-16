@@ -63,6 +63,7 @@
 ### yudao pay（9213, trace-real-yudao-cloud-pay-server）
 - ✅ `yudao_pay_demo_order_duplicate_notify` — PayDemoOrderServiceImpl L126（33 调用/369.5s）
 - ✅ `yudao_pay_demo_order_not_found` — PayDemoOrderServiceImpl L119（36 调用/888.4s, v1 PASS; 构造 update-paid 回调传入不存在的订单 id 触发示例订单不存在分支命中目标日志）
+- ✅ `yudao_pay_demo_order_paid_mismatch` — PayDemoOrderServiceImpl L130（31 调用/1333.9s, v1 PASS; 构造 update-paid 回调传入不匹配的 payOrderId 触发支付单不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_duplicate_notify` — PayWalletRechargeServiceImpl L131（30 调用/378.2s）
 - ✅ `yudao_pay_wallet_recharge_paid_mismatch` — PayWalletRechargeServiceImpl L135（16 调用/735.3s, v1 PASS; 构造 update-paid 回调传入不同 payOrderId 触发支付单号不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_not_found` — PayWalletRechargeServiceImpl L124（29 调用/524.9s, v1 PASS; 构造 update-paid 回调传入不存在的充值单 id 触发充值单不存在分支命中目标日志）

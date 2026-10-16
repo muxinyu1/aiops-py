@@ -117,6 +117,7 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 | | | v4 | ⛔ 静态不可达 | 80/733s (阴性对照) |
 | demo_order_duplicate_notify | PayDemoOrderServiceImpl L126「已支付,支付单号相同」 | v1 | ✅ PASS | 33/369s |
 | demo_order_not_found | PayDemoOrderServiceImpl L119「不存在订单」 | v1 | ✅ PASS | 36/888.4s |
+| demo_order_paid_mismatch | PayDemoOrderServiceImpl L130「支付单不匹配」 | v1 | ✅ PASS | 31/1333.9s |
 | wallet_recharge_duplicate_notify | PayWalletRechargeServiceImpl L131 同款幂等 | v1 | ✅ PASS | 30/378s |
 | wallet_recharge_paid_mismatch | PayWalletRechargeServiceImpl L135「支付单号不同」 | v1 | ✅ PASS | 16/735.3s |
 | wallet_recharge_not_found | PayWalletRechargeServiceImpl L124「充值订单不存在」 | v1 | ✅ PASS | 29/524.9s |
