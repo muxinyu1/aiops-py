@@ -830,6 +830,66 @@ SINK_TASKS = {
         # 日志参数是 withdraw 对象与 payTransferId (数值), 用目标日志中的特异关键词判定。
         "log_match": "转账单不匹配",
     },
+    "yudao_mall_brokerage_transfer_status_not_success_or_closed": {
+        "sink": "BrokerageWithdrawServiceImpl.validateBrokerageTransferStatusCanUpdate 中的 "
+                "log.error(\"[validateBrokerageTransferStatusCanUpdate][withdraw({}) payTransfer({}) 未结束，请进行处理！payTransfer 数据是：{}]\", withdraw.getId(), payTransferId, JsonUtils.toJsonString(payTransfer)) "
+                "(L279, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java)。"
+                "触发条件: 佣金提现转账回调时, 提现单处于未结束状态(如 status=10 审核通过), 查询 pay_transfer 状态既非成功(10)也非关闭(20) (例如 status=0 等待转账)。",
+        "api": "POST http://localhost:9212/admin-api/trade/brokerage-withdraw/update-transferred "
+               "(body: {\"merchantTransferId\":\"2\",\"payTransferId\":700}, @PermitAll 免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_brokerage_withdraw 表 (已预置 status=10 的提现单 id=2) 与 pay_transfer 表 (已预置 status=0, price=100 的转账单 id=700)。"
+               "库中已预置测试记录, 请直接向 trade-server 发送 update-transferred 回调, 无需探索其他服务或从头创建数据。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值与 JSON 字符串，用类与行号特异匹配。
+        "log_match": "BrokerageWithdrawServiceImpl:279",
+    },
+    "yudao_mall_brokerage_transfer_price_mismatch": {
+        "sink": "BrokerageWithdrawServiceImpl.validateBrokerageTransferStatusCanUpdate 中的 "
+                "log.error(\"[validateBrokerageTransferStatusCanUpdate][withdraw({}) payTransfer({}) 转账金额不匹配，请进行处理！withdraw 数据是：{}，payTransfer 数据是：{}，期望转账金额：{}]\", ...) "
+                "(L286, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java)。"
+                "触发条件: 佣金提现转账回调时, 提现单处于未结束状态(status=10, 期望转账金额100), 查询 pay_transfer 发现转账金额与提现单金额不一致 (例如 pay_transfer 中 price=200)。",
+        "api": "POST http://localhost:9212/admin-api/trade/brokerage-withdraw/update-transferred "
+               "(body: {\"merchantTransferId\":\"2\",\"payTransferId\":701}, @PermitAll 免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_brokerage_withdraw 表 (已预置 status=10, price=100 的提现单 id=2) 与 pay_transfer 表 (已预置 status=10, price=200 的转账单 id=701)。"
+               "库中已预置测试记录, 请直接向 trade-server 发送 update-transferred 回调, 无需探索其他服务或从头创建数据。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值与 JSON 字符串，用类与行号特异匹配。
+        "log_match": "BrokerageWithdrawServiceImpl:286",
+    },
+    "yudao_mall_brokerage_transfer_order_id_mismatch": {
+        "sink": "BrokerageWithdrawServiceImpl.validateBrokerageTransferStatusCanUpdate 中的 "
+                "log.error(\"[validateBrokerageTransferStatusCanUpdate][withdraw({}) 转账单不匹配({})，请进行处理！payTransfer 数据是：{}]\", ...) "
+                "(L292, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java)。"
+                "触发条件: 佣金提现转账回调时, 提现单处于未结束状态(status=10, id=2), 查询 pay_transfer 发现转账单关联的 merchantTransferId 与提现单 id 不一致 (例如 merchantTransferId='999')。",
+        "api": "POST http://localhost:9212/admin-api/trade/brokerage-withdraw/update-transferred "
+               "(body: {\"merchantTransferId\":\"2\",\"payTransferId\":702}, @PermitAll 免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_brokerage_withdraw 表 (已预置 status=10, id=2 的提现单) 与 pay_transfer 表 (已预置 status=10, merchant_transfer_id='999' 的转账单 id=702)。"
+               "库中已预置测试记录, 请直接向 trade-server 发送 update-transferred 回调, 无需探索其他服务或从头创建数据。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值与 JSON 字符串，用类与行号特异匹配。
+        "log_match": "BrokerageWithdrawServiceImpl:292",
+    },
+    "yudao_mall_brokerage_transfer_channel_mismatch": {
+        "sink": "BrokerageWithdrawServiceImpl.validateBrokerageTransferStatusCanUpdate 中的 "
+                "log.error(\"[validateBrokerageTransferStatusCanUpdate][withdraw({}) payTransfer({}) 转账渠道不匹配，请进行处理！withdraw 数据是：{}，payTransfer 数据是：{}]\", ...) "
+                "(L298, 源码 yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/brokerage/BrokerageWithdrawServiceImpl.java)。"
+                "触发条件: 佣金提现转账回调时, 提现单处于未结束状态(status=10, transferChannelCode='wx_pay'), 查询 pay_transfer 发现转账单 channelCode 与提现单渠道不一致 (例如 channelCode='alipay')。",
+        "api": "POST http://localhost:9212/admin-api/trade/brokerage-withdraw/update-transferred "
+               "(body: {\"merchantTransferId\":\"2\",\"payTransferId\":703}, @PermitAll 免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
+               "数据库 ruoyi-vue-pro 的 trade_brokerage_withdraw 表 (已预置 status=10, transfer_channel_code='wx_pay' 的提现单 id=2) 与 pay_transfer 表 (已预置 status=10, channel_code='alipay' 的转账单 id=703)。"
+               "库中已预置测试记录, 请直接向 trade-server 发送 update-transferred 回调, 无需探索其他服务或从头创建数据。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-trade-server",
+        # 日志参数是数值与 JSON 字符串，用类与行号特异匹配。
+        "log_match": "BrokerageWithdrawServiceImpl:298",
+    },
     "yudao_mall_trade_after_sale_pay_refund_not_found": {
         "sink": "AfterSaleServiceImpl.validatePayRefund 中的 "
                 "log.error(\"[validatePayRefund][afterSale({}) payRefund({}) 不存在，请进行处理！]\", afterSale.getId(), payRefundId) "
