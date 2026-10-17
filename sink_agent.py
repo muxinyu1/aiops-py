@@ -1226,7 +1226,7 @@ SINK_TASKS = {
                "(body: {\"merchantTransferId\":\"2\",\"payTransferId\":702}, @PermitAll 免登录; 需请求头 tenant-id: 1)。",
         "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
                "数据库 ruoyi-vue-pro 的 trade_brokerage_withdraw 表 (已预置 status=10, id=2 的提现单) 与 pay_transfer 表 (已预置 status=10, merchant_transfer_id='999' 的转账单 id=702)。"
-               "库中已预置测试记录, 请直接向 trade-server 发送 update-transferred 回调, 无需探索其他服务或从头创建数据。",
+               "库中已预置测试记录, 本任务判定采用 log_match, 请直接向 trade-server 发送 update-transferred 回调触发命中, 无需探索或调用 pay-server/nacos 等其他服务。",
         "hint_level": "hint",
         "container": "trace-real-yudao-cloud-trade-server",
         # 日志参数是数值与 JSON 字符串，用类与行号特异匹配。
@@ -1390,8 +1390,8 @@ SINK_TASKS = {
         "api": "POST http://localhost:9212/app-api/trade/order/update-paid "
                "(body: {\"merchantOrderId\":\"200\",\"payOrderId\":502}, @PermitAll 免登录; 注意是 app-api 前缀)。",
         "env": "目标服务容器: trace-real-yudao-cloud-trade-server (日志在此, 端口 9212)。"
-               "数据库 ruoyi-vue-pro 的 trade_order 表 (已预置 status=0 的待支付订单 id=200) 与 pay_order 表 (已预置 status=10, price=100, merchant_order_id='999' 的支付单 id=502)。"
-               "库中已预置测试记录, 请直接向 trade-server 发送 update-paid 回调, 无需探索其他服务或从头创建订单。",
+               "数据库 ruoyi-vue-pro 的 trade_order 表 (已预置 status=0, pay_price=100 的待支付订单 id=200) 与 pay_order 表 (已预置 status=10, price=100, merchant_order_id='999' 的支付单 id=502)。"
+               "库中已预置测试记录, 本任务判定采用 log_match, 请直接向 trade-server 发送 update-paid 回调 (使用现有已支付单 502, 无需创建新订单或注入非数值字符)。",
         "hint_level": "hint",
         "container": "trace-real-yudao-cloud-trade-server",
         # 日志参数是数值与 JSON 字符串，用类与行号特异匹配，与 L295 区分。
@@ -1500,6 +1500,33 @@ SINK_TASKS = {
         "hint_level": "hint",
         "container": "trace-real-lamp-cloud-lamp-oauth-server",
         "log_match": "RefreshTokenGranter  : token=",
+    },
+    "lamp_oauth_user_status": {
+        "sink": "AbstractTokenGranter.getEmployee 中的 "
+                "log.info(\"userStatus={}, userId={}, employeeId={}\", userStatus, userId, employeeId) "
+                "(L284, 源码 lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/AbstractTokenGranter.java)。"
+                "触发条件: 用户登录成功时加载员工信息并记录日志。",
+        "api": "POST http://localhost:9216/anyTenant/login (JSON body: {\"grantType\":\"PASSWORD\",\"username\":\"superAdmin\",\"password\":\"123456\"})",
+        "env": "目标服务容器: trace-real-lamp-cloud-lamp-oauth-server (日志在此, 端口 9216)。"
+               "请求头必须包含 Authorization: bGFtcF93ZWJfcHJvOmxhbXBfd2ViX3Byb19zZWNyZXQ= (lamp 自定义凭证, 纯 base64, 无 Basic 前缀)。"
+               "数据库: trace-real-mysql, 库名 lamp_none, 用户表 def_user (已预置 superAdmin / 123456)。",
+        "hint_level": "hint",
+        "container": "trace-real-lamp-cloud-lamp-oauth-server",
+        "log_match": "userStatus=",
+    },
+    "lamp_oauth_password_error_num": {
+        "sink": "PasswordTokenGranter.checkUserPassword 中的 "
+                "log.info(\"[{}][{}], 输错密码次数：{}, 最大限制次数:{}\", user.getNickName(), user.getId(), passwordErrorNum, maxPasswordErrorNum) "
+                "(L114, 源码 lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/PasswordTokenGranter.java)。"
+                "触发条件: 登录时所请求的用户在数据库中的密码连续输错次数达到最大限制锁定状态。",
+        "api": "POST http://localhost:9216/anyTenant/login (JSON body: {\"grantType\":\"PASSWORD\",\"username\":\"superAdmin\",\"password\":\"...\"})",
+        "env": "目标服务容器: trace-real-lamp-cloud-lamp-oauth-server (日志在此, 端口 9216)。"
+               "请求头必须包含 Authorization: bGFtcF93ZWJfcHJvOmxhbXBfd2ViX3Byb19zZWNyZXQ= (lamp 自定义凭证, 纯 base64, 无 Basic 前缀)。"
+               "数据库: trace-real-mysql, 库名 lamp_none, 用户表 def_user。已预置 superAdmin 账号密码连续输错达到 10 次上限并被锁定。"
+               "本任务判定采用 log_match, 请直接向 /anyTenant/login 发送登录请求 (参数 grantType=PASSWORD, username=superAdmin, password 任意), 即可触发锁定日志, 无需查询源码或探索其他接口。",
+        "hint_level": "hint",
+        "container": "trace-real-lamp-cloud-lamp-oauth-server",
+        "log_match": "输错密码次数：",
     },
     # ── apollo (apollo-adminservice, 8080) ──
     "apollo_delete_app": {

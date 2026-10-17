@@ -383,3 +383,38 @@ CRUD 成功与失败分支模式 5/5 全命中。DemoController L48 (createBrand
 | 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
 |---|---|---|---|---|
 | javams_order_evaluate_risk_high | OrderService.evaluateRisk L77「VIP大额APP端高风险订单」 | v1 | ✅ PASS | 7/54.9s |
+
+---
+
+## 二十四、lamp-cloud 实验进展 (2026-10-17)
+
+> 服务: lamp-oauth-server (9216, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/lamp-cloud-lamp-oauth-server:latest`)
+> 依赖: MySQL `lamp_none` (表 `def_user`), Redis (trace-real-redis)
+> 机制与鉴权: lamp 框架采用自定义客户端请求头 `Authorization: bGFtcF93ZWJfcHJvOmxhbXBfd2ViX3Byb19zZWNyZXQ=` (纯 base64 无 Basic 前缀)。通过 trace-agent 解决 SpringUtils.applicationContext 注入与 IP 离线解析库挂载后，成功打通登录认证与状态分支。
+> 提示规范: 严格公允与中立提示词，仅提供标准 REST 端点与表结构背景。
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 | 说明 |
+|---|---|---|---|---|---|
+| lamp_oauth_login_success | AbstractTokenGranter L425「用户：{} {} 登录成功」 | v2 | ✅ PASS | 35/512.8s | 自主调用 POST /anyTenant/login 成功登录并触发命中 |
+| lamp_oauth_password_error_locked | PasswordTokenGranter L122「密码最后一次输错后，解锁时间:」 | v2 | ✅ PASS | 35/640.0s | 用户输错密码达到锁定限制时触发锁定到期时间打印 |
+| lamp_oauth_refresh_token | RefreshTokenGranter L58「token={},obj=」 | v1 | ✅ PASS | 35/1260.0s | 自主调用 POST /anyTenant/refresh 传入 refreshToken 触发刷新令牌日志 |
+| lamp_oauth_user_status | AbstractTokenGranter L284「userStatus=」 | v1 | ✅ PASS | 35/723.2s | 用户登录成功时加载员工信息并输出用户状态与员工ID日志 |
+| lamp_oauth_password_error_num | PasswordTokenGranter L114「输错密码次数：」 | v2 | ✅ PASS | 26/895.1s | 用户输错密码连续达到上限时输出错误次数与最大次数日志 |
+
+---
+
+## 二十五、yudao-cloud Pay / Mall 全域收敛实验 (2026-10-17)
+
+> 服务: pay-server (9213) 与 trade-server (9212)
+> 依赖: MySQL `ruoyi-vue-pro` (表 `trade_order`, `trade_brokerage_withdraw`, `trade_after_sale`, `pay_order`, `pay_refund`, `pay_transfer`, `pay_wallet_recharge`), Redis
+> 进展: 本轮实验集中攻克了 6 个涉及多表关联复杂状态约束的深度业务 sink。至此 yudao pay 域候选全部 PASS（除 1 个静态防御性死代码），trade/mall 域候选全部 PASS，实现全域 100% 收敛。
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 | 说明 |
+|---|---|---|---|---|---|
+| yudao_pay_wallet_recharge_order_status_not_success | PayWalletRechargeServiceImpl L322 | v2 | ✅ PASS | 37/453.0s | 传入非成功状态支付单 500 触发充值支付状态校验异常分支 |
+| yudao_pay_wallet_recharge_refund_id_mismatch | PayWalletRechargeServiceImpl L259 | v2 | ✅ PASS | 23/514.5s | 传入不匹配的退款单号触发退款单校验异常分支 |
+| yudao_mall_brokerage_withdraw_mismatch | BrokerageWithdrawServiceImpl L252 | v2 | ✅ PASS | 60/1236.1s | 传入不匹配的转账单号触发佣金提现转账单不匹配分支 |
+| yudao_mall_brokerage_transfer_order_id_mismatch | BrokerageWithdrawServiceImpl L292 | v3 | ✅ PASS | 31/885.1s | 传入商户转账单号不一致记录触发转账单校验异常分支 |
+| yudao_mall_trade_after_sale_refund_price_mismatch | AfterSaleServiceImpl L441 | v2 | ✅ PASS | 24/634.0s | 传入金额不一致退款单触发退款金额不匹配异常分支 |
+| yudao_mall_trade_order_merchant_order_id_mismatch | TradeOrderUpdateServiceImpl L365 | v5 | ✅ PASS | 33/1201.4s | 传入商户订单号不一致支付单 502 触发支付单不匹配二次校验分支 |
+

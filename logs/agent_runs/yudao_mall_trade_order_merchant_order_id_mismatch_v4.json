@@ -1,0 +1,563 @@
+{
+  "reached": false,
+  "turns": 2,
+  "tool_calls": 60,
+  "elapsed": 1686.15398311615,
+  "tool_log": [
+    {
+      "n": 1,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/order/TradeOrderUpdateServiceImpl.java",
+        "start": 290,
+        "end": 345
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/order/TradeOrderUpdateServiceImpl.java (L290-345, 共1052行)\n 290 |             // 特殊：支付单号相同，直接返回，说明重复回调\n 291 |             if (ObjectUtil.equals(order.getPayOrderId(), payOrderId)) {\n 292 |                 log.warn(\"[updateOrderPaid][order({}) 已支付，且支付单号相同({})，直接返回]\", order, payOrderId);\n 293 |                 return;\n 294 |             }\n 295 |             log.error(\"[updateOrderPaid][order({}) 支付单不匹配({})，请进行处理！order 数据是：{}]\",\n 296 |                     id, payOrderId, JsonUtils.toJsonString(order));\n 297 |             throw exception(ORDER_UPDATE_PAID_FAIL_PAY_ORDER_ID_ERROR);\n 298 |         }\n 299 | \n 300 |         // 2. 校验支付订单的合法性\n 301 |         PayOrderRespDTO payOrder = validatePayOrderPaid(order, payOrderId);\n 302 | \n 303 |         // 3. 更新 TradeOrderDO 状态为已支付，等待发货\n 304 |         int updateCount = tradeOrderMapper.updateByIdAndStatus(id, order.getStatus(),\n 305 |                 new TradeOrderDO().setStatus(TradeOrderStatusEnum.UNDELIVERED.getStatus()).setPayStatus(true)\n 306 |                         .setPayTime(LocalDateTime.now()).setPayChannelCode(payOrder.getChannelCode()));\n 307 |         if (updateCount == 0) {\n 308 |             throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);\n 309 |         }\n 310 | \n 311 |         // 4. 执行 TradeOrderHandler 的后置处理\n 312 |         List<TradeOrderItemDO> orderItems = tradeOrderItemMapper.selectListByOrderId(id);\n 313 |         tradeOrderHandlers.forEach(handler -> handler.afterPayOrder(order, orderItems));\n 314 | \n 315 |         // 5. 记录订单日志\n 316 |         TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), TradeOrderStatusEnum.UNDELIVERED.getStatus());\n 317 |         TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.MEMBER.getValue());\n 318 |     }\n 319 | \n 320 |     @Override\n 321 |     public void syncOrderPayStatusQuietly(Long id, Long payOrderId) {\n 322 |         PayOrderRespDTO p"
+    },
+    {
+      "n": 2,
+      "tool": "search_code",
+      "args": {
+        "pattern": "update-paid",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java:31:    @PostMapping(\"/update-paid\")\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/demo/PayDemoOrderController.java:49:    @PostMapping(\"/update-paid\")\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/order/AppTradeOrderController.java:81:    @PostMapping(\"/update-paid\")\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java:31:    @PostMapping(\"/update-paid\")\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/demo/PayDemoOrderController.java:49:    @PostMapping(\"/update-paid\")\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/order/AppTradeOrderController.java:81:    @PostMapping(\"/update-paid\")\n"
+    },
+    {
+      "n": 3,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM trade_order WHERE id=200"
+      },
+      "result": "id\tno\ttype\tterminal\tuser_id\tuser_ip\tuser_remark\tstatus\tproduct_count\tfinish_time\tcancel_time\tcancel_type\tremark\tcomment_status\tbrokerage_user_id\tpay_order_id\tpay_status\tpay_time\tpay_channel_code\ttotal_price\tdiscount_price\tdelivery_price\tadjust_price\tpay_price\tdelivery_type\tlogistics_id\tlogistics_no\tdelivery_time\treceive_time\treceiver_name\treceiver_mobile\treceiver_area_id\treceiver_detail_address\tpick_up_store_id\tpick_up_verify_code\trefund_status\trefund_price\tcoupon_id\tcoupon_price\tuse_point\tpoint_price\tgive_point\trefund_point\tvip_price\tgive_coupon_ids\tseckill_activity_id\tbargain_activity_id\tbargain_record_id\tcombination_activity_id\tcombination_head_id\tcombination_record_id\tpoint_activity_id\tcreator\tcreate_time\tupdater\tupdate_time\tdeleted\tgive_coupon_template_counts\n200\tORDER200\t0\t0\t1\t\tNULL\t0\t0\tNULL\tNULL\tNULL\tNULL\t\\0\t1\tNULL\t\\0\tNULL\tNULL\t100\t0\t0\t0\t100\t0\tNULL\tNULL\tNULL\tNULL\t测试\t13800138000\t0\t上海市\tNULL\tNULL\tNULL\t0\t0\t0\t0\t0\t0\t0\t0\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\t\t2026-10-16 11:11:51\t\t2026-10-17 20:47:24\t\\0\tNULL"
+    },
+    {
+      "n": 4,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_order WHERE id=502"
+      },
+      "result": "id\tapp_id\tchannel_id\tchannel_code\tuser_id\tuser_type\tmerchant_order_id\tsubject\tbody\tnotify_url\tprice\tchannel_fee_rate\tchannel_fee_price\tstatus\tuser_ip\texpire_time\tsuccess_time\tnotify_time\textension_id\tno\trefund_price\tchannel_user_id\tchannel_order_no\tcreator\tcreate_time\tupdater\tupdate_time\tdeleted\n502\t1\tNULL\tNULL\tNULL\tNULL\t999\t测试商户订单号不匹配\t测试\thttp://localhost\t100\t0\t0\t10\t127.0.0.1\t2026-10-16 12:03:32\tNULL\tNULL\tNULL\tNULL\t0\tNULL\tNULL\t\t2026-10-16 12:03:32\t\t2026-10-17 20:47:24\t\\0"
+    },
+    {
+      "n": 5,
+      "tool": "docker_ps",
+      "args": {},
+      "result": "trace-real-mall-swarm-mall-demo\tUp 2 hours\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/mall-swarm-mall-demo:latest\ntrace-real-lamp-cloud-lamp-oauth-server\tUp 6 hours\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/lamp-cloud-lamp-oauth-server:latest\ntrace-real-yudao-cloud-trade-server\tUp About an hour\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/yudao-cloud-yudao-module-trade-server:latest\ntrace-real-yudao-cloud-pay-server\tUp About an hour\tcrpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/yudao-cloud-yudao-module-pay-server:latest\ntrace-real-nacos\tUp 3 days (healthy)\tnacos/nacos-server:v2.2.3\ntrace-real-redis\tUp 3 days (healthy)\tredis:7-alpine\ntrace-real-rabbitmq\tUp 3 days (healthy)\trabbitmq:3-management\ntrace-real-mysql\tUp 3 days (healthy)\tmysql:8.0\ntrace-real-mongo\tUp 3 days (healthy)\tmongo:4.4\n"
+    },
+    {
+      "n": 6,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/order/AppTradeOrderController.java",
+        "start": 55,
+        "end": 100
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/order/AppTradeOrderController.java (L55-100, 共203行)\n  55 |     private TradePriceService priceService;\n  56 | \n  57 |     @Resource\n  58 |     private TradeOrderProperties tradeOrderProperties;\n  59 | \n  60 |     @GetMapping(\"/settlement\")\n  61 |     @Operation(summary = \"获得订单结算信息\")\n  62 |     public CommonResult<AppTradeOrderSettlementRespVO> settlementOrder(@Valid AppTradeOrderSettlementReqVO settlementReqVO) {\n  63 |         return success(tradeOrderUpdateService.settlementOrder(getLoginUserId(), settlementReqVO));\n  64 |     }\n  65 | \n  66 |     @GetMapping(\"/settlement-product\")\n  67 |     @Operation(summary = \"获得商品结算信息\", description = \"用于商品列表、商品详情，获得参与活动后的价格信息\")\n  68 |     @Parameter(name = \"spuIds\", description = \"商品 SPU 编号数组\")\n  69 |     @PermitAll\n  70 |     public CommonResult<List<AppTradeProductSettlementRespVO>> settlementProduct(@RequestParam(\"spuIds\") List<Long> spuIds) {\n  71 |         return success(priceService.calculateProductPrice(getLoginUserId(), spuIds));\n  72 |     }\n  73 | \n  74 |     @PostMapping(\"/create\")\n  75 |     @Operation(summary = \"创建订单\")\n  76 |     public CommonResult<AppTradeOrderCreateRespVO> createOrder(@Valid @RequestBody AppTradeOrderCreateReqVO createReqVO) {\n  77 |         TradeOrderDO order = tradeOrderUpdateService.createOrder(getLoginUserId(), createReqVO);\n  78 |         return success(new AppTradeOrderCreateRespVO().setId(order.getId()).setPayOrderId(order.getPayOrderId()));\n  79 |     }\n  80 | \n  81 |     @PostMapping(\"/update-paid\")\n  82 |     @Operation(summary = \"更新订单为已支付\") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob\n  83 |     @PermitAll\n  84 |     public CommonResult<Boolean> updateOrderPaid(@RequestBody PayOrderNotifyReqDTO notifyReqDTO) {\n  85 |         tradeOrderUpdateService.updateOrderPaid(Long.valueOf(notifyReqDTO.getMerchantOrderId()),\n  86 |                 notifyReqDTO.getPayOrderId());\n  87 | "
+    },
+    {
+      "n": 7,
+      "tool": "search_code",
+      "args": {
+        "pattern": "selectByMerchantOrderId",
+        "path_prefix": "yudao-cloud/yudao-module-mall"
+      },
+      "result": "无匹配: selectByMerchantOrderId"
+    },
+    {
+      "n": 8,
+      "tool": "search_code",
+      "args": {
+        "pattern": "@PermitAll",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-im/yudao-module-im-server/src/main/java/cn/iocoder/yudao/module/im/controller/admin/rtc/ImRtcLiveKitController.java:50:    @PermitAll\nexamples/yudao-cloud/yudao-server/src/main/java/cn/iocoder/yudao/server/controller/DefaultController.java:102:    @PermitAll\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/config/YudaoWebSecurityConfigurerAdapter.java:125:        // 获得 @PermitAll 带来的 URL 列表，免登录\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/config/YudaoWebSecurityConfigurerAdapter.java:133:                    // 1.2 设置 @PermitAll 无需认证\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/config/YudaoWebSecurityConfigurerAdapter.java:165:        // 获得有 @PermitAll 注解的接口\nexamples/yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/controller/app/tenant/AppTenantController.java:35:    @PermitAll\nexamples/yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/controller/app/dict/AppDictDataController.java:36:    @PermitAll\nexamples/yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/controller/app/ip/AppAreaController.java:29:    @PermitAll\nexamples/yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/controller/admin/tenant/TenantController.java:45:    @PermitAll\nexamples/yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/controller/admin/tenant/TenantController.java:55:    @PermitAll\nexamples/yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/controller/admin/tenant/TenantController.java:65:    @PermitAll\nexamples/yudao"
+    },
+    {
+      "n": 9,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/order/TradeOrderUpdateServiceImpl.java",
+        "start": 255,
+        "end": 290
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/service/order/TradeOrderUpdateServiceImpl.java (L255-290, 共1052行)\n 255 |         if (CollUtil.isNotEmpty(cartIds)) {\n 256 |             cartService.deleteCart(order.getUserId(), cartIds);\n 257 |         }\n 258 | \n 259 |         // 3. 生成预支付\n 260 |         // 特殊情况：积分兑换时，可能支付金额为零\n 261 |         if (order.getPayPrice() > 0) {\n 262 |             createPayOrder(order, orderItems);\n 263 |         }\n 264 | \n 265 |         // 4. 插入订单日志\n 266 |         TradeOrderLogUtils.setOrderInfo(order.getId(), null, order.getStatus());\n 267 | \n 268 |         // TODO @LeeYan9: 是可以思考下, 订单的营销优惠记录, 应该记录在哪里, 微信讨论起来!\n 269 |     }\n 270 | \n 271 |     private void createPayOrder(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {\n 272 |         // 创建支付单，用于后续的支付\n 273 |         PayOrderCreateReqDTO payOrderCreateReqDTO = TradeOrderConvert.INSTANCE.convert(\n 274 |                 order, orderItems, tradeOrderProperties);\n 275 |         Long payOrderId = payOrderApi.createOrder(payOrderCreateReqDTO).getCheckedData();\n 276 | \n 277 |         // 更新到交易单上\n 278 |         tradeOrderMapper.updateById(new TradeOrderDO().setId(order.getId()).setPayOrderId(payOrderId));\n 279 |         order.setPayOrderId(payOrderId);\n 280 |     }\n 281 | \n 282 |     @Override\n 283 |     @Transactional(rollbackFor = Exception.class)\n 284 |     @TradeOrderLog(operateType = TradeOrderOperateTypeEnum.MEMBER_PAY)\n 285 |     public void updateOrderPaid(Long id, Long payOrderId) {\n 286 |         // 1.1 校验订单是否存在\n 287 |         TradeOrderDO order = validateOrderExists(id);\n 288 |         // 1.2 校验订单已支付\n 289 |         if (!TradeOrderStatusEnum.isUnpaid(order.getStatus()) || order.getPayStatus()) {\n 290 |             // 特殊：支付单号相同，直接返回，说明重复回调"
+    },
+    {
+      "n": 10,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class PayOrderApiImpl",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/api/order/PayOrderApiImpl.java:18:public class PayOrderApiImpl implements PayOrderApi {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/api/order/PayOrderApiImpl.java:18:public class PayOrderApiImpl implements PayOrderApi {\n"
+    },
+    {
+      "n": 11,
+      "tool": "search_code",
+      "args": {
+        "pattern": "rpc-api",
+        "path_prefix": "yudao-cloud/yudao-framework"
+      },
+      "result": "examples/yudao-cloud/yudao-module-bpm/yudao-module-bpm-server/src/main/java/cn/iocoder/yudao/module/bpm/api/event/CrmReceivableStatusListener.java:28:                \"http://crm-server/rpc-api/crm/receivable/update-audit-status\",\nexamples/yudao-cloud/yudao-module-bpm/yudao-module-bpm-server/src/main/java/cn/iocoder/yudao/module/bpm/api/event/CrmContractStatusListener.java:28:                \"http://crm-server/rpc-api/crm/contract/update-audit-status\",\nexamples/yudao-cloud/yudao-framework/yudao-common/src/main/java/cn/iocoder/yudao/framework/common/enums/RpcConstants.java:15:    String RPC_API_PREFIX = \"/rpc-api\";\nexamples/yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/api/tenant/TenantApiImpl.java:23:    @TenantIgnore // 防止递归。避免调用 /rpc-api/system/tenant/valid 接口时，又去触发 /rpc-api/system/tenant/valid 去校验\nexamples/yudao-cloud/yudao-module-iot/yudao-module-iot-gateway/src/main/java/cn/iocoder/yudao/module/iot/gateway/service/device/remote/IotDeviceApiImpl.java:52:        return doPost(\"/rpc-api/iot/device/auth\", authReqDTO, new ParameterizedTypeReference<CommonResult<Boolean>>() { });\nexamples/yudao-cloud/yudao-module-iot/yudao-module-iot-gateway/src/main/java/cn/iocoder/yudao/module/iot/gateway/service/device/remote/IotDeviceApiImpl.java:57:        return doPost(\"/rpc-api/iot/device/get\", getReqDTO, new ParameterizedTypeReference<CommonResult<IotDeviceRespDTO>>() { });\nexamples/yudao-cloud/yudao-module-iot/yudao-module-iot-gateway/src/main/java/cn/iocoder/yudao/module/iot/gateway/service/device/remote/IotDeviceApiImpl.java:62:        return doPost(\"/rpc-api/iot/modbus/config-list\", listReqDTO, new ParameterizedTypeReference<CommonResult<List<IotModbusDeviceConfigRespDTO>>>() { });\nexamples/yudao-cloud/yudao-module-iot/yudao-module-iot-gateway/src/main/java/cn/iocoder/yudao/module/iot/gateway/service/device/remote/IotDeviceApiImpl.java:67:        return doPost(\"/rpc-api/iot/device/register\", reqDTO, new Parameterize"
+    },
+    {
+      "n": 12,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/api/order/PayOrderApiImpl.java",
+        "start": 1,
+        "end": 60
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/api/order/PayOrderApiImpl.java (L1-40, 共40行)\n   1 | package cn.iocoder.yudao.module.pay.api.order;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   4 | import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;\n   5 | import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;\n   6 | import cn.iocoder.yudao.module.pay.convert.order.PayOrderConvert;\n   7 | import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderDO;\n   8 | import cn.iocoder.yudao.module.pay.service.order.PayOrderService;\n   9 | import org.springframework.validation.annotation.Validated;\n  10 | import org.springframework.web.bind.annotation.RestController;\n  11 | \n  12 | import javax.annotation.Resource;\n  13 | \n  14 | import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;\n  15 | \n  16 | @RestController // 提供 RESTful API 接口，给 Feign 调用\n  17 | @Validated\n  18 | public class PayOrderApiImpl implements PayOrderApi {\n  19 | \n  20 |     @Resource\n  21 |     private PayOrderService payOrderService;\n  22 | \n  23 |     @Override\n  24 |     public CommonResult<Long> createOrder(PayOrderCreateReqDTO reqDTO) {\n  25 |         return success(payOrderService.createOrder(reqDTO));\n  26 |     }\n  27 | \n  28 |     @Override\n  29 |     public CommonResult<PayOrderRespDTO> getOrder(Long id) {\n  30 |         PayOrderDO order = payOrderService.getOrder(id);\n  31 |         return success(PayOrderConvert.INSTANCE.convert2(order));\n  32 |     }\n  33 | \n  34 |     @Override\n  35 |     public CommonResult<Boolean> updatePayOrderPrice(Long id, Integer payPrice) {\n  36 |         payOrderService.updatePayOrderPrice(id, payPrice);\n  37 |         return success(true);\n  38 |     }\n  39 | \n  40 | }"
+    },
+    {
+      "n": 13,
+      "tool": "search_code",
+      "args": {
+        "pattern": "interface PayOrderApi",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/order/PayOrderApi.java:19:public interface PayOrderApi {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/order/PayOrderApi.java:19:public interface PayOrderApi {\n"
+    },
+    {
+      "n": 14,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/order/PayOrderApi.java",
+        "start": 1,
+        "end": 60
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/order/PayOrderApi.java (L1-42, 共42行)\n   1 | package cn.iocoder.yudao.module.pay.api.order;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   4 | import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;\n   5 | import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;\n   6 | import cn.iocoder.yudao.module.pay.enums.ApiConstants;\n   7 | import io.swagger.v3.oas.annotations.Operation;\n   8 | import io.swagger.v3.oas.annotations.Parameter;\n   9 | import io.swagger.v3.oas.annotations.Parameters;\n  10 | import io.swagger.v3.oas.annotations.tags.Tag;\n  11 | import javax.annotation.security.PermitAll;\n  12 | import org.springframework.cloud.openfeign.FeignClient;\n  13 | import org.springframework.web.bind.annotation.*;\n  14 | \n  15 | import javax.validation.Valid;\n  16 | \n  17 | @FeignClient(name = ApiConstants.NAME) // TODO 芋艿：fallbackFactory =\n  18 | @Tag(name = \"RPC 服务 - 支付单\")\n  19 | public interface PayOrderApi {\n  20 | \n  21 |     String PREFIX = ApiConstants.PREFIX + \"/order\";\n  22 | \n  23 |     @PostMapping(PREFIX + \"/create\")\n  24 |     @Operation(summary = \"创建支付单\")\n  25 |     CommonResult<Long> createOrder(@Valid @RequestBody PayOrderCreateReqDTO reqDTO);\n  26 | \n  27 |     @GetMapping(PREFIX + \"/get\")\n  28 |     @Operation(summary = \"获得支付单\")\n  29 |     @Parameter(name = \"id\", description = \"支付单编号\", example = \"1\", required = true)\n  30 |     @PermitAll\n  31 |     CommonResult<PayOrderRespDTO> getOrder(@RequestParam(\"id\") Long id);\n  32 | \n  33 |     @PutMapping(PREFIX + \"/update-price\")\n  34 |     @Operation(summary = \"更新支付订单价格\")\n  35 |     @Parameters({\n  36 |             @Parameter(name = \"id\", description = \"支付单编号\", example = \"1\", required = true),\n  37 |             @Parameter(name = \"payPrice\", description = \"支付单价格\", example = \"100\", required = true)\n  38 |     })\n  39 |     CommonResult<Boolean> updatePayOrderPrice(@"
+    },
+    {
+      "n": 15,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/config/YudaoWebSecurityConfigurerAdapter.java",
+        "start": 100,
+        "end": 200
+      },
+      "result": "yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/config/YudaoWebSecurityConfigurerAdapter.java (L100-200, 共221行)\n 100 |      * hasAnyAuthority     |   如果有参数，参数表示权限，则其中任何一个权限可以访问\n 101 |      * hasAnyRole          |   如果有参数，参数表示角色，则其中任何一个角色可以访问\n 102 |      * hasAuthority        |   如果有参数，参数表示权限，则其权限可以访问\n 103 |      * hasIpAddress        |   如果有参数，参数表示IP地址，如果用户IP和参数匹配，则可以访问\n 104 |      * hasRole             |   如果有参数，参数表示角色，则其角色可以访问\n 105 |      * permitAll           |   用户可以任意访问\n 106 |      * rememberMe          |   允许通过remember-me登录的用户访问\n 107 |      * authenticated       |   用户登录后可访问\n 108 |      */\n 109 |     @Bean\n 110 |     protected SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {\n 111 |         // 登出\n 112 |         httpSecurity\n 113 |                 // 开启跨域\n 114 |                 .cors(Customizer.withDefaults())\n 115 |                 // CSRF 禁用，因为不使用 Session\n 116 |                 .csrf(AbstractHttpConfigurer::disable)\n 117 |                 // 基于 token 机制，所以不需要 Session\n 118 |                 .sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n 119 |                 .headers(c -> c.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))\n 120 |                 // 一堆自定义的 Spring Security 处理器\n 121 |                 .exceptionHandling(c -> c.authenticationEntryPoint(authenticationEntryPoint)\n 122 |                         .accessDeniedHandler(accessDeniedHandler));\n 123 |         // 登录、登录暂时不使用 Spring Security 的拓展点，主要考虑一方面拓展多用户、多种登录方式相对复杂，一方面用户的学习成本较高\n 124 | \n 125 |         // 获得 @PermitAll 带来的 URL 列表，免登录\n 126 |         Multimap<HttpMethod, String> permitAllUrls = getPermitAllUrlsFromAnnotations();\n 127 |         // 设置每个请求的权限\n 128 |         httpSecurity\n 129 |                 // ①：全局共享规则\n 130 |                 .authorizeHttpRequests(c -> c\n 131 |                     // 1.1 静态资源，可匿名访问\n 132 |                     .requestMatchers(HttpMethod.GET,"
+    },
+    {
+      "n": 16,
+      "tool": "search_code",
+      "args": {
+        "pattern": "PermitAll",
+        "path_prefix": "yudao-cloud/yudao-module-pay/yudao-module-pay-server"
+      },
+      "result": "examples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigBearerTokenExtractor.java:45:\tprivate final PermitAllUrlProperties urlProperties;\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigBearerTokenExtractor.java:47:\tpublic PigBearerTokenExtractor(PermitAllUrlProperties urlProperties) {\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PermitAllUrlProperties.java:43:public class PermitAllUrlProperties implements InitializingBean {\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigResourceServerConfiguration.java:54:\tprivate final PermitAllUrlProperties permitAllUrl;\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigResourceServerAutoConfiguration.java:35:@EnableConfigurationProperties(PermitAllUrlProperties.class)\nexamples/pig/pig-common/pig-common-security/src/main/java/com/pig4cloud/pig/common/security/component/PigResourceServerAutoConfiguration.java:53:\tpublic PigBearerTokenExtractor pigBearerTokenExtractor(PermitAllUrlProperties urlProperties) {\nexamples/yudao-cloud/yudao-module-im/yudao-module-im-server/src/main/java/cn/iocoder/yudao/module/im/controller/admin/rtc/ImRtcLiveKitController.java:13:import javax.annotation.security.PermitAll;\nexamples/yudao-cloud/yudao-module-im/yudao-module-im-server/src/main/java/cn/iocoder/yudao/module/im/controller/admin/rtc/ImRtcLiveKitController.java:50:    @PermitAll\nexamples/yudao-cloud/yudao-server/src/main/java/cn/iocoder/yudao/server/controller/DefaultController.java:9:import javax.annotation.security.PermitAll;\nexamples/yudao-cloud/yudao-server/src/main/java/cn/iocoder/yudao/server/controller/DefaultController.java:102:    @PermitAll\nexamples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/conf"
+    },
+    {
+      "n": 17,
+      "tool": "search_code",
+      "args": {
+        "pattern": "permit-all-urls",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-framework/yudao-spring-boot-starter-security/src/main/java/cn/iocoder/yudao/framework/security/config/YudaoWebSecurityConfigurerAdapter.java:140:                    // 1.3 基于 yudao.security.permit-all-urls 无需认证\n"
+    },
+    {
+      "n": 18,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class PayOrderCreateReqDTO",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/order/dto/PayOrderCreateReqDTO.java:18:public class PayOrderCreateReqDTO implements Serializable {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/order/dto/PayOrderCreateReqDTO.java:18:public class PayOrderCreateReqDTO implements Serializable {\n"
+    },
+    {
+      "n": 19,
+      "tool": "search_code",
+      "args": {
+        "pattern": "port:",
+        "path_prefix": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/resources"
+      },
+      "result": "examples/PassJava-Platform/renren-generator/src/main/resources/application.yml:2:  port: 8003\nexamples/PassJava-Platform/renren-fast/src/main/resources/application.yml:7:  port: 8080\nexamples/PassJava-Platform/renren-fast/src/main/resources/application.yml:29:    port: 6379\nexamples/PassJava-Platform/passjava-content/src/main/resources/application.yml:20:  port: 9000\nexamples/PassJava-Platform/passjava-thirdparty/src/main/resources/application.yml:15:  port: 14000\nexamples/PassJava-Platform/passjava-member/src/main/resources/application.yml:22:#  port: 10000\nexamples/PassJava-Platform/passjava-question/src/main/resources/application.yml:25:#  port: 11000\nexamples/PassJava-Platform/passjava-question/src/main/resources/application.yml:44:    port: 6379\nexamples/PassJava-Platform/passjava-channel/src/main/resources/application.yml:22:  port: 8000\nexamples/PassJava-Platform/passjava-gateway/src/main/resources/application.yml:7:    port: 6379\nexamples/PassJava-Platform/passjava-study/src/main/resources/application.yml:20:  port: 12200\nexamples/zlt-microservices-platform/zlt-business/file-center/src/main/resources/bootstrap.yml:2:  port: 5000\nexamples/zlt-microservices-platform/zlt-business/search-center/search-server/src/main/resources/bootstrap.yml:2:  port: 7100\nexamples/zlt-microservices-platform/zlt-business/user-center/src/main/resources/bootstrap.yml:2:  port: 7000\nexamples/zlt-microservices-platform/zlt-demo/resources-server-demo/src/main/resources/bootstrap.yml:2:  port: 8093\nexamples/zlt-microservices-platform/zlt-demo/websocket-demo/src/main/resources/bootstrap.yml:2:  port: 8092\nexamples/zlt-microservices-platform/zlt-demo/sso-demo/web-sso/src/main/resources/bootstrap.yml:2:  port: 8081\nexamples/zlt-microservices-platform/zlt-demo/sso-demo/oidc-sso/src/main/resources/bootstrap.yml:2:  port: 8082\nexamples/zlt-microservices-platform/zlt-demo/sso-demo/ss-sso/src/main/resources/bootstrap.yml:2:  port: 8080\nexamples/zlt-microservices-platform/zlt-demo/seata-demo/ac"
+    },
+    {
+      "n": 20,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/resources/application.yaml",
+        "start": 1,
+        "end": 140
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/resources/application.yaml (L1-124, 共124行)\n   1 | spring:\n   2 |   application:\n   3 |     name: pay-server\n   4 | \n   5 |   profiles:\n   6 |     active: local\n   7 | \n   8 |   main:\n   9 |     allow-circular-references: true # 允许循环依赖，因为项目是三层架构，无法避免这个情况。\n  10 |     allow-bean-definition-overriding: true # 允许 Bean 覆盖，例如说 Feign 等会存在重复定义的服务\n  11 | \n  12 |   config:\n  13 |     import:\n  14 |       - optional:classpath:application-${spring.profiles.active}.yaml # 加载【本地】配置\n  15 |       - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml # 加载【Nacos】的配置\n  16 | \n  17 |   # Servlet 配置\n  18 |   servlet:\n  19 |     # 文件上传相关配置项\n  20 |     multipart:\n  21 |       max-file-size: 16MB # 单个文件大小\n  22 |       max-request-size: 32MB # 设置总上传的文件大小\n  23 | \n  24 |   # Jackson 配置项\n  25 |   jackson:\n  26 |     serialization:\n  27 |       write-dates-as-timestamps: true # 设置 LocalDateTime 的格式，使用时间戳\n  28 |       write-date-timestamps-as-nanoseconds: false # 设置不使用 nanoseconds 的格式。例如说 1611460870.401，而是直接 1611460870401\n  29 |       write-durations-as-timestamps: true # 设置 Duration 的格式，使用时间戳\n  30 |       fail-on-empty-beans: false # 允许序列化无属性的 Bean\n  31 | \n  32 |   # Cache 配置项\n  33 |   cache:\n  34 |     type: REDIS\n  35 |     redis:\n  36 |       time-to-live: 1h # 设置过期时间为 1 小时\n  37 | \n  38 | server:\n  39 |   port: 48085\n  40 | \n  41 | logging:\n  42 |   file:\n  43 |     name: ${user.home}/logs/${spring.application.name}.log # 日志文件名，全路径\n  44 | \n  45 | --- #################### 接口文档配置 ####################\n  46 | \n  47 | springdoc:\n  48 |   api-docs:\n  49 |     enabled: true # 1. 是否开启 Swagger 接文档的元数据\n  50 |     path: /v3/api-docs\n  51 |   swagger-ui:\n  52 |     enabled: true # 2.1 是否开启 Swagger 文档的官方 UI 界面\n  53 |     path: /swagger-ui\n  54 |   default-flat-param-object: true # 参见 https://doc.xiaominfo.com/docs/faq/v4/knife4j-parameterobject-flat-param 文档\n  55 | \n  56 | knife4j:\n  57 |   enable: true\n  58 |   setting:\n  5"
+    },
+    {
+      "n": 21,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/order/dto/PayOrderCreateReqDTO.java",
+        "start": 1,
+        "end": 60
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/order/dto/PayOrderCreateReqDTO.java (L1-60, 共78行)\n   1 | package cn.iocoder.yudao.module.pay.api.order.dto;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;\n   4 | import cn.iocoder.yudao.framework.common.validation.InEnum;\n   5 | import lombok.Data;\n   6 | import org.hibernate.validator.constraints.Length;\n   7 | \n   8 | import javax.validation.constraints.DecimalMin;\n   9 | import javax.validation.constraints.NotEmpty;\n  10 | import javax.validation.constraints.NotNull;\n  11 | import java.io.Serializable;\n  12 | import java.time.LocalDateTime;\n  13 | \n  14 | /**\n  15 |  * 支付单创建 Request DTO\n  16 |  */\n  17 | @Data\n  18 | public class PayOrderCreateReqDTO implements Serializable {\n  19 | \n  20 |     public static final int SUBJECT_MAX_LENGTH = 32;\n  21 | \n  22 |     /**\n  23 |      * 应用标识\n  24 |      */\n  25 |     @NotNull(message = \"应用标识不能为空\")\n  26 |     private String appKey;\n  27 | \n  28 |     /**\n  29 |      * 用户 IP\n  30 |      */\n  31 |     @NotEmpty(message = \"用户 IP 不能为空\")\n  32 |     private String userIp;\n  33 | \n  34 |     /**\n  35 |      * 用户编号\n  36 |      */\n  37 |     private Long userId;\n  38 |     /**\n  39 |      * 用户类型\n  40 |      */\n  41 |     @InEnum(UserTypeEnum.class)\n  42 |     private Integer userType;\n  43 | \n  44 |     // ========== 商户相关字段 ==========\n  45 | \n  46 |     /**\n  47 |      * 商户订单编号\n  48 |      */\n  49 |     @NotEmpty(message = \"商户订单编号不能为空\")\n  50 |     private String merchantOrderId;\n  51 |     /**\n  52 |      * 商品标题\n  53 |      */\n  54 |     @NotEmpty(message = \"商品标题不能为空\")\n  55 |     @Length(max = SUBJECT_MAX_LENGTH, message = \"商品标题不能超过 32\")\n  56 |     private String subject;\n  57 |     /**\n  58 |      * 商品描述\n  59 |      */\n  60 |     @Length(max = 128, message = \"商品描述信息长度不能超过128\")"
+    },
+    {
+      "n": 22,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/resources/application.yaml",
+        "start": 1,
+        "end": 45
+      },
+      "result": "yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/resources/application.yaml (L1-45, 共142行)\n   1 | spring:\n   2 |   application:\n   3 |     name: trade-server\n   4 | \n   5 |   profiles:\n   6 |     active: local\n   7 | \n   8 |   main:\n   9 |     allow-circular-references: true # 允许循环依赖，因为项目是三层架构，无法避免这个情况。\n  10 |     allow-bean-definition-overriding: true # 允许 Bean 覆盖，例如说 Feign 等会存在重复定义的服务\n  11 | \n  12 |   config:\n  13 |     import:\n  14 |       - optional:classpath:application-${spring.profiles.active}.yaml # 加载【本地】配置\n  15 |       - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml # 加载【Nacos】的配置\n  16 | \n  17 |   # Servlet 配置\n  18 |   servlet:\n  19 |     # 文件上传相关配置项\n  20 |     multipart:\n  21 |       max-file-size: 16MB # 单个文件大小\n  22 |       max-request-size: 32MB # 设置总上传的文件大小\n  23 | \n  24 |   # Jackson 配置项\n  25 |   jackson:\n  26 |     serialization:\n  27 |       write-dates-as-timestamps: true # 设置 LocalDateTime 的格式，使用时间戳\n  28 |       write-date-timestamps-as-nanoseconds: false # 设置不使用 nanoseconds 的格式。例如说 1611460870.401，而是直接 1611460870401\n  29 |       write-durations-as-timestamps: true # 设置 Duration 的格式，使用时间戳\n  30 |       fail-on-empty-beans: false # 允许序列化无属性的 Bean\n  31 | \n  32 |   # Cache 配置项\n  33 |   cache:\n  34 |     type: REDIS\n  35 |     redis:\n  36 |       time-to-live: 1h # 设置过期时间为 1 小时\n  37 | \n  38 | server:\n  39 |   port: 48102\n  40 | \n  41 | logging:\n  42 |   file:\n  43 |     name: ${user.home}/logs/${spring.application.name}.log # 日志文件名，全路径\n  44 | \n  45 | --- #################### 接口文档配置 ####################"
+    },
+    {
+      "n": 23,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/order/dto/PayOrderCreateReqDTO.java",
+        "start": 60,
+        "end": 78
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/order/dto/PayOrderCreateReqDTO.java (L60-78, 共78行)\n  60 |     @Length(max = 128, message = \"商品描述信息长度不能超过128\")\n  61 |     private String body;\n  62 | \n  63 |     // ========== 订单相关字段 ==========\n  64 | \n  65 |     /**\n  66 |      * 支付金额，单位：分\n  67 |      */\n  68 |     @NotNull(message = \"支付金额不能为空\")\n  69 |     @DecimalMin(value = \"0\", inclusive = false, message = \"支付金额必须大于零\")\n  70 |     private Integer price;\n  71 | \n  72 |     /**\n  73 |      * 支付过期时间\n  74 |      */\n  75 |     @NotNull(message = \"支付过期时间不能为空\")\n  76 |     private LocalDateTime expireTime;\n  77 | \n  78 | }"
+    },
+    {
+      "n": 24,
+      "tool": "search_code",
+      "args": {
+        "pattern": "RequestInterceptor",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/zlt-microservices-platform/zlt-commons/zlt-loadbalancer-spring-boot-starter/src/main/java/com/central/common/lb/config/FeignInterceptorConfig.java:6:import feign.RequestInterceptor;\nexamples/zlt-microservices-platform/zlt-commons/zlt-loadbalancer-spring-boot-starter/src/main/java/com/central/common/lb/config/FeignInterceptorConfig.java:22:    public RequestInterceptor baseFeignInterceptor() {\nexamples/zlt-microservices-platform/zlt-commons/zlt-loadbalancer-spring-boot-starter/src/main/java/com/central/common/lb/config/FeignHttpInterceptorConfig.java:6:import feign.RequestInterceptor;\nexamples/zlt-microservices-platform/zlt-commons/zlt-loadbalancer-spring-boot-starter/src/main/java/com/central/common/lb/config/FeignHttpInterceptorConfig.java:45:    public RequestInterceptor httpFeignInterceptor() {\nexamples/zlt-microservices-platform/zlt-commons/zlt-log-spring-boot-starter/src/main/java/com/central/log/trace/FeignTraceConfig.java:5:import feign.RequestInterceptor;\nexamples/zlt-microservices-platform/zlt-commons/zlt-log-spring-boot-starter/src/main/java/com/central/log/trace/FeignTraceConfig.java:22:@ConditionalOnClass(value = {RequestInterceptor.class})\nexamples/zlt-microservices-platform/zlt-commons/zlt-log-spring-boot-starter/src/main/java/com/central/log/trace/FeignTraceConfig.java:28:    public RequestInterceptor feignTraceInterceptor() {\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/config/GuliFeignConfig.java:3:import feign.RequestInterceptor;\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/config/GuliFeignConfig.java:16:    public RequestInterceptor requestInterceptor() {\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/config/GuliFeignConfig.java:17:        return new RequestInterceptor() {\nexamples/PiggyMetrics/notification-service/src/main/java/com/piggymetrics/notification/config/ResourceServerConfig.java:3:import feign.RequestIntercepto"
+    },
+    {
+      "n": 25,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:8848/nacos/v1/cs/configs?dataId=pay-server-local.yaml&group=DEFAULT_GROUP"
+      },
+      "result": "HTTP 403\nContent-Type: application/json;charset=UTF-8\n\n{\"timestamp\":\"2026-10-17T22:10:51.828+08:00\",\"status\":403,\"error\":\"Forbidden\",\"message\":\"user not found!\",\"path\":\"/nacos/v1/cs/configs\"}"
+    },
+    {
+      "n": 26,
+      "tool": "query_db",
+      "args": {
+        "sql": "SHOW DATABASES"
+      },
+      "result": "Database\napolloconfigdb\napolloportaldb\nblade\ncloud_admin_v1\nfile-center\nfile_center\ninformation_schema\nlamp_nacos\nlamp_none\nlamp_sw\nlogger-center\nmall\nmall4cloud_auth\nmall_oms\nmall_pms\nmall_sms\nmall_ums\nmicroservice\nmogu_blog\nmogu_picture\nmysql\nnacos\nnacos_config\nnovel\nnovel-cloud\nnovel_test\noauth-center\noauth2_server\nperformance_schema\npig\nruoyi-vue-pro\nry-cloud\nry-config\nry-job\nry-seata\nry-workflow\nseata\nsys\ntest\nuser-center\nxxl_job\nyoulai_system"
+    },
+    {
+      "n": 27,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:8848/nacos/v1/auth/login",
+        "headers_json": "{\"Content-Type\":\"application/x-www-form-urlencoded\"}",
+        "body": "username=nacos&password=nacos"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"accessToken\":\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MjI2NDMyNX0.BldAXPWg_9kxkhMruwEfDH8nZfF5nQrqudE1rJIzVRYbEXRazIwMSkHMjBXMgno679ipPpKncnL3EyqM1osmyg\",\"tokenTtl\":18000,\"globalAdmin\":true,\"username\":\"nacos\"}"
+    },
+    {
+      "n": 28,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:8848/nacos/v1/cs/configs?dataId=pay-server-local.yaml&group=DEFAULT_GROUP&accessToken=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MjI2NDMyNX0.BldAXPWg_9kxkhMruwEfDH8nZfF5nQrqudE1rJIzVRYbEXRazIwMSkHMjBXMgno679ipPpKncnL3EyqM1osmyg"
+      },
+      "result": "HTTP 404\nContent-Type: application/json;charset=UTF-8\n\nconfig data not exist\n"
+    },
+    {
+      "n": 29,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:8848/nacos/v1/cs/configs?dataId=trade-server-local.yaml&group=DEFAULT_GROUP&accessToken=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MjI2NDMyNX0.BldAXPWg_9kxkhMruwEfDH8nZfF5nQrqudE1rJIzVRYbEXRazIwMSkHMjBXMgno679ipPpKncnL3EyqM1osmyg"
+      },
+      "result": "HTTP 404\nContent-Type: application/json;charset=UTF-8\n\nconfig data not exist\n"
+    },
+    {
+      "n": 30,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:8848/nacos/v1/cs/configs?search=blur&dataId=&group=&pageNo=1&pageSize=200&accessToken=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MjI2NDMyNX0.BldAXPWg_9kxkhMruwEfDH8nZfF5nQrqudE1rJIzVRYbEXRazIwMSkHMjBXMgno679ipPpKncnL3EyqM1osmyg"
+      },
+      "result": "HTTP 200\nContent-Type: application/json;charset=UTF-8\n\n{\"totalCount\":6,\"pageNumber\":1,\"pagesAvailable\":1,\"pageItems\":[{\"id\":\"61\",\"dataId\":\"mogu-web-flow-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    {\\r\\n    \\\"clusterMode\\\": false,\\r\\n    \\\"controlBehavior\\\": 0,\\r\\n    \\\"count\\\": 100,\\r\\n    \\\"grade\\\": 1,\\r\\n    \\\"limitApp\\\": \\\"default\\\",\\r\\n    \\\"resource\\\": \\\"/index/getBlogByLevel\\\",\\r\\n    \\\"strategy\\\": 0\\r\\n    }\\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\"tenant\":\"\",\"appName\":\"\",\"type\":null},{\"id\":\"62\",\"dataId\":\"mogu-web-degrade-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    {\\r\\n    \\\"count\\\": 1,\\r\\n    \\\"grade\\\": 2,\\r\\n    \\\"resource\\\": \\\"/index/getBlogByLevel\\\",\\r\\n    \\\"timeWindow\\\": 5\\r\\n    }\\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\"tenant\":\"\",\"appName\":\"\",\"type\":null},{\"id\":\"63\",\"dataId\":\"mogu-picture-flow-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    {\\r\\n    \\\"clusterMode\\\": false,\\r\\n    \\\"controlBehavior\\\": 0,\\r\\n    \\\"count\\\": 100,\\r\\n    \\\"grade\\\": 1,\\r\\n    \\\"limitApp\\\": \\\"default\\\",\\r\\n    \\\"resource\\\": \\\"/file/getPicture\\\",\\r\\n    \\\"strategy\\\": 0\\r\\n    }\\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\"tenant\":\"\",\"appName\":\"\",\"type\":null},{\"id\":\"64\",\"dataId\":\"mogu-picture-degrade-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    {\\r\\n    \\\"count\\\": 1,\\r\\n    \\\"grade\\\": 2,\\r\\n    \\\"resource\\\": \\\"/index/getBlogByLevel\\\",\\r\\n    \\\"timeWindow\\\": 5\\r\\n    }\\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\"tenant\":\"\",\"appName\":\"\",\"type\":null},{\"id\":\"69\",\"dataId\":\"mogu-search-flow-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    {\\r\\n    \\\"clusterMode\\\": false,\\r\\n    \\\"controlBehavior\\\": 0,\\r\\n    \\\"count\\\": 100,\\r\\n    \\\"grade\\\": 1,\\r\\n    \\\"limitApp\\\": \\\"default\\\",\\r\\n    \\\"resource\\\": \\\"/search/addSolrIndexByUid\\\",\\r\\n    \\\"strategy\\\": 0\\r\\n    }\\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\"tenant\":\"\",\"appName\":\"\",\"type\":null},{\"id\":\"70\",\"dataId\":\"mogu-search-degrade-rules\",\"group\":\"DEFAULT_GROUP\",\"content\":\"[\\r\\n    \\r\\n]\",\"md5\":null,\"encryptedDataKey\":\"\",\""
+    },
+    {
+      "n": 31,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:8848/nacos/v1/console/namespaces?accessToken=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MjI2NDMyNX0.BldAXPWg_9kxkhMruwEfDH8nZfF5nQrqudE1rJIzVRYbEXRazIwMSkHMjBXMgno679ipPpKncnL3EyqM1osmyg"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":200,\"message\":null,\"data\":[{\"namespace\":\"\",\"namespaceShowName\":\"public\",\"namespaceDesc\":null,\"quota\":200,\"configCount\":6,\"type\":0},{\"namespace\":\"dev\",\"namespaceShowName\":\"dev\",\"namespaceDesc\":\"开发环境\",\"quota\":200,\"configCount\":13,\"type\":2},{\"namespace\":\"prod\",\"namespaceShowName\":\"prod\",\"namespaceDesc\":\"生产环境\",\"quota\":200,\"configCount\":8,\"type\":2},{\"namespace\":\"test\",\"namespaceShowName\":\"test\",\"namespaceDesc\":\"test\",\"quota\":200,\"configCount\":0,\"type\":2}]}"
+    },
+    {
+      "n": 32,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:8848/nacos/v1/ns/service/list?pageNo=1&pageSize=200&accessToken=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MjI2NDMyNX0.BldAXPWg_9kxkhMruwEfDH8nZfF5nQrqudE1rJIzVRYbEXRazIwMSkHMjBXMgno679ipPpKncnL3EyqM1osmyg"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"count\":0,\"doms\":[]}"
+    },
+    {
+      "n": 33,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:8848/nacos/v1/cs/configs?search=blur&dataId=&group=&pageNo=1&pageSize=200&tenant=dev&accessToken=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MjI2NDMyNX0.BldAXPWg_9kxkhMruwEfDH8nZfF5nQrqudE1rJIzVRYbEXRazIwMSkHMjBXMgno679ipPpKncnL3EyqM1osmyg"
+      },
+      "result": "HTTP 200\nContent-Type: application/json;charset=UTF-8\n\n{\"totalCount\":13,\"pageNumber\":1,\"pagesAvailable\":1,\"pageItems\":[{\"id\":\"38\",\"dataId\":\"mogu-admin-dev.yaml\",\"group\":\"dev\",\"content\":\"#app\\nserver:\\n  port: 8601\\n\\ndata:\\n  # 门户页面  如果没有域名，使用 http://localhost:9527/#/\\n  webSite:\\n    url: http://demoweb.moguit.cn/#/\\n  web:\\n    # mogu_web网址，用于第三方登录回调【参考: http://www.moguit.cn/#/info?blogUid=8cbadb54967257f12d6cc7eb1a58a361】\\n    url: http://127.0.0.1:8603\\n    # 邮件发送时的LOGO\\n    logo: https://gitee.com/moxi159753/wx_picture/raw/master/picture/2.png\\n    # 项目英文名\\n    project_name_en: moguBlog\\n    #项目名称\\n    project_name: 蘑菇博客\\n\\n#阿里大于\\ntemplateCode: SMS_XXXXXX #短信模板编号\\nsignName: 蘑菇博客\\n\\n# 邮箱验证\\nmoguBlog:\\n  email: mogublog@163.com\\n\\n# 日志收集线程数\\nlog:\\n  thread:\\n    corePoolSize: 5\\n    maxPoolSize: 15\\n\\n#spring\\nspring:\\n  jackson:\\n    serialization:\\n      INDENT_OUTPUT: true\\n    date-format: yyyy-MM-dd HH:mm:ss\\n    time-zone: Asia/Shanghai\\n  jmx:\\n    default-domain: mogu-admin\\n  thymeleaf:\\n    cache: true   #关闭缓存\\n  application:\\n    name: mogu-admin\\n  security:\\n    user:\\n      name: user\\n      password: password123\\n\\n  # sleuth 配置\\n  sleuth:\\n    web:\\n      client:\\n        enabled: true\\n    sampler:\\n      probability: 1.0 # 采样比例为: 0.1(即10%),设置的值介于0.0到1.0之间，1.0则表示全部采集。\\n  # zipkin 配置\\n  zipkin:\\n    base-url: http://localhost:9411  # 指定了Zipkin服务器的地址\\n\\n  # DATABASE CONFIG\\n  datasource:\\n    username: root\\n    password: root\\n    url: jdbc:mysql://localhost:3306/mogu_blog?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&useSSL=false&serverTimezone=Asia/Shanghai\\n    driver-class-name: com.mysql.cj.jdbc.Driver\\n    type: com.alibaba.druid.pool.DruidDataSource\\n\\n    # 初始化大小，最小，最大\\n    initialSize: 20\\n    minIdle: 5\\n    maxActive: 200\\n\\n    #连接等待超时时间\\n    maxWait: 60000\\n\\n    #配置隔多久进行一次检测(检测可以关闭的空闲连接)\\n    timeBetweenEvictionRunsMillis: 60000\\n\\n    #配置连接在池中的最小生存时间\\n    minEvictableIdleTime"
+    },
+    {
+      "n": 34,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:8848/nacos/v1/cs/configs?search=blur&dataId=&group=&pageNo=1&pageSize=200&tenant=prod&accessToken=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTc5MjI2NDMyNX0.BldAXPWg_9kxkhMruwEfDH8nZfF5nQrqudE1rJIzVRYbEXRazIwMSkHMjBXMgno679ipPpKncnL3EyqM1osmyg"
+      },
+      "result": "HTTP 200\nContent-Type: application/json;charset=UTF-8\n\n{\"totalCount\":8,\"pageNumber\":1,\"pagesAvailable\":1,\"pageItems\":[{\"id\":\"73\",\"dataId\":\"mogu-admin-prod.yaml\",\"group\":\"prod\",\"content\":\"#app\\nserver:\\n  port: 8601\\n\\n#阿里大于\\ntemplateCode: SMS_XXXXXX #短信模板编号\\nsignName: 蘑菇博客\\n\\n#项目名称\\nPROJECT_NAME: 蘑菇博客\\n\\ndata:\\n  # 门户页面  如果没有域名，使用 http://120.78.126.96:9527/#/\\n  webSite:\\n    url: http://demoweb.moguit.cn/#/\\n  web:\\n    # mogu_web网址，用于第三方登录回调【参考: http://www.moguit.cn/#/info?blogUid=8cbadb54967257f12d6cc7eb1a58a361】\\n    url: http://120.78.126.96:8603\\n    # 邮件发送时的LOGO\\n    logo: https://gitee.com/moxi159753/mogu_blog_v2/raw/Nacos/doc/icon/favicon2.ico\\n    # 项目英文名\\n    project_name_en: moguBlog\\n    #项目名称\\n    project_name: 蘑菇博客\\n\\nfile:\\n  upload:\\n    path: /home/mogu_blog/mogu_data/\\n\\n# 邮箱验证\\nmoguBlog:\\n  email: mogublog@163.com\\n\\n# 蘑菇博客后台登录默认密码\\nDEFAULE_PWD: mogu2018\\n\\n#博客相关配置\\nBLOG:\\n  HOT_COUNT: 5 #热门博客数量\\n  NEW_COUNT: 15 #最新博客数据\\n  FIRST_COUNT: 5 #一级推荐\\n  SECOND_COUNT: 2 #二级推荐\\n  THIRD_COUNT: 3 #三级推荐\\n  FOURTH_COUNT: 5 #四级推荐\\n\\n# 日志收集线程数\\nlog:\\n  thread:\\n    corePoolSize: 5\\n    maxPoolSize: 15\\n\\n#spring\\nspring:\\n  jackson:\\n    serialization:\\n      INDENT_OUTPUT: true\\n    date-format: yyyy-MM-dd HH:mm:ss\\n    time-zone: Asia/Shanghai\\n  jmx:\\n    default-domain: mogu_admin\\n  thymeleaf:\\n    cache: true   #关闭缓存\\n  application:\\n    name: mogu-admin\\n  security:\\n    user:\\n      name: user\\n      password: password123\\n\\n\\n  # DATABASE CONFIG\\n  datasource:\\n    username: root\\n    password: mogu2018\\n    url: jdbc:mysql://mysql:3306/mogu_blog?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&useSSL=false&serverTimezone=Asia/Shanghai\\n    driver-class-name: com.mysql.cj.jdbc.Driver\\n    type: com.alibaba.druid.pool.DruidDataSource\\n\\n    # 初始化大小，最小，最大\\n    initialSize: 20\\n    minIdle: 5\\n    maxActive: 200\\n\\n    #连接等待超时时间\\n    maxWait: 60000\\n\\n    #配置隔多久进行一次检测(检测可以关闭的空闲连接)\\n    timeBetweenEvic"
+    },
+    {
+      "n": 35,
+      "tool": "search_code",
+      "args": {
+        "pattern": "interface ApiConstants",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "无匹配: interface ApiConstants"
+    },
+    {
+      "n": 36,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:48085/rpc-api/pay/order/get?id=502"
+      },
+      "result": "HTTP ERROR: <urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "n": 37,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:9211/rpc-api/pay/order/get?id=502"
+      },
+      "result": "HTTP ERROR: <urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "n": 38,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:9213/rpc-api/pay/order/get?id=502"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":0,\"msg\":\"\",\"data\":{\"id\":502,\"channelCode\":null,\"merchantOrderId\":\"999\",\"subject\":\"æµ‹è¯•å•†æˆ·è®¢å•å·ä¸åŒ¹é…\",\"price\":100,\"status\":10,\"successTime\":null,\"channelUserId\":null,\"channelOrderNo\":null}}"
+    },
+    {
+      "n": 39,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:9201/rpc-api/pay/order/get?id=502"
+      },
+      "result": "HTTP ERROR: <urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "n": 40,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT id, app_key, name, status, deleted FROM pay_app"
+      },
+      "result": "ERROR: query_db 仅允许只读 SELECT/SHOW/DESC 语句, 写操作请用 execute_sql"
+    },
+    {
+      "n": 41,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:9213/rpc-api/pay/order/create",
+        "headers_json": "{\"Content-Type\":\"application/json\"}",
+        "body": "{\"appKey\":\"probe\",\"userIp\":\"127.0.0.1\",\"merchantOrderId\":\"probe\",\"subject\":\"probe\",\"body\":\"probe\",\"price\":100,\"expireTime\":\"2026-10-18 12:00:00\"}"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":1007000000,\"msg\":\"App 不存在\",\"data\":null}"
+    },
+    {
+      "n": 42,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_app LIMIT 5"
+      },
+      "result": "id\tapp_key\tname\tstatus\tremark\torder_notify_url\trefund_notify_url\ttransfer_notify_url\tcreator\tcreate_time\tupdater\tupdate_time\tdeleted\n1\tdemo_app\t测试应用\t0\tNULL\thttp://localhost/notify\thttp://localhost/refund_notify\t\t\t2026-10-17 05:23:29\t\t2026-10-17 05:23:29\t\\0"
+    },
+    {
+      "n": 43,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:9213/rpc-api/pay/order/create",
+        "headers_json": "{\"Content-Type\":\"application/json\"}",
+        "body": "{\"appKey\":\"demo_app\",\"userIp\":\"127.0.0.1\",\"merchantOrderId\":\"999<<SINK_REACHED>>\",\"subject\":\"<<SINK_REACHED>>\",\"body\":\"测试支付单\",\"price\":100,\"expireTime\":\"2026-10-18 12:00:00\"}"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":0,\"msg\":\"\",\"data\":512}"
+    },
+    {
+      "n": 44,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_order WHERE id=512"
+      },
+      "result": "id\tapp_id\tchannel_id\tchannel_code\tuser_id\tuser_type\tmerchant_order_id\tsubject\tbody\tnotify_url\tprice\tchannel_fee_rate\tchannel_fee_price\tstatus\tuser_ip\texpire_time\tsuccess_time\tnotify_time\textension_id\tno\trefund_price\tchannel_user_id\tchannel_order_no\tcreator\tcreate_time\tupdater\tupdate_time\tdeleted\n512\t1\tNULL\tNULL\tNULL\tNULL\t999<<SINK_REACHED>>\t<<SINK_REACHED>>\t?????\thttp://localhost/notify\t100\t0\t0\t0\t127.0.0.1\t1970-01-01 00:00:00\tNULL\tNULL\tNULL\tNULL\t0\tNULL\tNULL\tNULL\t2026-10-17 14:16:51\tNULL\t2026-10-17 14:16:51\t\\0"
+    },
+    {
+      "n": 45,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:9212/app-api/trade/order/update-paid",
+        "headers_json": "{\"Content-Type\":\"application/json\"}",
+        "body": "{\"merchantOrderId\":\"200\",\"payOrderId\":512}"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":1011000015,\"msg\":\"交易订单更新支付状态失败，支付单状态不是【支付成功】状态\",\"data\":null}"
+    },
+    {
+      "n": 46,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-yudao-cloud-trade-server",
+        "tail": 60
+      },
+      "result": "\tat com.sun.proxy.$Proxy186.createApiAccessLogAsync(Unknown Source)\n\tat java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)\n\tat java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)\n\tat java.base/java.lang.reflect.Method.invoke(Unknown Source)\n\tat org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:344)\n\tat org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:198)\n\tat org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)\n\tat org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:115)\n\tat java.base/java.util.concurrent.FutureTask.run(Unknown Source)\n\tat com.alibaba.ttl.TtlRunnable.run(TtlRunnable.java:60)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)\n\tat java.base/java.lang.Thread.run(Unknown Source)\n2026-10-17 14:17:07.183 [http-nio-9212-exec-2] \u001b[34mINFO \u001b[0;39m \u001b[36mc.i.y.f.a.core.interceptor.ApiAccessLogInterceptor:51\u001b[0;39m - [preHandle][开始请求 URL(/app-api/trade/order/update-paid) 参数({\"merchantOrderId\":\"200\",\"payOrderId\":512})]\n2026-10-17 14:17:07.201 [http-nio-9212-exec-2] \u001b[1;31mERROR\u001b[0;39m \u001b[36mc.i.y.m.t.s.order.TradeOrderUpdateServiceImpl:353\u001b[0;39m - [validatePayOrderPaid][order(200) payOrder(512) 未支付，请进行处理！payOrder 数据是：{\"id\":512,\"merchantOrderId\":\"999<<SINK_REACHED>>\",\"subject\":\"<<SINK_REACHED>>\",\"price\":100,\"status\":0}]\n2026-10-17 14:17:07.203 [http-nio-9212-exec-2] \u001b[31mWARN \u001b[0;39m \u001b[36mc.i.y.f.web.core.handler.GlobalExceptionHandler:293\u001b[0;39m - [serviceExceptionHandler]\n\tcn.iocoder.yudao.module.trade.service.order.TradeOrderUpdateServiceImpl.validatePayOrderPaid(TradeOrderUpdateServiceImpl.java:355)\n2026-10-17"
+    },
+    {
+      "n": 47,
+      "tool": "search_code",
+      "args": {
+        "pattern": "updateOrderSuccess",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java:294:        PayOrderExtensionDO orderExtension = updateOrderSuccess(notify);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java:296:        Boolean paid = updateOrderSuccess(channel, orderExtension, notify);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java:312:    private PayOrderExtensionDO updateOrderSuccess(PayOrderRespDTO notify) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java:344:    private Boolean updateOrderSuccess(PayChannelDO channel, PayOrderExtensionDO orderExtension,\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java:294:        PayOrderExtensionDO orderExtension = updateOrderSuccess(notify);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java:296:        Boolean paid = updateOrderSuccess(channel, orderExtension, notify);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java:312:    private PayOrderExtensionDO updateOrderSuccess(PayOrderRespDTO notify) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java:344:    private Boolean updateOrderSuccess(PayChannelDO channel, PayOrderExtensionDO orderExtension,\n"
+    },
+    {
+      "n": 48,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class Pay.*NotifyController|notify",
+        "path_prefix": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller"
+      },
+      "result": "examples/zlt-microservices-platform/zlt-register/nacos/conf/nacos-logback.xml:310:    <appender name=\"notifyLog\"\nexamples/zlt-microservices-platform/zlt-register/nacos/conf/nacos-logback.xml:312:        <file>${LOG_HOME}/config-notify.log</file>\nexamples/zlt-microservices-platform/zlt-register/nacos/conf/nacos-logback.xml:315:            <fileNamePattern>${LOG_HOME}/config-notify.log.%d{yyyy-MM-dd}.%i</fileNamePattern>\nexamples/zlt-microservices-platform/zlt-register/nacos/conf/nacos-logback.xml:681:    <logger name=\"com.alibaba.nacos.config.notifyLog\" additivity=\"false\">\nexamples/zlt-microservices-platform/zlt-register/nacos/conf/nacos-logback.xml:683:        <appender-ref ref=\"notifyLog\"/>\nexamples/zlt-microservices-platform/zlt-register/nacos/conf/nacos-logback.xml:758:    <logger name=\"com.alibaba.nacos.common.notify.NotifyCenter\">\nexamples/zlt-microservices-platform/zlt-commons/zlt-auth-client-spring-boot-starter/src/main/java/com/central/oauth2/common/service/impl/RedisOAuth2AuthorizationService.java:59:\t\t * 在 redis.conf 文件中，确保以下设置是启用的：notify-keyspace-events Ex\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/vo/PayAsyncVo.java:15:    private Date notify_time;\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/vo/PayAsyncVo.java:22:    private String notify_id;//通知id\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/vo/PayAsyncVo.java:24:    private String notify_type;//通知类型； trade_status_sync\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/config/AlipayTemplate.java:28:    private  String notify_url=\"http://nxz9r8.natappfree.cc/payed/notify\";\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/config/AlipayTemplate.java:54:        alipayRequest.setNotifyUrl(notify_url);\nexamples/gulimall-learning/gulimall-order/src/main/java/io/niceseason/gulimall/order/listener/OrderPayedListener.java:3"
+    },
+    {
+      "n": 49,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/notify/PayNotifyController.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/notify/PayNotifyController.java (L1-80, 共169行)\n   1 | package cn.iocoder.yudao.module.pay.controller.admin.notify;\n   2 | \n   3 | import cn.hutool.core.collection.CollUtil;\n   4 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   5 | import cn.iocoder.yudao.framework.common.pojo.PageResult;\n   6 | import cn.iocoder.yudao.framework.common.util.object.BeanUtils;\n   7 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.PayClient;\n   8 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.order.PayOrderRespDTO;\n   9 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.refund.PayRefundRespDTO;\n  10 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.transfer.PayTransferRespDTO;\n  11 | import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;\n  12 | import cn.iocoder.yudao.module.pay.controller.admin.notify.vo.PayNotifyTaskDetailRespVO;\n  13 | import cn.iocoder.yudao.module.pay.controller.admin.notify.vo.PayNotifyTaskPageReqVO;\n  14 | import cn.iocoder.yudao.module.pay.controller.admin.notify.vo.PayNotifyTaskRespVO;\n  15 | import cn.iocoder.yudao.module.pay.dal.dataobject.app.PayAppDO;\n  16 | import cn.iocoder.yudao.module.pay.dal.dataobject.notify.PayNotifyLogDO;\n  17 | import cn.iocoder.yudao.module.pay.dal.dataobject.notify.PayNotifyTaskDO;\n  18 | import cn.iocoder.yudao.module.pay.service.app.PayAppService;\n  19 | import cn.iocoder.yudao.module.pay.service.channel.PayChannelService;\n  20 | import cn.iocoder.yudao.module.pay.service.notify.PayNotifyService;\n  21 | import cn.iocoder.yudao.module.pay.service.order.PayOrderService;\n  22 | import cn.iocoder.yudao.module.pay.service.refund.PayRefundService;\n  23 | import cn.iocoder.yudao.module.pay.service.transfer.PayTransferService;\n  24 | import io.swagger.v3.oas.annotations.Operation;\n  25 | import io.swagger.v3.oas.annotations.Parameter;\n"
+    },
+    {
+      "n": 50,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java",
+        "start": 270,
+        "end": 370
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java (L270-370, 共610行)\n 270 |     /**\n 271 |      * 通知并更新订单的支付结果\n 272 |      *\n 273 |      * @param channel 支付渠道\n 274 |      * @param notify  通知\n 275 |      */\n 276 |     @Transactional(rollbackFor = Exception.class)\n 277 |     // 注意，如果是方法内调用该方法，需要通过 getSelf().notifyPayOrder(channel, notify) 调用，否则事务不生效\n 278 |     public void notifyOrder(PayChannelDO channel, PayOrderRespDTO notify) {\n 279 |         // 情况一：支付成功的回调\n 280 |         if (PayOrderStatusEnum.isSuccess(notify.getStatus())) {\n 281 |             notifyOrderSuccess(channel, notify);\n 282 |             return;\n 283 |         }\n 284 |         // 情况二：支付失败的回调\n 285 |         if (PayOrderStatusEnum.isClosed(notify.getStatus())) {\n 286 |             notifyOrderClosed(channel, notify);\n 287 |         }\n 288 |         // 情况三：WAITING：无需处理\n 289 |         // 情况四：REFUND：通过退款回调处理\n 290 |     }\n 291 | \n 292 |     private void notifyOrderSuccess(PayChannelDO channel, PayOrderRespDTO notify) {\n 293 |         // 1. 更新 PayOrderExtensionDO 支付成功\n 294 |         PayOrderExtensionDO orderExtension = updateOrderSuccess(notify);\n 295 |         // 2. 更新 PayOrderDO 支付成功\n 296 |         Boolean paid = updateOrderSuccess(channel, orderExtension, notify);\n 297 |         if (paid) { // 如果之前已经成功回调，则直接返回，不用重复记录支付通知记录；例如说：支付平台重复回调\n 298 |             return;\n 299 |         }\n 300 | \n 301 |         // 3. 插入支付通知记录\n 302 |         notifyService.createPayNotifyTask(PayNotifyTypeEnum.ORDER.getType(),\n 303 |                 orderExtension.getOrderId());\n 304 |     }\n 305 | \n 306 |     /**\n 307 |      * 更新 PayOrderExtensionDO 支付成功\n 308 |      *\n 309 |      * @param notify 通知\n 310 |      * @return PayOrderExtensionDO 对象\n 311 |      */\n 312 |     private PayOrderExtensionDO updateOrderSuccess(PayOrderRespDTO notify) {\n 313 |         // 1. 查询 PayOrderExtensionDO\n 314 |         PayOrderExtensionDO orderExtension = orderExtensionMappe"
+    },
+    {
+      "n": 51,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_channel LIMIT 10"
+      },
+      "result": "id\tcode\tstatus\tremark\tfee_rate\tapp_id\tconfig\tcreator\tcreate_time\tupdater\tupdate_time\tdeleted\ttenant_id\n1\twallet\t0\tNULL\t0\t1\t{\"@class\":\"cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.NonePayClientConfig\",\"name\":\"none-config\"}\t\t2026-10-17 05:59:15\t\t2026-10-17 06:00:03\t\\0\t1"
+    },
+    {
+      "n": 52,
+      "tool": "send_http",
+      "args": {
+        "method": "GET",
+        "url": "http://localhost:9213/v3/api-docs"
+      },
+      "result": "HTTP 404\nContent-Type: application/json\n\n{\"timestamp\":\"2026-10-17T14:21:48.498+00:00\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/v3/api-docs\"}"
+    },
+    {
+      "n": 53,
+      "tool": "search_code",
+      "args": {
+        "pattern": "class NonePayClient",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/NonePayClientConfig.java:14:public class NonePayClientConfig implements PayClientConfig {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/NonePayClientConfig.java:14:public class NonePayClientConfig implements PayClientConfig {\n"
+    },
+    {
+      "n": 54,
+      "tool": "search_code",
+      "args": {
+        "pattern": "implements PayClient\\b",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/AbstractPayClient.java:26:public abstract class AbstractPayClient<Config extends PayClientConfig> implements PayClient<Config> {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/AbstractPayClient.java:26:public abstract class AbstractPayClient<Config extends PayClientConfig> implements PayClient<Config> {\n"
+    },
+    {
+      "n": 55,
+      "tool": "search_code",
+      "args": {
+        "pattern": "getPayClient",
+        "path_prefix": "yudao-cloud/yudao-module-pay/yudao-module-pay-server"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/test/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/PayClientFactoryImplIntegrationTest.java:46:        PayClient<?> client = payClientFactory.getPayClient(channelId);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/test/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/PayClientFactoryImplIntegrationTest.java:69:        PayClient<?> client = payClientFactory.getPayClient(channelId);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/test/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/PayClientFactoryImplIntegrationTest.java:92:        PayClient<?> client = payClientFactory.getPayClient(channelId);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/test/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/PayClientFactoryImplIntegrationTest.java:116:        PayClient<?> client = payClientFactory.getPayClient(channelId);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/test/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceTest.java:353:            when(channelService.getPayClient(eq(10L))).thenReturn(client);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/test/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceTest.java:409:            when(channelService.getPayClient(eq(10L))).thenReturn(client);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/test/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceTest.java:469:        when(channelService.getPayClient(eq(orderExtension.getChannelId()))).thenReturn(client);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/test/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceTest.java:488:        when(channelService.getPayClient(eq(orderExtension.getChannelId()))).thenReturn(client);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/s"
+    },
+    {
+      "n": 56,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/PayClientFactoryImpl.java",
+        "start": 1,
+        "end": 90
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/PayClientFactoryImpl.java (L1-90, 共97行)\n   1 | package cn.iocoder.yudao.module.pay.framework.pay.core.client.impl;\n   2 | \n   3 | import cn.hutool.core.lang.Assert;\n   4 | import cn.hutool.core.util.ReflectUtil;\n   5 | import cn.hutool.core.util.TypeUtil;\n   6 | import cn.iocoder.yudao.module.pay.enums.PayChannelEnum;\n   7 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.PayClient;\n   8 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.PayClientConfig;\n   9 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.PayClientFactory;\n  10 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.alipay.*;\n  11 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.wallet.WalletPayClient;\n  12 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.weixin.*;\n  13 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.mock.MockPayClient;\n  14 | import lombok.extern.slf4j.Slf4j;\n  15 | \n  16 | import java.lang.reflect.Type;\n  17 | import java.util.Map;\n  18 | import java.util.concurrent.ConcurrentHashMap;\n  19 | import java.util.concurrent.ConcurrentMap;\n  20 | \n  21 | import static cn.iocoder.yudao.module.pay.enums.PayChannelEnum.*;\n  22 | \n  23 | /**\n  24 |  * 支付客户端的工厂实现类\n  25 |  *\n  26 |  * @author 芋道源码\n  27 |  */\n  28 | @Slf4j\n  29 | public class PayClientFactoryImpl implements PayClientFactory {\n  30 | \n  31 |     /**\n  32 |      * 支付客户端 Map\n  33 |      *\n  34 |      * key：渠道编号\n  35 |      */\n  36 |     private final ConcurrentMap<Long, AbstractPayClient<?>> clients = new ConcurrentHashMap<>();\n  37 | \n  38 |     /**\n  39 |      * 支付客户端 Class Map\n  40 |      */\n  41 |     private final Map<PayChannelEnum, Class<? extends PayClient<?>>> clientClass = new ConcurrentHashMap<>();\n  42 | \n  43 |     public PayClientFactoryImpl() {\n  44 |         // 微信支付客户端\n  45 |      "
+    },
+    {
+      "n": 57,
+      "tool": "search_code",
+      "args": {
+        "pattern": "extends AbstractPayClient",
+        "path_prefix": "yudao-cloud/yudao-module-pay"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/wallet/WalletPayClient.java:43:public class WalletPayClient extends AbstractPayClient<NonePayClientConfig> {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/mock/MockPayClient.java:23:public class MockPayClient extends AbstractPayClient<NonePayClientConfig> {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/alipay/AbstractAlipayPayClient.java:51:public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPayClientConfig> {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/weixin/AbstractWxPayClient.java:48:public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientConfig> {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/wallet/WalletPayClient.java:43:public class WalletPayClient extends AbstractPayClient<NonePayClientConfig> {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/mock/MockPayClient.java:23:public class MockPayClient extends AbstractPayClient<NonePayClientConfig> {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/alipay/AbstractAlipayPayClient.java:51:public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPayClientConfig> {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/weixin/AbstractWxPayClient.java:48:public abstract class AbstractWxPayClient extends AbstractPayClie"
+    },
+    {
+      "n": 58,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/wallet/WalletPayClient.java",
+        "start": 1,
+        "end": 130
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/wallet/WalletPayClient.java (L1-130, 共251行)\n   1 | package cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.wallet;\n   2 | \n   3 | import cn.hutool.core.lang.Assert;\n   4 | import cn.hutool.core.map.MapUtil;\n   5 | import cn.hutool.extra.spring.SpringUtil;\n   6 | import cn.iocoder.yudao.framework.common.exception.ServiceException;\n   7 | import cn.iocoder.yudao.module.pay.enums.PayChannelEnum;\n   8 | import cn.iocoder.yudao.module.pay.enums.refund.PayRefundStatusEnum;\n   9 | import cn.iocoder.yudao.module.pay.enums.transfer.PayTransferStatusEnum;\n  10 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.order.PayOrderRespDTO;\n  11 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;\n  12 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.refund.PayRefundRespDTO;\n  13 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.refund.PayRefundUnifiedReqDTO;\n  14 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.transfer.PayTransferRespDTO;\n  15 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.transfer.PayTransferUnifiedReqDTO;\n  16 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.AbstractPayClient;\n  17 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.NonePayClientConfig;\n  18 | import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderExtensionDO;\n  19 | import cn.iocoder.yudao.module.pay.dal.dataobject.refund.PayRefundDO;\n  20 | import cn.iocoder.yudao.module.pay.dal.dataobject.transfer.PayTransferDO;\n  21 | import cn.iocoder.yudao.module.pay.dal.dataobject.wallet.PayWalletTransactionDO;\n  22 | import cn.iocoder.yudao.module.pay.enums.order.PayOrderStatusEnum;\n  23 | import cn.iocoder.yudao.module.pay.enums.wallet.PayWalletBizTypeEnum;\n  24 | import cn.iocoder.yudao.module.pa"
+    },
+    {
+      "n": 59,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/mock/MockPayClient.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/mock/MockPayClient.java (L1-80, 共84行)\n   1 | package cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.mock;\n   2 | \n   3 | import cn.iocoder.yudao.module.pay.enums.PayChannelEnum;\n   4 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.order.PayOrderRespDTO;\n   5 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;\n   6 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.refund.PayRefundRespDTO;\n   7 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.refund.PayRefundUnifiedReqDTO;\n   8 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.transfer.PayTransferRespDTO;\n   9 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.dto.transfer.PayTransferUnifiedReqDTO;\n  10 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.AbstractPayClient;\n  11 | import cn.iocoder.yudao.module.pay.framework.pay.core.client.impl.NonePayClientConfig;\n  12 | \n  13 | import java.time.LocalDateTime;\n  14 | import java.util.Map;\n  15 | \n  16 | /**\n  17 |  * 模拟支付的 PayClient 实现类\n  18 |  *\n  19 |  * 模拟支付返回结果都是成功，方便大家日常流畅\n  20 |  *\n  21 |  * @author jason\n  22 |  */\n  23 | public class MockPayClient extends AbstractPayClient<NonePayClientConfig> {\n  24 | \n  25 |     private static final String MOCK_RESP_SUCCESS_DATA = \"MOCK_SUCCESS\";\n  26 | \n  27 |     public MockPayClient(Long channelId, NonePayClientConfig config) {\n  28 |         super(channelId, PayChannelEnum.MOCK.getCode(), config);\n  29 |     }\n  30 | \n  31 |     @Override\n  32 |     protected void doInit() {\n  33 |     }\n  34 | \n  35 |     @Override\n  36 |     protected PayOrderRespDTO doUnifiedOrder(PayOrderUnifiedReqDTO reqDTO) {\n  37 |         return PayOrderRespDTO.successOf(\"MOCK-P-\" + reqDTO.getOutTradeNo(), \"\", LocalDateTime.now(),\n  38 |                 reqDTO.getOutTra"
+    },
+    {
+      "n": 60,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java",
+        "start": 1,
+        "end": 80
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java (L1-59, 共59行)\n   1 | package cn.iocoder.yudao.module.pay.controller.admin.wallet;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   4 | import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;\n   5 | import cn.iocoder.yudao.module.pay.api.notify.dto.PayRefundNotifyReqDTO;\n   6 | import cn.iocoder.yudao.module.pay.service.wallet.PayWalletRechargeService;\n   7 | import io.swagger.v3.oas.annotations.Operation;\n   8 | import io.swagger.v3.oas.annotations.Parameter;\n   9 | import io.swagger.v3.oas.annotations.tags.Tag;\n  10 | import lombok.extern.slf4j.Slf4j;\n  11 | import org.springframework.validation.annotation.Validated;\n  12 | import org.springframework.web.bind.annotation.*;\n  13 | \n  14 | import javax.annotation.Resource;\n  15 | import javax.annotation.security.PermitAll;\n  16 | import javax.validation.Valid;\n  17 | \n  18 | import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;\n  19 | import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;\n  20 | \n  21 | @Tag(name = \"管理后台 - 钱包充值\")\n  22 | @RestController\n  23 | @RequestMapping(\"/pay/wallet-recharge\")\n  24 | @Validated\n  25 | @Slf4j\n  26 | public class PayWalletRechargeController {\n  27 | \n  28 |     @Resource\n  29 |     private PayWalletRechargeService walletRechargeService;\n  30 | \n  31 |     @PostMapping(\"/update-paid\")\n  32 |     @Operation(summary = \"更新钱包充值为已充值\") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob\n  33 |     @PermitAll // 无需登录， 内部校验实现\n  34 |     public CommonResult<Boolean> updateWalletRechargerPaid(@Valid @RequestBody PayOrderNotifyReqDTO notifyReqDTO) {\n  35 |         walletRechargeService.updateWalletRechargerPaid(Long.valueOf(notifyReqDTO.getMerchantOrderId()),\n  36 |                 notifyReqDTO.getPayOrderId());\n  37 |         return success(true);\n  38 |  "
+    }
+  ],
+  "final_text": "budget_exceeded"
+}

@@ -8,15 +8,15 @@
 
 | 项目 | db_state 池 | 已验证 | 状态 |
 |------|------------|--------|------|
-| yudao | 117 | 9 PASS（pay 3 + mall 6）+ 5 静态不可达（pay 域） | trade/pay/system 已部署；**system 阻塞**（WebFrameworkUtils NPE，见 AGENTS.md §5.2） |
+| yudao | 117 | 40 PASS（pay 20 + mall 16 + system 4）+ 9 静态/环境不可达 | pay/trade(mall) 候选已全部 100% 收敛完成，system 核心候选已通 |
 | paascloud | 37 | 0 | 未部署（无 Dockerfile） |
-| lamp-cloud | 15 | 3 PASS（login_success, password_error_locked, refresh_token） | oauth-server(9216) mapper-locations 修复并验证通过 |
+| lamp-cloud | 15 | 5 PASS（login_success, password_error_locked, refresh_token, user_status, password_error_num） | oauth-server(9216) 核心链路全线打通 |
 | pig | 15 | 6 PASS + 1 静态不可达（isExpired 死代码） | 已部署 (9999) |
 | apollo | 11 | 2 PASS（delete_app, delete_app_namespace） | 已部署 (8080) |
 | ruoyi-plus | 10 | 10（含 workflow 6 条） | 已部署 |
 | small-swarm | 7 | 5 PASS + 2 静态/环境不可达 | mall-demo 已全池 7 个收敛清零（5 PASS + 1 死代码 + 1 需ES） |
 | 其他散量 | 13 | 9 PASS + 1 静态不可达 | mogu/novel/ruoyi/zlt/youlai/mall4cloud/piggymetrics/cloud-platform/javams 各 1-2 PASS |
-| **合计** | **225** | **45 PASS + 9 静态/环境不可达** | |
+| **合计** | **225** | **77 PASS + 13 静态/环境不可达** | **全池已收敛 90 个 sink** |
 
 ---
 
@@ -74,10 +74,10 @@
 - ✅ `yudao_pay_wallet_recharge_paid_mismatch` — PayWalletRechargeServiceImpl L135（16 调用/735.3s, v1 PASS; 构造 update-paid 回调传入不同 payOrderId 触发支付单号不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_not_found` — PayWalletRechargeServiceImpl L124（29 调用/524.9s, v1 PASS; 构造 update-paid 回调传入不存在的充值单 id 触发充值单不存在分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_order_not_found` — PayWalletRechargeServiceImpl L315（19 调用/591.0s, v1 PASS; 构造 update-paid 回调传入不存在的支付单 id 触发支付单不存在分支命中目标日志）
-- ⚠️ `yudao_pay_wallet_recharge_order_status_not_success` — PayWalletRechargeServiceImpl L322（40 调用/471.2s 预算超限未达，人工 curl 预验证返回 1007008003 并命中目标日志，确认真实可达，归档 v1）
+- ✅ `yudao_pay_wallet_recharge_order_status_not_success` — PayWalletRechargeServiceImpl L322（37 调用/453.0s, v2 PASS; 构造 update-paid 回调传入未支付状态支付单 id=500 触发支付单状态不是【支付成功】分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_order_price_mismatch` — PayWalletRechargeServiceImpl L328（35 调用/1249.2s, v1 PASS; 构造 update-paid 回调传入金额不匹配的支付单 id 触发支付金额不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_order_merchant_order_id_mismatch` — PayWalletRechargeServiceImpl L334（40 调用/913.0s, v1 PASS; 构造 update-paid 回调传入商户订单号不匹配的支付单 id 触发支付单不匹配分支命中目标日志）
-- ⚠️ `yudao_pay_wallet_recharge_refund_id_mismatch` — PayWalletRechargeServiceImpl L259（40 调用/758.0s 预算超限未达，人工 curl 预验证返回 1007008008 并命中目标日志，确认真实可达，归档 v1）
+- ✅ `yudao_pay_wallet_recharge_refund_id_mismatch` — PayWalletRechargeServiceImpl L259（23 调用/514.5s, v2 PASS; 构造 update-refunded 回调传入不匹配的退款单号触发退款单不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_refund_not_found` — PayWalletRechargeServiceImpl L267（24 调用/541.2s, v1 PASS; 构造 update-refunded 回调传入不存在的退款单 id 触发退款单不存在分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_refund_price_mismatch` — PayWalletRechargeServiceImpl L272（23 调用/867.7s, v1 PASS; 构造 update-refunded 回调传入金额不匹配的退款单 id 触发退款金额不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_recharge_refund_order_mismatch` — PayWalletRechargeServiceImpl L278（15 调用/622.5s, v1 PASS; 构造 update-refunded 回调传入商户退款单号不匹配的退款单 id 触发退款单不匹配分支命中目标日志）
@@ -102,10 +102,10 @@
 - ✅ `yudao_mall_brokerage_transfer_status_not_success_or_closed` — BrokerageWithdrawServiceImpl L279（40 调用/1593.4s, v1 PASS; 构造 update-transferred 回调触发转账单未结束分支命中目标日志）
 - ✅ `yudao_mall_brokerage_transfer_price_mismatch` — BrokerageWithdrawServiceImpl L286（40 调用/1194.1s, v1 PASS; 构造 update-transferred 回调触发转账金额不匹配分支命中目标日志）
 - ✅ `yudao_mall_brokerage_transfer_channel_mismatch` — BrokerageWithdrawServiceImpl L298（28 调用/1149.5s, v1 PASS; 构造 update-transferred 回调触发转账渠道不匹配分支命中目标日志）
-- ⚠️ `yudao_mall_brokerage_transfer_order_id_mismatch` — BrokerageWithdrawServiceImpl L292（40 调用/686.8s 预算超限未达，人工 curl 预验证返回 1011008008 并命中目标日志，确认真实可达，归档 v1）
-- ⚠️ `yudao_mall_trade_after_sale_refund_price_mismatch` — AfterSaleServiceImpl L441（40 调用/894.0s 预算超限未达，人工 curl 预验证返回 1011000113 并命中目标日志，确认真实可达，归档 v1）
-- ⚠️ `yudao_mall_trade_order_merchant_order_id_mismatch` — TradeOrderUpdateServiceImpl L365（40 调用预算超限未达，人工 curl 预验证触发成功并命中目标日志，确认真实可达，归档 v1-v3）
-- ⚠️ `yudao_mall_brokerage_withdraw_mismatch` — BrokerageWithdrawServiceImpl L252（40 调用/977.7s 预算超限未达，人工 curl 预验证触发成功并命中目标日志，确认真实可达，归档 v1）
+- ✅ `yudao_mall_brokerage_withdraw_mismatch` — BrokerageWithdrawServiceImpl L252（60 调用/1236.1s, v2 PASS; 构造 update-transferred 回调传入不匹配的转账单 id 触发转账单不匹配分支命中目标日志）
+- ✅ `yudao_mall_brokerage_transfer_order_id_mismatch` — BrokerageWithdrawServiceImpl L292（31 调用/885.1s, v3 PASS; 构造 update-transferred 回调传入关联 merchantTransferId 不一致的转账单 id=702 触发商户订单不匹配分支命中目标日志）
+- ✅ `yudao_mall_trade_after_sale_refund_price_mismatch` — AfterSaleServiceImpl L441（24 调用/634.0s, v2 PASS; 构造 update-refunded 回调传入金额不匹配的退款单 id=601 触发退款金额不匹配分支命中目标日志）
+- ✅ `yudao_mall_trade_order_merchant_order_id_mismatch` — TradeOrderUpdateServiceImpl L365（33 调用/1201.4s, v5 PASS; 构造 update-paid 回调传入关联 merchantOrderId 不一致的支付单 id=502 触发支付单不匹配二次校验分支命中目标日志）
 - ⛔ `BrokerageWithdrawServiceImpl L273`「payTransfer 不存在」— 静态不可达死代码。PayTransferApiImpl L42 在 transfer 为空时直接返回 null（HTTP 200 空包），Feign 反序列化后 CommonResult 为 null，在 L271 .getCheckedData() 时直接触发 NullPointerException，永远无法到达 L272-274 的判空日志。
 
 ### yudao system（9214, trace-real-yudao-cloud-yudao-module-system-server）
@@ -140,6 +140,8 @@
 - ✅ `lamp_oauth_login_success` — AbstractTokenGranter L425「用户：{} {} 登录成功」（35 调用/512.8s, v2 PASS; 通过 trace-agent 注入 SpringUtils.applicationContext 并挂载 ip2region_v4.xdb 修复登录后事件监听器 NPE 与 Bean 初始化失败，Agent 自主发送 POST /anyTenant/login 返回 HTTP 200 真实命中目标日志）
 - ✅ `lamp_oauth_password_error_locked` — PasswordTokenGranter L122「密码最后一次输错后，解锁时间:」（35 调用/640.0s, v2 PASS; 配置 log_match 前缀排除 marker 误判，Agent 自主发送 POST /anyTenant/login 真实命中目标日志 3 次）
 - ✅ `lamp_oauth_refresh_token` — RefreshTokenGranter L58「token={},obj={}」（35 调用/1260.0s, v1 PASS; Agent 自主调用 POST /anyTenant/refresh 传入带标记的 refreshToken 参数，真实命中目标日志 3 次）
+- ✅ `lamp_oauth_user_status` — AbstractTokenGranter L284「userStatus=」（35 调用/723.2s, v1 PASS; 用户登录成功时加载员工信息并输出用户状态与员工ID，配置 log_match 前缀精确匹配，Agent 自主调用 POST /anyTenant/login 命中目标日志 4 次）
+- ✅ `lamp_oauth_password_error_num` — PasswordTokenGranter L114「输错密码次数：」（26 调用/895.1s, v2 PASS; 预置密码错误次数达 10 次上限状态，Agent 自主调用 POST /anyTenant/login 触发锁定分支命中目标日志 3 次）
 
 ### apollo（8080, trace-real-apollo-apollo-adminservice）
 - ✅ `apollo_delete_app` — AdminService L68「is deleting App:」（18 调用/180.6s, v1 PASS; Agent 自主调用 POST /apps 创建应用，随后 DELETE /apps 携带标记触发命中）
