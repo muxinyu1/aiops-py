@@ -134,8 +134,9 @@
 - ✅ 10 个概念 sink 家族全部验证（menu 同级/根/路由名、mybatis 重复、wf 定义在用/同步/变量/孤儿/监听器）
 
 ### lamp-cloud（9216, trace-real-lamp-cloud-lamp-oauth-server）
-- ✅ `lamp_oauth_login_success` — AbstractTokenGranter L425「登录成功」（40 调用/381.8s）
-- ✅ `lamp_oauth_password_error_locked` — PasswordTokenGranter L122「密码最后一次输错后，解锁时间:」（40 调用/1328.1s, v1 PASS; Agent 自主通过 query_db 发现被锁定的账号 test1，构造 POST /anyTenant/login 登录请求成功命中目标日志）
+- ✅ `lamp_oauth_login_success` — AbstractTokenGranter L425「用户：{} {} 登录成功」（35 调用/512.8s, v2 PASS; 通过 trace-agent 注入 SpringUtils.applicationContext 并挂载 ip2region_v4.xdb 修复登录后事件监听器 NPE 与 Bean 初始化失败，Agent 自主发送 POST /anyTenant/login 返回 HTTP 200 真实命中目标日志）
+- ✅ `lamp_oauth_password_error_locked` — PasswordTokenGranter L122「密码最后一次输错后，解锁时间:」（35 调用/640.0s, v2 PASS; 配置 log_match 前缀排除 marker 误判，Agent 自主发送 POST /anyTenant/login 真实命中目标日志 3 次）
+- ✅ `lamp_oauth_refresh_token` — RefreshTokenGranter L58「token={},obj={}」（35 调用/1260.0s, v1 PASS; Agent 自主调用 POST /anyTenant/refresh 传入带标记的 refreshToken 参数，真实命中目标日志 3 次）
 
 ### apollo（8080, trace-real-apollo-apollo-adminservice）
 - ✅ `apollo_delete_app` — AdminService L68「is deleting App:」（18 调用/180.6s, v1 PASS; Agent 自主调用 POST /apps 创建应用，随后 DELETE /apps 携带标记触发命中）

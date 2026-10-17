@@ -50,10 +50,13 @@ services:
       - --knife4j.enable=false
       - --knife4j.enabled=false
       - --mybatis-plus.mapper-locations=classpath*:mapper_*/**/*.xml,classpath*:mapper_**/**/*Mapper.xml
+      - --lamp.log.ipv4.xdb-path=file:/opt/ip2region.xdb
+      - --lamp.log.ipv6.enabled=false
 
     volumes:
       - ../../trace-agent/target/trace-agent-1.0.0.jar:/opt/trace-agent.jar:ro
       - ../../trace-agent/target/jacocoagent.jar:/opt/jacocoagent.jar:ro
+      - ../../examples/lamp-cloud/01-docs/ip2region_v4.xdb:/opt/ip2region.xdb:ro
     depends_on:
       mysql:
         condition: service_healthy

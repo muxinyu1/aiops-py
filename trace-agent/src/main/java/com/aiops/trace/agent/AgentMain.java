@@ -150,6 +150,45 @@ public class AgentMain {
                 })
                 .installOn(inst);
 
+        // Fix Lamp SpringUtils NPE and inject ApplicationContext
+        new AgentBuilder.Default()
+                .ignore(ElementMatchers.nameStartsWith("net.bytebuddy."))
+                .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                .type(ElementMatchers.named("org.springframework.context.support.AbstractApplicationContext"))
+                .transform(new AgentBuilder.Transformer() {
+                    @Override
+                    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder,
+                                                            TypeDescription typeDescription,
+                                                            ClassLoader classLoader,
+                                                            JavaModule module,
+                                                            ProtectionDomain protectionDomain) {
+                        return builder.visit(
+                                Advice.to(SpringContextAdvice.class)
+                                        .on(ElementMatchers.named("finishRefresh"))
+                        );
+                    }
+                })
+                .installOn(inst);
+
+        new AgentBuilder.Default()
+                .ignore(ElementMatchers.nameStartsWith("net.bytebuddy."))
+                .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                .type(ElementMatchers.named("top.tangyh.basic.utils.SpringUtils"))
+                .transform(new AgentBuilder.Transformer() {
+                    @Override
+                    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder,
+                                                            TypeDescription typeDescription,
+                                                            ClassLoader classLoader,
+                                                            JavaModule module,
+                                                            ProtectionDomain protectionDomain) {
+                        return builder.visit(
+                                Advice.to(LampSpringUtilsAdvice.class)
+                                        .on(ElementMatchers.isStatic().and(ElementMatchers.isMethod()))
+                        );
+                    }
+                })
+                .installOn(inst);
+
         System.out.println("[trace-agent] Instrumentation installed.");
     }
 

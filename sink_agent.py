@@ -1466,7 +1466,7 @@ SINK_TASKS = {
     "lamp_oauth_password_error_locked": {
         "sink": "PasswordTokenGranter.checkUserPassword 中的 "
                 "log.info(\"密码最后一次输错后，解锁时间: {}\", passwordErrorLockExpireTime) "
-                "(L122, 源码 examples/lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/PasswordTokenGranter.java)。"
+                "(L122, 源码 lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/PasswordTokenGranter.java)。"
                 "触发条件: 登录时所请求的用户在数据库中的密码连续输错次数达到最大限制锁定状态。",
         "api": "POST http://localhost:9216/anyTenant/login (JSON body: {\"grantType\":\"PASSWORD\",\"username\":\"...\",\"password\":\"...\"})",
         "env": "目标服务容器: trace-real-lamp-cloud-lamp-oauth-server (日志在此, 端口 9216)。"
@@ -1475,6 +1475,18 @@ SINK_TASKS = {
         "hint_level": "hint",
         "container": "trace-real-lamp-cloud-lamp-oauth-server",
         "log_match": "密码最后一次输错后，解锁时间:",
+    },
+    "lamp_oauth_refresh_token": {
+        "sink": "RefreshTokenGranter.refresh 中的 "
+                "log.info(\"token={},obj={}\", refreshToken, obj) "
+                "(L58, 源码 lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/granter/RefreshTokenGranter.java)。"
+                "触发条件: 调用刷新 token 端点，传入 refreshToken 参数。",
+        "api": "POST http://localhost:9216/anyTenant/refresh?refreshToken={refreshToken}",
+        "env": "目标服务容器: trace-real-lamp-cloud-lamp-oauth-server (日志在此, 端口 9216)。"
+               "请求头必须包含 Authorization: bGFtcF93ZWJfcHJvOmxhbXBfd2ViX3Byb19zZWNyZXQ= (lamp 自定义凭证, 纯 base64, 无 Basic 前缀)。",
+        "hint_level": "hint",
+        "container": "trace-real-lamp-cloud-lamp-oauth-server",
+        "log_match": "RefreshTokenGranter  : token=",
     },
     # ── apollo (apollo-adminservice, 8080) ──
     "apollo_delete_app": {

@@ -204,15 +204,21 @@ CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServic
 
 ---
 
-## 十一、lamp-cloud 实验 (2026-10-14, D7)
+## 十一、lamp-cloud 实验 (2026-10-17 更新)
 
-> 服务: lamp-oauth-server (9216, compose.real.yaml 补充 `--mybatis-plus.mapper-locations=classpath*:mapper_*/**/*.xml,classpath*:mapper_**/**/*Mapper.xml` 修复 Nacos 缺 `mysql.yml` 配置的问题)
-> 凭证: Authorization 传纯 base64 `lamp_web_pro:lamp_web_pro_secret` (无 Basic 前缀)，superAdmin 密码已重置为 123456
+> 服务: lamp-oauth-server (9216, compose.real.yaml 补充 `--mybatis-plus.mapper-locations=classpath*:mapper_*/**/*.xml,classpath*:mapper_**/**/*Mapper.xml` 修复 Nacos 缺 `mysql.yml` 导致 Mapper 缺失问题)
+> 核心环境修复:
+> 1. `SpringUtils.applicationContext` 为空修复：`lamp-webmvc` 中 `BaseConfig` 缺少 `@Configuration` 且 `AutoConfiguration.imports` 为空，导致 Spring Boot 未装配 `SpringUtils.applicationContext`，登录事件触发时报 NPE。通过 `trace-agent` ByteBuddy 增强在 `AbstractApplicationContext.finishRefresh` 处注入上下文，并在 `SpringUtils` 各调用点兜底。
+> 2. `Ip2Region` 依赖解析修复：`lamp-log-starter` 自动装配需要 IPv4 xdb 文件，但自带 jar 资源版本为 v2，且 classpath 读取失效；通过 compose 挂载 `01-docs/ip2region_v4.xdb`（v3 结构，IPv4）并指定 `--lamp.log.ipv4.xdb-path=file:/opt/ip2region.xdb` 彻底解决登录日志监听器 Bean 初始化失败。
+> 凭证: Authorization 传纯 base64 `lamp_web_pro:lamp_web_pro_secret` (无 Basic 前缀)，superAdmin 密码为 123456 (sha256(pwd+salt))
 
 | 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 |
 |---|---|---|---|---|
-| lamp_oauth_login_success | AbstractTokenGranter L425「登录成功」 | v1 | ✅ PASS | 40/381.8s |
-| lamp_oauth_password_error_locked | PasswordTokenGranter L122「密码最后一次输错后，解锁时间:」 | v1 | ✅ PASS | 40/1328.1s |
+| lamp_oauth_login_success | AbstractTokenGranter L425「用户：{} {} 登录成功」 | v1 | ⚠️ 伪PASS (40/381.8s) | 旧环境因 SpringUtils NPE 报 400，但被 query 注入 marker 误判 |
+| | | v2 | ✅ PASS | 35/512.8s (环境修复后自主调用 POST /anyTenant/login 返回 HTTP 200 真实命中日志) |
+| lamp_oauth_password_error_locked | PasswordTokenGranter L122「密码最后一次输错后，解锁时间:」 | v1 | ⚠️ 伪PASS (40/1328.1s) | 旧环境报 400 由 marker 误判 |
+| | | v2 | ✅ PASS | 35/640.0s (配置 log_match 前缀，Agent 自主发送 POST /anyTenant/login 真实命中目标日志 3 次) |
+| lamp_oauth_refresh_token | RefreshTokenGranter L58「token={},obj={}」 | v1 | ✅ PASS | 35/1260.0s (自主调用 POST /anyTenant/refresh 传入带标记的 refreshToken 参数真实命中目标日志 3 次) |
 
 ---
 
