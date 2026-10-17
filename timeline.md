@@ -108,6 +108,16 @@
 - ⚠️ `yudao_mall_brokerage_withdraw_mismatch` — BrokerageWithdrawServiceImpl L252（40 调用/977.7s 预算超限未达，人工 curl 预验证触发成功并命中目标日志，确认真实可达，归档 v1）
 - ⛔ `BrokerageWithdrawServiceImpl L273`「payTransfer 不存在」— 静态不可达死代码。PayTransferApiImpl L42 在 transfer 为空时直接返回 null（HTTP 200 空包），Feign 反序列化后 CommonResult 为 null，在 L271 .getCheckedData() 时直接触发 NullPointerException，永远无法到达 L272-274 的判空日志。
 
+### yudao system（9214, trace-real-yudao-cloud-yudao-module-system-server）
+- ⚠️ `yudao_router_orphan` — AuthConvert L68「找不到父资源」（40 调用/687.4s 预算超限未达，已由 trace-agent 解决 WebFrameworkUtils NPE 解除 9214 服务阻塞；人工 curl 预验证返回 code 0 并命中目标日志，确认真实可达，归档 v1）
+- ✅ `yudao_system_notify_template_disabled` — NotifySendServiceImpl L50「模版已经关闭」（13 调用/238.2s, v1 PASS; Agent 自主调用登录与 POST /admin-api/system/notify-template/create 构造包含标记的关闭状态模板，再调用 send-notify 触发关闭模版分支命中目标日志）
+- ✅ `yudao_system_dept_data_permission` — PermissionServiceImpl L332「部门数据权限无法处理」（28 调用/887.6s, v1 PASS; Agent 自主阅读 PermissionServiceImpl 源码分析数据范围枚举，发现用户 104 关联非法范围角色 data_scope=99，调用 RPC GET /rpc-api/system/permission/get-dept-data-permission?userId=104 命中目标日志）
+- ✅ `yudao_system_user_dept_parse_function_not_found` — DeptParseFunction L41「获取部门为空」（35 调用/1460.0s, v1 PASS; Agent 探索用户模块接口，调用登录并调用 PUT /admin-api/system/user/update 修改用户信息，触发 mzt-biz-log 操作日志 DIFF 计算，比对已预置不存在部门的用户数据命中目标日志）
+- ✅ `yudao_system_user_post_parse_function_not_found` — PostParseFunction L41「获取岗位为空」（35 调用/993.5s, v1 PASS; Agent 调用登录并调用 PUT /admin-api/system/user/update 修改用户信息，触发 mzt-biz-log 操作日志 DIFF 计算，比对已预置不存在岗位编号的用户数据命中目标日志）
+- ⛔ `AdminUserParseFunction L41`「获取用户为空」— 静态/部署不可达。仅被 crm 模块（CRM_CLUE_TRANSFER 等）引用，crm 模块未部署于 system 服务。
+- ⛔ `SocialClientApiImpl L90`「会员 openid 缺失」— 环境受限不可达。前置调用微信远程 API 获取订阅模板，无外部真实微信凭证环境下直接抛异常阻断。
+- ⛔ `TenantServiceImpl L205/212`「updateTenantRoleMenu」— 框架多租户隔离缺陷阻断。updateTenantPackage 触发多租户遍历时，roleService.getRoleList() 未按租户过滤，在 L198 触发断言「角色租户不匹配」IllegalArgumentException，执行路径在到达日志前直接异常退出。
+
 ### small-swarm（9215, trace-real-mall-swarm-mall-demo）
 - ✅ `small_swarm_brand_create` — DemoController L45（18 调用/322.7s）
 - ✅ `small_swarm_brand_update` — DemoController L61（8 调用/111.1s）

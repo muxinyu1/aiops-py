@@ -131,6 +131,25 @@ public class AgentMain {
                 })
                 .installOn(inst);
 
+        // Fix Yudao WebFrameworkUtils.properties NPE if null
+        new AgentBuilder.Default()
+                .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                .type(ElementMatchers.named("cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils"))
+                .transform(new AgentBuilder.Transformer() {
+                    @Override
+                    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder,
+                                                            TypeDescription typeDescription,
+                                                            ClassLoader classLoader,
+                                                            JavaModule module,
+                                                            ProtectionDomain protectionDomain) {
+                        return builder.visit(
+                                Advice.to(WebFrameworkUtilsAdvice.class)
+                                        .on(ElementMatchers.isStatic().and(ElementMatchers.isMethod()))
+                        );
+                    }
+                })
+                .installOn(inst);
+
         System.out.println("[trace-agent] Instrumentation installed.");
     }
 

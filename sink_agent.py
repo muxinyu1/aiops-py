@@ -535,13 +535,65 @@ SINK_TASKS = {
         "sink": "AuthConvert.buildRouterTree 中的 "
                 "log.error(\"[buildRouterTree][resource({}) 找不到父资源({})]\", childNode.getId(), childNode.getParentId()) "
                 "(约 L68, 源码 yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/convert/auth/AuthConvert.java)。"
-                "触发条件: system_menu 表中存在某菜单, 其 parent_id 指向一个不存在(或已删除)的菜单 id, 且该菜单被 admin 用户的角色关联并可见。",
-        "api": "GET http://localhost:8080/admin-api/system/auth/get-permission-info (需登录, header: Authorization: Bearer <token>, tenant-id: 1)。"
-               "登录: POST http://localhost:8080/admin-api/system/auth/login, header tenant-id: 1, body {\"username\":\"admin\",\"password\":\"admin123\"}, 取 data.accessToken。",
+                "触发条件: 获取当前用户权限信息时，构建菜单树若某菜单找不到父资源则触发此日志。",
+        "api": "GET http://localhost:9214/admin-api/system/auth/get-permission-info (需登录, header: Authorization: Bearer <token>, tenant-id: 1)。"
+               "登录: POST http://localhost:9214/admin-api/system/auth/login, header tenant-id: 1, body {\"username\":\"admin\",\"password\":\"admin123\"}, 取 data.accessToken。",
         "env": "目标服务容器: trace-real-yudao-cloud-yudao-module-system-server (日志在此)。"
                "数据库: docker 容器 trace-real-mysql, 库名 ruoyi-vue-pro, 菜单表 system_menu (字段: id/name/parent_id/status/deleted/type), 角色菜单关联表 system_role_menu。",
         "hint_level": "hint",
         "container": "trace-real-yudao-cloud-yudao-module-system-server",
+        "log_match": "[buildRouterTree][resource(",
+    },
+    "yudao_system_notify_template_disabled": {
+        "sink": "NotifySendServiceImpl.sendSingleNotify 中的 "
+                "log.info(\"[sendSingleNotify][模版({})已经关闭，无法给用户({}/{})发送]\", templateCode, userId, userType) "
+                "(约 L50, 源码 yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/service/notify/NotifySendServiceImpl.java)。"
+                "触发条件: 发送站内信时指定的模板处于关闭状态 (status=1)。",
+        "api": "POST http://localhost:9214/admin-api/system/notify-template/send-notify (需登录, header: Authorization: Bearer <token>, tenant-id: 1, body: {\"userId\": 1, \"userType\": 1, \"templateCode\": \"TEST_DISABLED\", \"templateParams\": {}})。"
+               "登录: POST http://localhost:9214/admin-api/system/auth/login, header tenant-id: 1, body {\"username\":\"admin\",\"password\":\"admin123\"}, 取 data.accessToken。",
+        "env": "目标服务容器: trace-real-yudao-cloud-yudao-module-system-server (日志在此, 端口 9214)。"
+               "数据库: docker 容器 trace-real-mysql, 库名 ruoyi-vue-pro, 站内信模板表 system_notify_template (字段: id/name/code/status/content/type)。已预置关闭状态模板 TEST_DISABLED (status=1)。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-yudao-module-system-server",
+        "log_match": "[sendSingleNotify][模版(",
+    },
+    "yudao_system_dept_data_permission": {
+        "sink": "PermissionServiceImpl.getDeptDataPermission 中的 "
+                "log.error(\"[getDeptDataPermission][LoginUser({}) role({}) 无法处理]\", userId, toJsonString(result)) "
+                "(约 L332, 源码 yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/service/permission/PermissionServiceImpl.java)。"
+                "触发条件: 查询用户部门数据权限时，若用户关联的角色的数据范围 data_scope 无法处理 (例如未预设范围值 99) 则触发此日志。",
+        "api": "GET http://localhost:9214/rpc-api/system/permission/get-dept-data-permission?userId=104 (RPC 接口, 无需用户鉴权)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-yudao-module-system-server (日志在此, 端口 9214)。"
+               "数据库: docker 容器 trace-real-mysql, 库名 ruoyi-vue-pro, 角色表 system_role (字段: id/name/code/data_scope), 用户角色关联表 system_user_role。已预置用户 104 关联非法范围角色 (data_scope=99)。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-yudao-module-system-server",
+        "log_match": "[getDeptDataPermission][LoginUser(",
+    },
+    "yudao_system_user_dept_parse_function_not_found": {
+        "sink": "DeptParseFunction.apply 中的 "
+                "log.warn(\"[apply][获取部门{{}}为空\", value) "
+                "(约 L41, 源码 yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/framework/operatelog/core/DeptParseFunction.java)。"
+                "触发条件: 更新用户信息时触发操作日志 DIFF 计算，当被比较的用户原部门编号在系统中不存在 (例如 9999) 时触发此警告日志。",
+        "api": "PUT http://localhost:9214/admin-api/system/user/update (需登录, header: Authorization: Bearer <token>, tenant-id: 1, body: {\"id\": 103, \"username\": \"yuanma\", \"nickname\": \"源码\", \"deptId\": 103, \"postIds\": []})。"
+               "登录: POST http://localhost:9214/admin-api/system/auth/login, header tenant-id: 1, body {\"username\":\"admin\",\"password\":\"admin123\"}, 取 data.accessToken。",
+        "env": "目标服务容器: trace-real-yudao-cloud-yudao-module-system-server (日志在此, 端口 9214)。"
+               "数据库: docker 容器 trace-real-mysql, 库名 ruoyi-vue-pro, 用户表 system_users (字段: id/username/nickname/dept_id/post_ids)。已预置用户 103 原部门 dept_id 为不存在的编号 (9999)。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-yudao-module-system-server",
+        "log_match": "[apply][获取部门{",
+    },
+    "yudao_system_user_post_parse_function_not_found": {
+        "sink": "PostParseFunction.apply 中的 "
+                "log.warn(\"[apply][获取岗位{{}}为空\", value) "
+                "(约 L41, 源码 yudao-cloud/yudao-module-system/yudao-module-system-server/src/main/java/cn/iocoder/yudao/module/system/framework/operatelog/core/PostParseFunction.java)。"
+                "触发条件: 更新用户信息时触发操作日志 DIFF 计算，当被比较的用户原岗位编号在系统中不存在 (例如 9999) 时触发此警告日志。",
+        "api": "PUT http://localhost:9214/admin-api/system/user/update (需登录, header: Authorization: Bearer <token>, tenant-id: 1, body: {\"id\": 103, \"username\": \"yuanma\", \"nickname\": \"源码\", \"deptId\": 103, \"postIds\": []})。"
+               "登录: POST http://localhost:9214/admin-api/system/auth/login, header tenant-id: 1, body {\"username\":\"admin\",\"password\":\"admin123\"}, 取 data.accessToken。",
+        "env": "目标服务容器: trace-real-yudao-cloud-yudao-module-system-server (日志在此, 端口 9214)。"
+               "数据库: docker 容器 trace-real-mysql, 库名 ruoyi-vue-pro, 用户表 system_users (字段: id/username/nickname/dept_id/post_ids)。已预置用户 103 原岗位 post_ids 为包含不存在的编号 ([9999])。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-yudao-module-system-server",
+        "log_match": "[apply][获取岗位{",
     },
     # ── ruoyi-plus 批量 (db_state 目标池 10 条) ──
     "ruoyi_plus_menu_root": {
