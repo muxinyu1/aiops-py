@@ -10,13 +10,13 @@
 |------|------------|--------|------|
 | yudao | 117 | 9 PASS（pay 3 + mall 6）+ 5 静态不可达（pay 域） | trade/pay/system 已部署；**system 阻塞**（WebFrameworkUtils NPE，见 AGENTS.md §5.2） |
 | paascloud | 37 | 0 | 未部署（无 Dockerfile） |
-| lamp-cloud | 15 | 2 PASS（AbstractTokenGranter L425 登录成功 + PasswordTokenGranter L122 密码输错锁定） | oauth-server(9216) mapper-locations 修复并验证通过 |
-| pig | 15 | 6（file_not_exist / change_password / sms 两批 / apikey_token_locked） | 已部署 |
-| apollo | 11 | 0 | 未部署 |
+| lamp-cloud | 15 | 3 PASS（login_success, password_error_locked, refresh_token） | oauth-server(9216) mapper-locations 修复并验证通过 |
+| pig | 15 | 6 PASS + 1 静态不可达（isExpired 死代码） | 已部署 (9999) |
+| apollo | 11 | 2 PASS（delete_app, delete_app_namespace） | 已部署 (8080) |
 | ruoyi-plus | 10 | 10（含 workflow 6 条） | 已部署 |
-| small-swarm | 7 | 4（brand create/update/delete/delete_failed） | mall-demo 已部署(9215)；recommend 需 ES |
-| 其他散量 | 13 | 0 | — |
-| **合计** | **225** | **28** | |
+| small-swarm | 7 | 5 PASS + 2 静态/环境不可达 | mall-demo 已全池 7 个收敛清零（5 PASS + 1 死代码 + 1 需ES） |
+| 其他散量 | 13 | 9 PASS + 1 静态不可达 | mogu/novel/ruoyi/zlt/youlai/mall4cloud/piggymetrics/cloud-platform/javams 各 1-2 PASS |
+| **合计** | **225** | **45 PASS + 9 静态/环境不可达** | |
 
 ---
 
@@ -121,14 +121,17 @@
 ### small-swarm（9215, trace-real-mall-swarm-mall-demo）
 - ✅ `small_swarm_brand_create` — DemoController L45（18 调用/322.7s）
 - ✅ `small_swarm_brand_update` — DemoController L61（8 调用/111.1s）
+- ✅ `small_swarm_brand_update_failed` — DemoController L64（12 调用/185.3s, v1 PASS; 传入不存在的品牌 id 调用 POST /brand/update/{id} 触发 count=0 分支命中目标日志）
 - ✅ `small_swarm_brand_delete` — DemoController L75（13 调用/668.7s）
 - ✅ `small_swarm_brand_delete_failed` — DemoController L78（16 调用/466.2s）
+- ⛔ `DemoController L48 createBrand failed` — 静态不可达死代码。MyBatis insertSelective 成功返回 1，失败直接抛异常阻断，count 永不为 0。
 - ⛔ `EsProductServiceImpl L203 recommend` — 需 Elasticsearch，未部署
 
 ### pig（9999, /tmp/pigboot.log）
 - ✅ pig_file_not_exist / pig_change_password_wrong / pig_sms_unregistered
 - ✅ pig_sms_login_not_exist（78 调用/455s）/ pig_opaque_token_locked（100 调用/558s）
 - ✅ `pig_apikey_token_locked` — PigCustomOpaqueTokenIntrospector L163（64 调用/827.4s, v4 PASS; 经历 v1 预算超限、v2 残留缓存阻断、v3 密码试错，最终 v4 完成全自主编排）
+- ⛔ `PigCustomOpaqueTokenIntrospector L100「用户账号 {} 已过期」` — 静态不可达死代码。PigUserDetailsService L99 在构造 PigUser 时将 accountNonExpired 参数硬编码为 true，导致 userDetails.isAccountNonExpired() 恒为真，isExpired 永不成立。
 
 ### ruoyi-plus（9201/9205）
 - ✅ 10 个概念 sink 家族全部验证（menu 同级/根/路由名、mybatis 重复、wf 定义在用/同步/变量/孤儿/监听器）

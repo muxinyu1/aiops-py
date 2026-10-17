@@ -1425,6 +1425,19 @@ SINK_TASKS = {
         "container": "trace-real-mall-swarm-mall-demo",
         "log_match": "updateBrand success",
     },
+    "small_swarm_brand_update_failed": {
+        "sink": "DemoController.updateBrand 中的 "
+                "LOGGER.debug(\"updateBrand failed:{}\", pmsBrandDto) "
+                "(L64, 源码 mall-swarm/mall-demo/src/main/java/com/macro/mall/demo/controller/DemoController.java)。"
+                "触发条件: POST 更新一个不存在的品牌 (count!=1 分支)。",
+        "api": "POST http://localhost:9215/brand/update/{id} "
+               "(id 需在 pms_brand 表中不存在; body 需含 name/firstLetter/sort/showStatus/factoryStatus 等)。",
+        "env": "目标服务容器: trace-real-mall-swarm-mall-demo (端口 9215)。"
+               "数据库 mall 库 pms_brand 表。",
+        "hint_level": "hint",
+        "container": "trace-real-mall-swarm-mall-demo",
+        "log_match": "updateBrand failed",
+    },
     "small_swarm_brand_delete": {
         "sink": "DemoController.deleteBrand 中的 "
                 "LOGGER.debug(\"deleteBrand success :id={}\", id) "

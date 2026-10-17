@@ -197,10 +197,11 @@ FAIL 中的两次源于**基础设施缺陷** (已修复), 两次源于**模型�
 |---|---|---|---|---|
 | small_swarm_brand_create | DemoController L45「createBrand success」 | v1 | ✅ PASS | 18/322.7s |
 | small_swarm_brand_update | DemoController L61「updateBrand success」 | v1 | ✅ PASS | 8/111.1s |
+| small_swarm_brand_update_failed | DemoController L64「updateBrand failed:」 | v1 | ✅ PASS | 12/185.3s (传入不存在的品牌 id 走 count=0 分支命中) |
 | small_swarm_brand_delete | DemoController L75「deleteBrand success :id=」 | v1 | ✅ PASS | 13/668.7s (GET 方法删除) |
 | small_swarm_brand_delete_failed | DemoController L78「deleteBrand failed :id=」 | v1 | ✅ PASS | 16/466.2s |
 
-CRUD 成功与失败分支模式 4/4 全命中。第 7 个候选 EsProductServiceImpl L203 (recommend) 在 mall-search 模块需 Elasticsearch，未部署。
+CRUD 成功与失败分支模式 5/5 全命中。DemoController L48 (createBrand failed) 为 MyBatis insertSelective 必定返回 1 或直接抛异常阻断的静态死代码；EsProductServiceImpl L203 (recommend) 在 mall-search 模块需 Elasticsearch，未部署。small-swarm 模块全池收敛清零。
 
 ---
 
