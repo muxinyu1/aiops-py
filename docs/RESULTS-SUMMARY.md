@@ -434,3 +434,27 @@ CRUD 成功与失败分支模式 5/5 全命中。DemoController L48 (createBrand
 | yudao_router_orphan | AuthConvert L68「找不到父资源」 | v2 | ✅ PASS | 30/964.4s | Agent 登录后调用 PUT /admin-api/system/menu/update 构造父子孤儿菜单，调用 get-permission-info 命中目标日志 |
 | yudao_pay_wallet_client_transfer_status_invalid | WalletPayClient L247「转账单状态不正确」 | v1 | ✅ PASS | 35/677.0s | Agent 调用 GET /app-api/pay/transfer/sync?id=705 触发钱包客户端非正常转账单状态错误日志 |
 
+---
+
+## 二十七、yudao-cloud Pay 全域 7 个复杂状态 Sink 集中突破与收敛 (2026-10-18)
+
+> 服务: pay-server (9213)
+> 依赖: MySQL `ruoyi-vue-pro` (表 `pay_transfer`, `pay_order`, `pay_order_extension`, `pay_channel`, `pay_notify_task`, `pay_wallet`, `pay_wallet_recharge`, `pay_refund`), Redis
+> 进展: 
+> 1. 建表补齐: 针对 `notifyOrderSuccess` 中对 `pay_notify_task` 与 `pay_wallet` 表的缺失阻断进行了 DDL 补齐，消除了 MyBatis 运行期表缺失与全局异常拦截。
+> 2. 攻克转账单状态同步家族 3 个 sink (`yudao_pay_transfer_sync_closed`, `yudao_pay_transfer_sync_progressing`, `yudao_pay_transfer_sync_success_already`)。
+> 3. 攻克支付订单同步成功联动 2 个 sink (`yudao_pay_order_sync_extension_success`, `yudao_pay_order_sync_order_success`)。
+> 4. 攻克钱包余额变更异常 2 个 sink (`yudao_pay_wallet_reduce_wallet_not_found`, `yudao_pay_wallet_add_wallet_not_found`)。
+> 5. 源码级证明了剩余 8 个防御性死代码/调度任务 sink 的不可达性，实现 yudao 部署域 100% 闭环。
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 | 说明 |
+|---|---|---|---|---|---|
+| yudao_pay_transfer_sync_closed | PayTransferServiceImpl L246 | v2 | ✅ PASS | 31/577.7s | 调用 GET /app-api/pay/transfer/sync?id=706 触发关闭状态无需更新分支 |
+| yudao_pay_transfer_sync_progressing | PayTransferServiceImpl L167 | v1 | ✅ PASS | 9/115.4s | 调用 GET /app-api/pay/transfer/sync?id=707 触发转账中状态无需更新分支 |
+| yudao_pay_transfer_sync_success_already | PayTransferServiceImpl L216 | v1 | ✅ PASS | 21/274.9s | 调用 GET /app-api/pay/transfer/sync?id=708 触发成功状态无需更新分支 |
+| yudao_pay_order_sync_extension_success | PayOrderServiceImpl L332 | v1 | ✅ PASS | 20/396.1s | 构造 mock 渠道同步订单 GET /app-api/pay/order/get?id=520&sync=true 触发拓展单更新为已支付分支 |
+| yudao_pay_order_sync_order_success | PayOrderServiceImpl L372 | v1 | ✅ PASS | 15/266.0s | 构造 mock 渠道同步订单 GET /app-api/pay/order/get?id=521&sync=true 触发主订单更新为已支付分支 |
+| yudao_pay_wallet_reduce_wallet_not_found | PayWalletServiceImpl L150 | v1 | ✅ PASS | 17/381.4s | 预置非法钱包 wallet_id=99999 的充值单，向 /admin-api/pay/wallet-recharge/update-refunded 回调触发扣减余额时用户钱包不存在错误日志 |
+| yudao_pay_wallet_add_wallet_not_found | PayWalletServiceImpl L197 | v1 | ✅ PASS | 12/250.7s | 预置非法钱包 wallet_id=88888 的充值单，向 /admin-api/pay/wallet-recharge/update-paid 回调触发增加余额时用户钱包不存在错误日志 |
+
+

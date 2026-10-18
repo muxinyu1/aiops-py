@@ -87,8 +87,17 @@
 - ✅ `yudao_pay_demo_withdraw_not_found` — PayDemoWithdrawServiceImpl L135（9 调用/228.4s, v1 PASS; 构造 update-transferred 回调传入不存在的提现单 id 触发提现单不存在分支命中目标日志）
 - ✅ `yudao_pay_demo_withdraw_mismatch` — PayDemoWithdrawServiceImpl L147（27 调用/593.7s, v1 PASS; 构造 update-transferred 回调传入不匹配的 payTransferId 触发转账单不匹配分支命中目标日志）
 - ✅ `yudao_pay_wallet_client_transfer_status_invalid` — WalletPayClient L247（35 调用/677.0s, v1 PASS; 调用同步转账接口 GET /app-api/pay/transfer/sync?id=705 触发钱包客户端转账单状态非正常校验分支命中目标日志）
+- ✅ `yudao_pay_transfer_sync_closed` — PayTransferServiceImpl L246（31 调用/577.7s, v2 PASS; 调用 GET /app-api/pay/transfer/sync?id=706 触发关闭状态无需更新分支命中目标日志）
+- ✅ `yudao_pay_transfer_sync_progressing` — PayTransferServiceImpl L167（9 调用/115.4s, v1 PASS; 调用 GET /app-api/pay/transfer/sync?id=707 触发转账中状态无需更新分支命中目标日志）
+- ✅ `yudao_pay_transfer_sync_success_already` — PayTransferServiceImpl L216（21 调用/274.9s, v1 PASS; 调用 GET /app-api/pay/transfer/sync?id=708 触发成功状态无需更新分支命中目标日志）
+- ✅ `yudao_pay_order_sync_extension_success` — PayOrderServiceImpl L332（20 调用/396.1s, v1 PASS; 构造 mock 渠道同步订单 GET /app-api/pay/order/get?id=520&sync=true 触发拓展单更新为已支付分支命中目标日志）
+- ✅ `yudao_pay_order_sync_order_success` — PayOrderServiceImpl L372（15 调用/266.0s, v1 PASS; 构造 mock 渠道同步订单 GET /app-api/pay/order/get?id=521&sync=true 触发主订单更新为已支付分支命中目标日志）
+- ✅ `yudao_pay_wallet_reduce_wallet_not_found` — PayWalletServiceImpl L150（17 调用/381.4s, v1 PASS; 预置关联非法钱包 wallet_id=99999 的充值单，向 /admin-api/pay/wallet-recharge/update-refunded 回调触发扣减余额时用户钱包不存在分支命中目标日志）
+- ✅ `yudao_pay_wallet_add_wallet_not_found` — PayWalletServiceImpl L197（12 调用/250.7s, v1 PASS; 预置关联非法钱包 wallet_id=88888 的充值单，向 /admin-api/pay/wallet-recharge/update-paid 回调触发增加余额时用户钱包不存在分支命中目标日志）
 - ⛔ "找不到支付客户端"家族 ×8 — PayNotifyController L75/L97/L119 + PayOrderServiceImpl L227/L246 + PayRefundServiceImpl L102 + PayTransferServiceImpl L73/L312 静态不可达（validPayChannel 先抛异常，防御性死代码）
 - ⛔ "用户钱包不存在" — PayWalletController L61 静态不可达（getOrCreateWallet 自动加锁创建新钱包返回，永不为 null）
+- ⛔ "支付订单拓展单防御逻辑" ×5 — PayOrderServiceImpl L319/L353/L388/L393/L407 静态不可达/防御性死代码（syncOrderQuietly 过滤 WAITING 状态导致已支付分支不可达；syncOrder 显式拦截 closed 状态无法进入 notifyOrderClosed；mock/wallet 渠道不支持支付回调 webhook）
+- ⛔ "退款单状态不正确" — WalletPayClient L179 仅由后台定时任务 PayRefundSyncJob 调用，无 HTTP API 映射入口
 
 ### yudao mall（9212, trace-real-yudao-cloud-trade-server）
 - ✅ `yudao_mall_brokerage_withdraw_duplicate_notify` — BrokerageWithdrawServiceImpl L248（33 调用/960.2s）

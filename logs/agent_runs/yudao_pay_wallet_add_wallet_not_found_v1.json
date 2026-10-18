@@ -1,0 +1,122 @@
+{
+  "reached": true,
+  "turns": 1,
+  "tool_calls": 12,
+  "elapsed": 250.6853494644165,
+  "tool_log": [
+    {
+      "n": 1,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletServiceImpl.java",
+        "start": 150,
+        "end": 230
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletServiceImpl.java (L150-230, 共246行)\n 150 |             log.error(\"[reduceWalletBalance][用户钱包({})不存在]\", walletId);\n 151 |             throw exception(WALLET_NOT_FOUND);\n 152 |         }\n 153 | \n 154 |         // 2. 加锁，更新钱包余额（目的：避免钱包流水的并发更新时，余额变化不连贯）\n 155 |         return lockRedisDAO.lock(walletId, UPDATE_TIMEOUT_MILLIS, () -> {\n 156 |             // 2. 扣除余额\n 157 |             int updateCounts;\n 158 |             switch (bizType) {\n 159 |                 case PAYMENT: {\n 160 |                     updateCounts = walletMapper.updateWhenConsumption(payWallet.getId(), price);\n 161 |                     break;\n 162 |                 }\n 163 |                 case RECHARGE_REFUND: {\n 164 |                     updateCounts = walletMapper.updateWhenRechargeRefund(payWallet.getId(), price);\n 165 |                     break;\n 166 |                 }\n 167 |                 default: {\n 168 |                     // TODO 其它类型待实现\n 169 |                     throw new UnsupportedOperationException(\"待实现\");\n 170 |                 }\n 171 |             }\n 172 |             if (updateCounts == 0) {\n 173 |                 throw exception(WALLET_BALANCE_NOT_ENOUGH);\n 174 |             }\n 175 | \n 176 |             // 3. 生成钱包流水\n 177 |             // 情况一：充值退款：balance 在冻结时已扣，updateWhenRechargeRefund 只扣 freeze_price，所以 afterBalance 不变。https://t.zsxq.com/OJk9m\n 178 |             // 情况二：消费支付：updateWhenConsumption 从 balance 扣，所以 afterBalance = balance - price\n 179 |             Integer afterBalance = bizType == PayWalletBizTypeEnum.RECHARGE_REFUND\n 180 |                     ? payWallet.getBalance()\n 181 |                     : payWallet.getBalance() - price;\n 182 |             WalletTransactionCreateReqBO bo = new WalletTransactionCreateReqBO().setWalletId(payWallet.getId())\n 183 |                     .setPrice(-price).setBalance(afterBalance).setBizId(String.valueOf(bizId))\n 184 |  "
+    },
+    {
+      "n": 2,
+      "tool": "search_code",
+      "args": {
+        "pattern": "update-paid",
+        "path_prefix": "yudao-cloud"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java:31:    @PostMapping(\"/update-paid\")\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/demo/PayDemoOrderController.java:49:    @PostMapping(\"/update-paid\")\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/order/AppTradeOrderController.java:81:    @PostMapping(\"/update-paid\")\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java:31:    @PostMapping(\"/update-paid\")\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/demo/PayDemoOrderController.java:49:    @PostMapping(\"/update-paid\")\nexamples/yudao-cloud/yudao-module-mall/yudao-module-trade-server/src/main/java/cn/iocoder/yudao/module/trade/controller/app/order/AppTradeOrderController.java:81:    @PostMapping(\"/update-paid\")\n"
+    },
+    {
+      "n": 3,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java",
+        "start": 1,
+        "end": 60
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/controller/admin/wallet/PayWalletRechargeController.java (L1-59, 共59行)\n   1 | package cn.iocoder.yudao.module.pay.controller.admin.wallet;\n   2 | \n   3 | import cn.iocoder.yudao.framework.common.pojo.CommonResult;\n   4 | import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;\n   5 | import cn.iocoder.yudao.module.pay.api.notify.dto.PayRefundNotifyReqDTO;\n   6 | import cn.iocoder.yudao.module.pay.service.wallet.PayWalletRechargeService;\n   7 | import io.swagger.v3.oas.annotations.Operation;\n   8 | import io.swagger.v3.oas.annotations.Parameter;\n   9 | import io.swagger.v3.oas.annotations.tags.Tag;\n  10 | import lombok.extern.slf4j.Slf4j;\n  11 | import org.springframework.validation.annotation.Validated;\n  12 | import org.springframework.web.bind.annotation.*;\n  13 | \n  14 | import javax.annotation.Resource;\n  15 | import javax.annotation.security.PermitAll;\n  16 | import javax.validation.Valid;\n  17 | \n  18 | import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;\n  19 | import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;\n  20 | \n  21 | @Tag(name = \"管理后台 - 钱包充值\")\n  22 | @RestController\n  23 | @RequestMapping(\"/pay/wallet-recharge\")\n  24 | @Validated\n  25 | @Slf4j\n  26 | public class PayWalletRechargeController {\n  27 | \n  28 |     @Resource\n  29 |     private PayWalletRechargeService walletRechargeService;\n  30 | \n  31 |     @PostMapping(\"/update-paid\")\n  32 |     @Operation(summary = \"更新钱包充值为已充值\") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob\n  33 |     @PermitAll // 无需登录， 内部校验实现\n  34 |     public CommonResult<Boolean> updateWalletRechargerPaid(@Valid @RequestBody PayOrderNotifyReqDTO notifyReqDTO) {\n  35 |         walletRechargeService.updateWalletRechargerPaid(Long.valueOf(notifyReqDTO.getMerchantOrderId()),\n  36 |                 notifyReqDTO.getPayOrderId());\n  37 |         return success(true);\n  38 |  "
+    },
+    {
+      "n": 4,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud/yudao-module-pay",
+        "pattern": "class PayWalletRechargeServiceImpl"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:57:public class PayWalletRechargeServiceImpl implements PayWalletRechargeService {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:57:public class PayWalletRechargeServiceImpl implements PayWalletRechargeService {\n"
+    },
+    {
+      "n": 5,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java",
+        "start": 57,
+        "end": 160
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java (L57-160, 共350行)\n  57 | public class PayWalletRechargeServiceImpl implements PayWalletRechargeService {\n  58 | \n  59 |     private static final String WALLET_RECHARGE_ORDER_SUBJECT = \"钱包余额充值\";\n  60 | \n  61 |     @Resource\n  62 |     private PayWalletRechargeMapper walletRechargeMapper;\n  63 |     @Resource\n  64 |     private PayWalletService payWalletService;\n  65 |     @Resource\n  66 |     private PayOrderService payOrderService;\n  67 |     @Resource\n  68 |     private PayWalletRechargePackageService payWalletRechargePackageService;\n  69 | \n  70 |     @Resource\n  71 |     public SocialClientApi socialClientApi;\n  72 |     @Resource\n  73 |     private PayRefundApi payRefundApi;\n  74 | \n  75 |     @Resource\n  76 |     private PayProperties payProperties;\n  77 | \n  78 |     @Override\n  79 |     @Transactional(rollbackFor = Exception.class)\n  80 |     public PayWalletRechargeDO createWalletRecharge(Long userId, Integer userType, String userIp,\n  81 |                                                     AppPayWalletRechargeCreateReqVO reqVO) {\n  82 |         // 1.1 计算充值金额\n  83 |         int payPrice;\n  84 |         int bonusPrice = 0;\n  85 |         if (Objects.nonNull(reqVO.getPackageId())) {\n  86 |             PayWalletRechargePackageDO rechargePackage = payWalletRechargePackageService.validWalletRechargePackage(reqVO.getPackageId());\n  87 |             payPrice = rechargePackage.getPayPrice();\n  88 |             bonusPrice = rechargePackage.getBonusPrice();\n  89 |         } else {\n  90 |             payPrice = reqVO.getPayPrice();\n  91 |         }\n  92 |         // 1.2 插入充值记录\n  93 |         PayWalletDO wallet = payWalletService.getOrCreateWallet(userId, userType);\n  94 |         PayWalletRechargeDO recharge = INSTANCE.convert(wallet.getId(), payPrice, bonusPrice, reqVO.getPackageId());\n  95 |         walletRechargeMapper.inser"
+    },
+    {
+      "n": 6,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud",
+        "pattern": "class PayOrderNotifyReqDTO"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayOrderNotifyReqDTO.java:20:public class PayOrderNotifyReqDTO {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayOrderNotifyReqDTO.java:20:public class PayOrderNotifyReqDTO {\n"
+    },
+    {
+      "n": 7,
+      "tool": "read_source",
+      "args": {
+        "path": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayOrderNotifyReqDTO.java",
+        "start": 1,
+        "end": 60
+      },
+      "result": "yudao-cloud/yudao-module-pay/yudao-module-pay-api/src/main/java/cn/iocoder/yudao/module/pay/api/notify/dto/PayOrderNotifyReqDTO.java (L1-34, 共34行)\n   1 | package cn.iocoder.yudao.module.pay.api.notify.dto;\n   2 | \n   3 | import lombok.AllArgsConstructor;\n   4 | import lombok.Builder;\n   5 | import lombok.Data;\n   6 | import lombok.NoArgsConstructor;\n   7 | \n   8 | import javax.validation.constraints.NotEmpty;\n   9 | import javax.validation.constraints.NotNull;\n  10 | \n  11 | /**\n  12 |  * 支付单的通知 Request DTO\n  13 |  *\n  14 |  * @author 芋道源码\n  15 |  */\n  16 | @Data\n  17 | @Builder\n  18 | @NoArgsConstructor\n  19 | @AllArgsConstructor\n  20 | public class PayOrderNotifyReqDTO {\n  21 | \n  22 |     /**\n  23 |      * 商户订单编号\n  24 |      */\n  25 |     @NotEmpty(message = \"商户订单号不能为空\")\n  26 |     private String merchantOrderId;\n  27 | \n  28 |     /**\n  29 |      * 支付订单编号\n  30 |      */\n  31 |     @NotNull(message = \"支付订单编号不能为空\")\n  32 |     private Long payOrderId;\n  33 | \n  34 | }"
+    },
+    {
+      "n": 8,
+      "tool": "search_code",
+      "args": {
+        "path_prefix": "yudao-cloud/yudao-module-pay",
+        "pattern": "validatePayOrderPaid"
+      },
+      "result": "examples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:140:        PayOrderDO payOrderDO = validatePayOrderPaid(recharge, payOrderId);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:311:    private PayOrderDO validatePayOrderPaid(PayWalletRechargeDO recharge, Long payOrderId) {\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:315:            log.error(\"[validatePayOrderPaid][充值订单({}) payOrder({}) 不存在，请进行处理！]\",\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:322:            log.error(\"[validatePayOrderPaid][充值订单({}) payOrder({}) 未支付，请进行处理！payOrder 数据是：{}]\",\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:328:            log.error(\"[validatePayOrderPaid][充值订单({}) payOrder({}) 支付金额不匹配，请进行处理！钱包 数据是：{}，payOrder 数据是：{}]\",\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletRechargeServiceImpl.java:334:            log.error(\"[validatePayOrderPaid][充值订单({}) 支付单不匹配({})，请进行处理！payOrder 数据是：{}]\",\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoOrderServiceImpl.java:136:        PayOrderRespDTO payOrder = validatePayOrderPaid(order, payOrderId);\nexamples/yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/demo/PayDemoOrderServiceImpl.java:154:    private PayOrderRespDTO validatePayOrderPaid(PayDemoOrderDO order, Long payOrderId) {\nexamples/yudao-cloud/yudao-module-pay/yuda"
+    },
+    {
+      "n": 9,
+      "tool": "query_db",
+      "args": {
+        "sql": "SELECT * FROM pay_wallet_recharge WHERE id=31; SELECT * FROM pay_order WHERE id=531; SELECT * FROM pay_wallet WHERE id=88888;"
+      },
+      "result": "id\twallet_id\ttotal_price\tpay_price\tbonus_price\tpackage_id\tpay_status\tpay_order_id\tpay_channel_code\tpay_time\tpay_refund_id\trefund_total_price\trefund_pay_price\trefund_bonus_price\trefund_time\trefund_status\tcreator\tcreate_time\tupdater\tupdate_time\tdeleted\ttenant_id\n31\t88888\t100\t100\t0\tNULL\t\\0\t531\tmock\tNULL\tNULL\t0\t0\t0\tNULL\tNULL\t\t2026-10-18 12:41:33\t\t2026-10-18 12:41:33\t\\0\t1\nid\tapp_id\tchannel_id\tchannel_code\tuser_id\tuser_type\tmerchant_order_id\tsubject\tbody\tnotify_url\tprice\tchannel_fee_rate\tchannel_fee_price\tstatus\tuser_ip\texpire_time\tsuccess_time\tnotify_time\textension_id\tno\trefund_price\tchannel_user_id\tchannel_order_no\tcreator\tcreate_time\tupdater\tupdate_time\tdeleted\n531\t1\t2\tmock\tNULL\tNULL\t31\ttest531\ttest531\t\t100\t0\t0\t10\t\t2026-10-18 18:00:00\tNULL\tNULL\tNULL\tNULL\t0\tNULL\tNULL\t\t2026-10-18 12:41:33\t\t2026-10-18 12:41:48\t\\0"
+    },
+    {
+      "n": 10,
+      "tool": "send_http",
+      "args": {
+        "method": "POST",
+        "url": "http://localhost:9213/admin-api/pay/wallet-recharge/update-paid",
+        "headers_json": "{\"Content-Type\": \"application/json\"}",
+        "body": "{\"merchantOrderId\":\"31\",\"payOrderId\":531}"
+      },
+      "result": "HTTP 200\nContent-Type: application/json\n\n{\"code\":1007007000,\"msg\":\"用户钱包不存在\",\"data\":null}"
+    },
+    {
+      "n": 11,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-yudao-cloud-pay-server",
+        "tail": 40
+      },
+      "result": "2026-10-18 04:53:29.251 [http-nio-9213-exec-1] \u001b[31mWARN \u001b[0;39m \u001b[36mc.i.y.f.web.core.handler.GlobalExceptionHandler:293\u001b[0;39m - [serviceExceptionHandler]\n\tcn.iocoder.yudao.module.pay.service.wallet.PayWalletServiceImpl.addWalletBalance(PayWalletServiceImpl.java:198)\n2026-10-18 04:53:29.252 [http-nio-9213-exec-1] \u001b[34mINFO \u001b[0;39m \u001b[36mc.i.y.f.a.core.interceptor.ApiAccessLogInterceptor:70\u001b[0;39m - [afterCompletion][完成请求 URL(/admin-api/pay/wallet-recharge/update-paid) 耗时(22 ms)]\n2026-10-18 04:53:29.255 [SimpleAsyncTaskExecutor-42] \u001b[31mWARN \u001b[0;39m \u001b[36mc.i.y.f.env.core.fegin.EnvLoadBalancerClient:91\u001b[0;39m - [getInstanceResponseWithoutTag][serviceId(infra-server) 服务实例列表为空]\n2026-10-18 04:53:29.255 [SimpleAsyncTaskExecutor-42] \u001b[31mWARN \u001b[0;39m \u001b[36mo.s.c.o.l.FeignBlockingLoadBalancerClient:103\u001b[0;39m - Load balancer does not contain an instance for the service infra-server\n2026-10-18 04:53:29.257 [SimpleAsyncTaskExecutor-42] \u001b[1;31mERROR\u001b[0;39m \u001b[36mo.s.a.i.SimpleAsyncUncaughtExceptionHandler:39\u001b[0;39m - Unexpected exception occurred invoking async method: public final void com.sun.proxy.$Proxy180.createApiAccessLogAsync(cn.iocoder.yudao.framework.common.biz.infra.logger.dto.ApiAccessLogCreateReqDTO)\nfeign.FeignException$ServiceUnavailable: [503] during [POST] to [http://infra-server/rpc-api/infra/api-access-log/create] [ApiAccessLogCommonApi#createApiAccessLog(ApiAccessLogCreateReqDTO)]: [Load balancer does not contain an instance for the service infra-server]\n\tat feign.FeignException.serverErrorStatus(FeignException.java:256)\n\tat feign.FeignException.errorStatus(FeignException.java:197)\n\tat feign.FeignException.errorStatus(FeignException.java:185)\n\tat feign.codec.ErrorDecoder$Default.decode(ErrorDecoder.java:92)\n\tat feign.AsyncResponseHandler.handleResponse(AsyncResponseHandler.java:98)\n\tat feign.SynchronousMethodHandler.executeAndDecode(SynchronousMethodHandler.java:141)\n\tat feign.SynchronousMethodHandler.invoke(SynchronousMethodHandler.java:91)\n\tat feign.Reflec"
+    },
+    {
+      "n": 12,
+      "tool": "read_logs",
+      "args": {
+        "container": "trace-real-yudao-cloud-pay-server",
+        "tail": 100
+      },
+      "result": "AccessLogCommonApi#createApiAccessLog(ApiAccessLogCreateReqDTO)]: [Load balancer does not contain an instance for the service infra-server]\n\tat feign.FeignException.serverErrorStatus(FeignException.java:256)\n\tat feign.FeignException.errorStatus(FeignException.java:197)\n\tat feign.FeignException.errorStatus(FeignException.java:185)\n\tat feign.codec.ErrorDecoder$Default.decode(ErrorDecoder.java:92)\n\tat feign.AsyncResponseHandler.handleResponse(AsyncResponseHandler.java:98)\n\tat feign.SynchronousMethodHandler.executeAndDecode(SynchronousMethodHandler.java:141)\n\tat feign.SynchronousMethodHandler.invoke(SynchronousMethodHandler.java:91)\n\tat feign.ReflectiveFeign$FeignInvocationHandler.invoke(ReflectiveFeign.java:100)\n\tat org.springframework.cloud.openfeign.FeignCachingInvocationHandlerFactory$1.proceed(FeignCachingInvocationHandlerFactory.java:66)\n\tat org.springframework.cache.interceptor.CacheInterceptor.lambda$invoke$0(CacheInterceptor.java:54)\n\tat org.springframework.cache.interceptor.CacheAspectSupport.execute(CacheAspectSupport.java:351)\n\tat org.springframework.cache.interceptor.CacheInterceptor.invoke(CacheInterceptor.java:64)\n\tat org.springframework.cloud.openfeign.FeignCachingInvocationHandlerFactory.lambda$create$1(FeignCachingInvocationHandlerFactory.java:53)\n\tat com.sun.proxy.$Proxy180.createApiAccessLog(Unknown Source)\n\tat cn.iocoder.yudao.framework.common.biz.infra.logger.ApiAccessLogCommonApi.createApiAccessLogAsync(ApiAccessLogCommonApi.java:32)\n\tat java.base/java.lang.invoke.MethodHandle.invokeWithArguments(Unknown Source)\n\tat feign.DefaultMethodHandler.invoke(DefaultMethodHandler.java:141)\n\tat feign.ReflectiveFeign$FeignInvocationHandler.invoke(ReflectiveFeign.java:100)\n\tat org.springframework.cloud.openfeign.FeignCachingInvocationHandlerFactory$1.proceed(FeignCachingInvocationHandlerFactory.java:66)\n\tat org.springframework.cache.interceptor.CacheInterceptor.lambda$invoke$0(CacheInterceptor.java:54)\n\tat org.springframework.cache.interceptor.CacheAspectSuppo"
+    }
+  ],
+  "final_text": "**Sink 命中成功。** 🎯\n\n## 执行结果\n\n目标日志已在 pay-server 日志中确认打印：\n\n```\n2026-10-18 04:53:29.249 [http-nio-9213-exec-1] ERROR c.i.y.m.pay.service.wallet.PayWalletServiceImpl:197 - [addWalletBalance][用户钱包(88888)不存在]\n```\n\n这正是目标 sink：`PayWalletServiceImpl.addWalletBalance` L197 的钱包不存在异常分支。\n\n## 完整触发链路\n\n1. **请求**：`POST /admin-api/pay/wallet-recharge/update-paid`，body `{\"merchantOrderId\":\"31\",\"payOrderId\":531}`（`@PermitAll` 免登录），HTTP 200 返回 `{\"code\":1007007000,\"msg\":\"用户钱包不存在\"}`\n2. **校验通过**（日志 `preHandle` 参数确认）：\n   - 充值记录 id=31 存在且 `pay_status=0`（未支付）\n   - `validatePayOrderPaid` 通过：pay_order 531 状态=10（SUCCESS/已支付）、price=100 = recharge.total_price=100、`merchant_order_id='31'` = recharge.id\n3. **更新充值状态为已支付** 后调用 `payWalletService.addWalletBalance(88888, \"31\", RECHARGE, 100)`\n4. **`getWallet(88888)` 返回 null**（数据库中不存在该钱包）→ 打印 L197 目标错误日志 → 抛出 `WALLET_NOT_FOUND` 异常（日志堆栈指向 `PayWalletServiceImpl.java:198` 的 throw 行，与 L197 日志紧邻，印证走了正确的分支）\n\n## 关于攻击标记的说明\n\n本任务判定方式为 `log_match`，且任务明确说明\"无需注入 `<<SINK_REACHED>>` 标记\"。从代码看也确无可行注入点：DTO 仅含 `merchantOrderId`（String 但会被 `Long.valueOf` 强转）和 `payOrderId`（Long）两个严格类型字段，任何非数字内容都会在进入 service 前触发 `NumberFormatException`，流程无法到达 sink；而 sink 日志唯一打印的值是数据库中的数字 `wallet_id=88888`。因此按任务指定的精确 body 发送请求即为正确触发方式，已验证命中。"
+}

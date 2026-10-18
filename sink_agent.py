@@ -942,7 +942,7 @@ SINK_TASKS = {
         "api": "GET http://localhost:9213/app-api/pay/transfer/sync?id=706 (免登录)。",
         "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
                "数据库 ruoyi-vue-pro 的 pay_transfer 表 (已预置 id=706, channel_id=1, channel_code='wallet', status=20)。"
-               "请直接向 pay-server 发送 GET /app-api/pay/transfer/sync?id=706 请求, 无需登录认证。",
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 pay-server 发送 GET /app-api/pay/transfer/sync?id=706 请求即可触发目标日志。",
         "hint_level": "hint",
         "container": "trace-real-yudao-cloud-pay-server",
         "log_match": "[notifyTransferClosed][transfer(",
@@ -955,7 +955,7 @@ SINK_TASKS = {
         "api": "GET http://localhost:9213/app-api/pay/transfer/sync?id=707 (免登录)。",
         "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
                "数据库 ruoyi-vue-pro 的 pay_transfer 表 (已预置 id=707, channel_id=1, channel_code='wallet', status=5)。"
-               "请直接向 pay-server 发送 GET /app-api/pay/transfer/sync?id=707 请求, 无需登录认证。",
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 pay-server 发送 GET /app-api/pay/transfer/sync?id=707 请求即可触发目标日志。",
         "hint_level": "hint",
         "container": "trace-real-yudao-cloud-pay-server",
         "log_match": "[notifyTransferProgressing][transfer(",
@@ -968,7 +968,7 @@ SINK_TASKS = {
         "api": "GET http://localhost:9213/app-api/pay/transfer/sync?id=708 (免登录)。",
         "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
                "数据库 ruoyi-vue-pro 的 pay_transfer 表 (已预置 id=708, channel_id=1, channel_code='wallet', status=10) 与 pay_wallet_transaction 表 (已预置 biz_type=6, biz_id='708')。"
-               "请直接向 pay-server 发送 GET /app-api/pay/transfer/sync?id=708 请求, 无需登录认证。",
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 pay-server 发送 GET /app-api/pay/transfer/sync?id=708 请求即可触发目标日志。",
         "hint_level": "hint",
         "container": "trace-real-yudao-cloud-pay-server",
         "log_match": "[notifyTransferSuccess][transfer(",
@@ -981,7 +981,7 @@ SINK_TASKS = {
         "api": "GET http://localhost:9213/app-api/pay/order/get?id=520&sync=true (免登录; 需请求头 tenant-id: 1)。",
         "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
                "数据库 ruoyi-vue-pro 的 pay_order 表 (已预置 id=520, status=0, channel_id=2, channel_code='mock') 与 pay_order_extension 表 (已预置 id=520, order_id=520, channel_id=2, channel_code='mock', status=0, tenant_id=1)。"
-               "请直接向 pay-server 发送 GET /app-api/pay/order/get?id=520&sync=true 请求, 无需登录认证。",
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 pay-server 发送 GET /app-api/pay/order/get?id=520&sync=true (请求头 tenant-id: 1) 请求即可触发目标日志。",
         "hint_level": "hint",
         "container": "trace-real-yudao-cloud-pay-server",
         "log_match": "PayOrderServiceImpl:332",
@@ -991,10 +991,10 @@ SINK_TASKS = {
                 "log.info(\"[updateOrderExtensionSuccess][order({}) 更新为已支付]\", order.getId()) "
                 "(L372, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java)。"
                 "触发条件: 获取订单详情并同步(sync=true)时, 支付拓展单更新为已支付后, 主订单由未支付状态更新为已支付状态触发日志。",
-        "api": "GET http://localhost:9213/app-api/pay/order/get?id=520&sync=true (免登录; 需请求头 tenant-id: 1)。",
+        "api": "GET http://localhost:9213/app-api/pay/order/get?id=521&sync=true (免登录; 需请求头 tenant-id: 1)。",
         "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
-               "数据库 ruoyi-vue-pro 的 pay_order 表 (已预置 id=520, status=0, channel_id=2, channel_code='mock') 与 pay_order_extension 表 (已预置 id=520, order_id=520, channel_id=2, channel_code='mock', status=0, tenant_id=1)。"
-               "请直接向 pay-server 发送 GET /app-api/pay/order/get?id=520&sync=true 请求, 无需登录认证。",
+               "数据库 ruoyi-vue-pro 的 pay_order 表 (已预置 id=521, status=0, channel_id=2, channel_code='mock') 与 pay_order_extension 表 (已预置 id=521, order_id=521, channel_id=2, channel_code='mock', status=0, tenant_id=1)。"
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 pay-server 发送 GET /app-api/pay/order/get?id=521&sync=true (请求头 tenant-id: 1) 请求即可触发目标日志。",
         "hint_level": "hint",
         "container": "trace-real-yudao-cloud-pay-server",
         "log_match": "PayOrderServiceImpl:372",
@@ -1055,6 +1055,34 @@ SINK_TASKS = {
         "hint_level": "hint",
         "container": "trace-real-yudao-cloud-pay-server",
         "log_match": "PayWalletRechargeServiceImpl:124",
+    },
+    "yudao_pay_wallet_reduce_wallet_not_found": {
+        "sink": "PayWalletServiceImpl.reduceWalletBalance 中的 "
+                "log.error(\"[reduceWalletBalance][用户钱包({})不存在]\", walletId) "
+                "(L150, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletServiceImpl.java)。"
+                "触发条件: 钱包充值退款成功回调时, 充值记录关联的用户钱包在数据库中不存在, 扣减钱包余额时触发钱包不存在异常分支打印错误日志。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-refunded "
+               "(body: {\"merchantOrderId\":\"30\",\"merchantRefundId\":\"30-refund\",\"payRefundId\":630}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 id=30, wallet_id=99999, pay_refund_id=630) 与 pay_refund 表 (已预置 id=630, status=10, merchant_refund_id='30-refund')。"
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 pay-server 发送 POST /admin-api/pay/wallet-recharge/update-refunded 请求即可触发目标日志。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "[reduceWalletBalance][用户钱包(",
+    },
+    "yudao_pay_wallet_add_wallet_not_found": {
+        "sink": "PayWalletServiceImpl.addWalletBalance 中的 "
+                "log.error(\"[addWalletBalance][用户钱包({})不存在]\", walletId) "
+                "(L197, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/wallet/PayWalletServiceImpl.java)。"
+                "触发条件: 钱包充值支付成功回调时, 充值记录关联的用户钱包在数据库中不存在, 增加钱包余额时触发钱包不存在异常分支打印错误日志。",
+        "api": "POST http://localhost:9213/admin-api/pay/wallet-recharge/update-paid "
+               "(body: {\"merchantOrderId\":\"31\",\"payOrderId\":531}, @PermitAll 免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_wallet_recharge 表 (已预置 id=31, wallet_id=88888, pay_status=0, pay_order_id=531) 与 pay_order 表 (已预置 id=531, status=10, price=100, merchant_order_id='31')。"
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 pay-server 发送 POST /admin-api/pay/wallet-recharge/update-paid 请求即可触发目标日志。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "[addWalletBalance][用户钱包(",
     },
     "yudao_pay_wallet_recharge_order_not_found": {
         "sink": "PayWalletRechargeServiceImpl.validatePayOrderPaid 中的 "
