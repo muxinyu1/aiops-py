@@ -418,3 +418,19 @@ CRUD 成功与失败分支模式 5/5 全命中。DemoController L48 (createBrand
 | yudao_mall_trade_after_sale_refund_price_mismatch | AfterSaleServiceImpl L441 | v2 | ✅ PASS | 24/634.0s | 传入金额不一致退款单触发退款金额不匹配异常分支 |
 | yudao_mall_trade_order_merchant_order_id_mismatch | TradeOrderUpdateServiceImpl L365 | v5 | ✅ PASS | 33/1201.4s | 传入商户订单号不一致支付单 502 触发支付单不匹配二次校验分支 |
 
+---
+
+## 二十六、yudao-cloud System / Pay 扩充实验 (2026-10-18)
+
+> 服务: system-server (9214) 与 pay-server (9213)
+> 依赖: MySQL `ruoyi-vue-pro` (表 `system_menu`, `system_role_menu`, `pay_transfer`, `pay_channel`, `pay_wallet_transaction`), Redis
+> 进展: 
+> 1. 修复了 `sink_agent.py` 中 `tool_query_db` 对包含 `deleted` 等常见字段名误判拦截的正则词界 bug，并成功排除 Docker 挂载故障启动 system-server。
+> 2. 攻克 `yudao_router_orphan`，Agent 自主通过系统菜单 API 构造孤儿拓扑并成功触发菜单树缺失父资源错误日志。
+> 3. 攻克 `yudao_pay_wallet_client_transfer_status_invalid`，Agent 通过同步转账接口触发钱包客户端非正常转账单状态错误日志。
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 | 说明 |
+|---|---|---|---|---|---|
+| yudao_router_orphan | AuthConvert L68「找不到父资源」 | v2 | ✅ PASS | 30/964.4s | Agent 登录后调用 PUT /admin-api/system/menu/update 构造父子孤儿菜单，调用 get-permission-info 命中目标日志 |
+| yudao_pay_wallet_client_transfer_status_invalid | WalletPayClient L247「转账单状态不正确」 | v1 | ✅ PASS | 35/677.0s | Agent 调用 GET /app-api/pay/transfer/sync?id=705 触发钱包客户端非正常转账单状态错误日志 |
+

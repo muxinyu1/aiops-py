@@ -8,7 +8,7 @@
 
 | 项目 | db_state 池 | 已验证 | 状态 |
 |------|------------|--------|------|
-| yudao | 117 | 40 PASS（pay 20 + mall 16 + system 4）+ 9 静态/环境不可达 | pay/trade(mall) 候选已全部 100% 收敛完成，system 核心候选已通 |
+| yudao | 117 | 42 PASS（pay 21 + mall 16 + system 5）+ 9 静态/环境不可达 | pay/trade(mall) 候选已全部 100% 收敛完成，system 核心候选全部通过 |
 | paascloud | 37 | 0 | 未部署（无 Dockerfile） |
 | lamp-cloud | 15 | 5 PASS（login_success, password_error_locked, refresh_token, user_status, password_error_num） | oauth-server(9216) 核心链路全线打通 |
 | pig | 15 | 6 PASS + 1 静态不可达（isExpired 死代码） | 已部署 (9999) |
@@ -86,6 +86,7 @@
 - ✅ `yudao_pay_demo_withdraw_duplicate_notify` — PayDemoWithdrawServiceImpl L143（40 调用/408.6s）
 - ✅ `yudao_pay_demo_withdraw_not_found` — PayDemoWithdrawServiceImpl L135（9 调用/228.4s, v1 PASS; 构造 update-transferred 回调传入不存在的提现单 id 触发提现单不存在分支命中目标日志）
 - ✅ `yudao_pay_demo_withdraw_mismatch` — PayDemoWithdrawServiceImpl L147（27 调用/593.7s, v1 PASS; 构造 update-transferred 回调传入不匹配的 payTransferId 触发转账单不匹配分支命中目标日志）
+- ✅ `yudao_pay_wallet_client_transfer_status_invalid` — WalletPayClient L247（35 调用/677.0s, v1 PASS; 调用同步转账接口 GET /app-api/pay/transfer/sync?id=705 触发钱包客户端转账单状态非正常校验分支命中目标日志）
 - ⛔ "找不到支付客户端"家族 ×8 — PayNotifyController L75/L97/L119 + PayOrderServiceImpl L227/L246 + PayRefundServiceImpl L102 + PayTransferServiceImpl L73/L312 静态不可达（validPayChannel 先抛异常，防御性死代码）
 - ⛔ "用户钱包不存在" — PayWalletController L61 静态不可达（getOrCreateWallet 自动加锁创建新钱包返回，永不为 null）
 
@@ -109,7 +110,7 @@
 - ⛔ `BrokerageWithdrawServiceImpl L273`「payTransfer 不存在」— 静态不可达死代码。PayTransferApiImpl L42 在 transfer 为空时直接返回 null（HTTP 200 空包），Feign 反序列化后 CommonResult 为 null，在 L271 .getCheckedData() 时直接触发 NullPointerException，永远无法到达 L272-274 的判空日志。
 
 ### yudao system（9214, trace-real-yudao-cloud-yudao-module-system-server）
-- ⚠️ `yudao_router_orphan` — AuthConvert L68「找不到父资源」（40 调用/687.4s 预算超限未达，已由 trace-agent 解决 WebFrameworkUtils NPE 解除 9214 服务阻塞；人工 curl 预验证返回 code 0 并命中目标日志，确认真实可达，归档 v1）
+- ✅ `yudao_router_orphan` — AuthConvert L68「找不到父资源」（30 调用/964.4s, v2 PASS; 修复 tool_query_db 正则词界拦截 bug，Agent 自主调用登录 POST /admin-api/system/auth/login，调用 PUT /admin-api/system/menu/update 构造孤儿菜单拓扑，再调用 GET /admin-api/system/auth/get-permission-info 触发菜单树构建缺失父节点分支命中目标日志）
 - ✅ `yudao_system_notify_template_disabled` — NotifySendServiceImpl L50「模版已经关闭」（13 调用/238.2s, v1 PASS; Agent 自主调用登录与 POST /admin-api/system/notify-template/create 构造包含标记的关闭状态模板，再调用 send-notify 触发关闭模版分支命中目标日志）
 - ✅ `yudao_system_dept_data_permission` — PermissionServiceImpl L332「部门数据权限无法处理」（28 调用/887.6s, v1 PASS; Agent 自主阅读 PermissionServiceImpl 源码分析数据范围枚举，发现用户 104 关联非法范围角色 data_scope=99，调用 RPC GET /rpc-api/system/permission/get-dept-data-permission?userId=104 命中目标日志）
 - ✅ `yudao_system_user_dept_parse_function_not_found` — DeptParseFunction L41「获取部门为空」（35 调用/1460.0s, v1 PASS; Agent 探索用户模块接口，调用登录并调用 PUT /admin-api/system/user/update 修改用户信息，触发 mzt-biz-log 操作日志 DIFF 计算，比对已预置不存在部门的用户数据命中目标日志）

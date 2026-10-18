@@ -73,7 +73,7 @@ def tool_search_code(pattern: str, path_prefix: str = "") -> str:
 def tool_query_db(sql: str) -> str:
     """只读 SQL: 查询 schema / 现有数据。"""
     banned = ("INSERT", "UPDATE", "DELETE", "DROP", "TRUNCATE", "ALTER", "CREATE", "GRANT", "SHUTDOWN")
-    if any(b in sql.upper() for b in banned):
+    if any(re.search(r'\b' + b + r'\b', sql.upper()) for b in banned):
         return "ERROR: query_db 仅允许只读 SELECT/SHOW/DESC 语句, 写操作请用 execute_sql"
     return _exec_mysql(sql)
 
@@ -920,6 +920,84 @@ SINK_TASKS = {
         "hint_level": "hint",
         "container": "trace-real-yudao-cloud-pay-server",
         "log_match": "WalletPayClient:123",
+    },
+    "yudao_pay_wallet_client_transfer_status_invalid": {
+        "sink": "WalletPayClient.doGetTransfer 中的 "
+                "log.error(\"[doGetTransfer] 转账单 {} 的状态不正确\", outTradeNo) "
+                "(L247, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/framework/pay/core/client/impl/wallet/WalletPayClient.java)。"
+                "触发条件: 同步转账单(GET /app-api/pay/transfer/sync?id=...)时, 钱包渠道对应的转账单处于非正常状态(status=99), 触发状态不正确分支打印错误日志。",
+        "api": "GET http://localhost:9213/app-api/pay/transfer/sync?id=705 (免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_transfer 表 (已预置 id=705, channel_id=1, channel_code='wallet', status=99)。"
+               "请直接向 pay-server 发送 GET /app-api/pay/transfer/sync?id=705 请求, 无需登录认证。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "[doGetTransfer] 转账单",
+    },
+    "yudao_pay_transfer_sync_closed": {
+        "sink": "PayTransferServiceImpl.notifyTransferClosed 中的 "
+                "log.info(\"[notifyTransferClosed][transfer({}) 已经是关闭状态，无需更新]\", transfer.getId()) "
+                "(L246, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/transfer/PayTransferServiceImpl.java)。"
+                "触发条件: 同步转账单(GET /app-api/pay/transfer/sync?id=...)时, 钱包渠道对应的转账单在库中已为关闭状态(status=20), 回调处理判定已为关闭状态打印无需更新日志。",
+        "api": "GET http://localhost:9213/app-api/pay/transfer/sync?id=706 (免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_transfer 表 (已预置 id=706, channel_id=1, channel_code='wallet', status=20)。"
+               "请直接向 pay-server 发送 GET /app-api/pay/transfer/sync?id=706 请求, 无需登录认证。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "[notifyTransferClosed][transfer(",
+    },
+    "yudao_pay_transfer_sync_progressing": {
+        "sink": "PayTransferServiceImpl.notifyTransferProgressing 中的 "
+                "log.info(\"[notifyTransferProgressing][transfer({}) 已经是转账中状态，无需更新]\", transfer.getId()) "
+                "(L167, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/transfer/PayTransferServiceImpl.java)。"
+                "触发条件: 同步转账单(GET /app-api/pay/transfer/sync?id=...)时, 钱包渠道对应的转账单在库中已为转账中状态(status=5), 回调处理判定已为转账中打印无需更新日志。",
+        "api": "GET http://localhost:9213/app-api/pay/transfer/sync?id=707 (免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_transfer 表 (已预置 id=707, channel_id=1, channel_code='wallet', status=5)。"
+               "请直接向 pay-server 发送 GET /app-api/pay/transfer/sync?id=707 请求, 无需登录认证。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "[notifyTransferProgressing][transfer(",
+    },
+    "yudao_pay_transfer_sync_success_already": {
+        "sink": "PayTransferServiceImpl.notifyTransferSuccess 中的 "
+                "log.info(\"[notifyTransferSuccess][transfer({}) 已经是成功状态，无需更新]\", transfer.getId()) "
+                "(L216, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/transfer/PayTransferServiceImpl.java)。"
+                "触发条件: 同步转账单(GET /app-api/pay/transfer/sync?id=...)时, 钱包渠道对应的转账单在库中已为成功状态(status=10), 回调处理判定已成功打印无需更新日志。",
+        "api": "GET http://localhost:9213/app-api/pay/transfer/sync?id=708 (免登录)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_transfer 表 (已预置 id=708, channel_id=1, channel_code='wallet', status=10) 与 pay_wallet_transaction 表 (已预置 biz_type=6, biz_id='708')。"
+               "请直接向 pay-server 发送 GET /app-api/pay/transfer/sync?id=708 请求, 无需登录认证。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "[notifyTransferSuccess][transfer(",
+    },
+    "yudao_pay_order_sync_extension_success": {
+        "sink": "PayOrderServiceImpl.updateOrderExtensionSuccess 中的 "
+                "log.info(\"[updateOrderExtensionSuccess][orderExtension({}) 更新为已支付]\", orderExtension.getId()) "
+                "(L332, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java)。"
+                "触发条件: 获取订单详情并同步(sync=true)时, mock支付渠道返回支付成功, 拓展单由未支付状态更新为已支付状态触发日志。",
+        "api": "GET http://localhost:9213/app-api/pay/order/get?id=520&sync=true (免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_order 表 (已预置 id=520, status=0, channel_id=2, channel_code='mock') 与 pay_order_extension 表 (已预置 id=520, order_id=520, channel_id=2, channel_code='mock', status=0, tenant_id=1)。"
+               "请直接向 pay-server 发送 GET /app-api/pay/order/get?id=520&sync=true 请求, 无需登录认证。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayOrderServiceImpl:332",
+    },
+    "yudao_pay_order_sync_order_success": {
+        "sink": "PayOrderServiceImpl.updateOrderSuccess 中的 "
+                "log.info(\"[updateOrderExtensionSuccess][order({}) 更新为已支付]\", order.getId()) "
+                "(L372, 源码 yudao-cloud/yudao-module-pay/yudao-module-pay-server/src/main/java/cn/iocoder/yudao/module/pay/service/order/PayOrderServiceImpl.java)。"
+                "触发条件: 获取订单详情并同步(sync=true)时, 支付拓展单更新为已支付后, 主订单由未支付状态更新为已支付状态触发日志。",
+        "api": "GET http://localhost:9213/app-api/pay/order/get?id=520&sync=true (免登录; 需请求头 tenant-id: 1)。",
+        "env": "目标服务容器: trace-real-yudao-cloud-pay-server (日志在此, 端口 9213)。"
+               "数据库 ruoyi-vue-pro 的 pay_order 表 (已预置 id=520, status=0, channel_id=2, channel_code='mock') 与 pay_order_extension 表 (已预置 id=520, order_id=520, channel_id=2, channel_code='mock', status=0, tenant_id=1)。"
+               "请直接向 pay-server 发送 GET /app-api/pay/order/get?id=520&sync=true 请求, 无需登录认证。",
+        "hint_level": "hint",
+        "container": "trace-real-yudao-cloud-pay-server",
+        "log_match": "PayOrderServiceImpl:372",
     },
     "yudao_pay_order_submit_extension_already_paid": {
         "sink": "PayOrderServiceImpl.validateOrderCanSubmit 中的 "
