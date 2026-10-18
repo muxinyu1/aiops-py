@@ -152,6 +152,10 @@
 - ✅ `lamp_oauth_refresh_token` — RefreshTokenGranter L58「token={},obj={}」（35 调用/1260.0s, v1 PASS; Agent 自主调用 POST /anyTenant/refresh 传入带标记的 refreshToken 参数，真实命中目标日志 3 次）
 - ✅ `lamp_oauth_user_status` — AbstractTokenGranter L284「userStatus=」（35 调用/723.2s, v1 PASS; 用户登录成功时加载员工信息并输出用户状态与员工ID，配置 log_match 前缀精确匹配，Agent 自主调用 POST /anyTenant/login 命中目标日志 4 次）
 - ✅ `lamp_oauth_password_error_num` — PasswordTokenGranter L114「输错密码次数：」（26 调用/895.1s, v2 PASS; 预置密码错误次数达 10 次上限状态，Agent 自主调用 POST /anyTenant/login 触发锁定分支命中目标日志 3 次）
+- ✅ `lamp_oauth_visible_router_default` — ResourceBiz L205「level={}, label={}」（26 调用/314.9s, v1 PASS; 开启 `--logging.level.top.tangyh=debug`，查询用户可见路由树 GET /anyone/visible/resource 携带 employeeId 与 applicationId，租户管理员遍历路由节点命中目标 debug 日志）
+- ✅ `lamp_oauth_visible_router_vben5` — ResourceBiz L256「level={}, label={}」（22 调用/230.8s, v1 PASS; 查询 VBen5 格式可见路由树 GET /anyone/visible/resource?type=LAMP_WEB_PRO_VBEN5，遍历构建树结构命中目标 debug 日志）
+- ✅ `lamp_oauth_visible_router_soybean` — ResourceBiz L336「level={}, label={}」（13 调用/220.7s, v1 PASS; 查询 Soybean 格式可见路由树 GET /anyone/visible/resource?type=LAMP_WEB_PRO_SOYBEAN，遍历构建树结构命中目标 debug 日志）
+- ✅ `lamp_oauth_base_role_resource_set` — BaseRoleManagerImpl L91「resourceIdSet={}」（14 调用/430.0s, v1 PASS; 普通员工角色查询 GET /anyone/findVisibleResource，通过非管理员分支加载角色关联资源集合命中目标 debug 日志）
 
 ### apollo（8080, trace-real-apollo-apollo-adminservice）
 - ✅ `apollo_delete_app` — AdminService L68「is deleting App:」（18 调用/180.6s, v1 PASS; Agent 自主调用 POST /apps 创建应用，随后 DELETE /apps 携带标记触发命中）

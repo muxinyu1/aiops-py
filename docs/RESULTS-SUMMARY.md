@@ -457,4 +457,24 @@ CRUD 成功与失败分支模式 5/5 全命中。DemoController L48 (createBrand
 | yudao_pay_wallet_reduce_wallet_not_found | PayWalletServiceImpl L150 | v1 | ✅ PASS | 17/381.4s | 预置非法钱包 wallet_id=99999 的充值单，向 /admin-api/pay/wallet-recharge/update-refunded 回调触发扣减余额时用户钱包不存在错误日志 |
 | yudao_pay_wallet_add_wallet_not_found | PayWalletServiceImpl L197 | v1 | ✅ PASS | 12/250.7s | 预置非法钱包 wallet_id=88888 的充值单，向 /admin-api/pay/wallet-recharge/update-paid 回调触发增加余额时用户钱包不存在错误日志 |
 
+---
+
+## 二十八、lamp-cloud 权限与路由全链路 4 个 Sink 突破与全域收敛 (2026-10-18)
+
+> 服务: lamp-oauth-server (9216)
+> 依赖: MySQL `lamp_none` (表 `base_employee`, `base_role`, `base_employee_role_rel`, `def_application`, `def_resource`, `base_role_resource_rel`), Redis
+> 进展:
+> 1. 日志级别适配: 为 `lamp-oauth-server` 增加启动参数 `--logging.level.top.tangyh=debug`，打通了业务逻辑中 `log.debug` 的标准输出通道。
+> 2. 攻克可见路由树默认构建 sink (`lamp_oauth_visible_router_default`): 租户管理员权限下遍历构建应用菜单树输出节点层级与标签日志。
+> 3. 攻克 VBen5 规范路由树构建 sink (`lamp_oauth_visible_router_vben5`): 携带 `type=LAMP_WEB_PRO_VBEN5` 构建前端特定树结构输出 debug 日志。
+> 4. 攻克 Soybean 规范路由树构建 sink (`lamp_oauth_visible_router_soybean`): 携带 `type=LAMP_WEB_PRO_SOYBEAN` 构建前端特定树结构输出 debug 日志。
+> 5. 攻克角色关联资源解析 sink (`lamp_oauth_base_role_resource_set`): 普通员工（非租户管理员）调用 `/anyone/findVisibleResource` 时，触发角色-资源多级缓存与持久化映射统计输出 debug 日志。
+
+| 任务 | sink 位置 | 运行记录 | 结果 | 调用/耗时 | 说明 |
+|---|---|---|---|---|---|
+| lamp_oauth_visible_router_default | ResourceBiz L205「level={}, label={}」 | v1 | ✅ PASS | 26/314.9s | 调用 GET /anyone/visible/resource?employeeId=...&applicationId=2 遍历生成路由树节点日志 |
+| lamp_oauth_visible_router_vben5 | ResourceBiz L256「level={}, label={}」 | v1 | ✅ PASS | 22/230.8s | 调用 GET /anyone/visible/resource 携带 type=LAMP_WEB_PRO_VBEN5 遍历生成 VBen5 规范路由树节点日志 |
+| lamp_oauth_visible_router_soybean | ResourceBiz L336「level={}, label={}」 | v1 | ✅ PASS | 13/220.7s | 调用 GET /anyone/visible/resource 携带 type=LAMP_WEB_PRO_SOYBEAN 遍历生成 Soybean 规范路由树节点日志 |
+| lamp_oauth_base_role_resource_set | BaseRoleManagerImpl L91「resourceIdSet={}」 | v1 | ✅ PASS | 14/430.0s | 普通员工角色调用 GET /anyone/findVisibleResource 触发非管理员角色关联资源集合大小日志 |
+
 

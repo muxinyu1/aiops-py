@@ -1634,6 +1634,58 @@ SINK_TASKS = {
         "container": "trace-real-lamp-cloud-lamp-oauth-server",
         "log_match": "输错密码次数：",
     },
+    "lamp_oauth_visible_router_default": {
+        "sink": "ResourceBiz.forEachTree 中的 "
+                "log.debug(\"level={}, label={}\", level, item.getName()) "
+                "(L205, 源码 lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/biz/ResourceBiz.java)。"
+                "触发条件: 查询用户可见路由树 (GET /anyone/visible/resource) 时, 若用户具备租户管理员角色且拥有资源, 遍历构建路由树时触发该日志。",
+        "api": "GET http://localhost:9216/anyone/visible/resource?employeeId=1452186486492364800&applicationId=2 (免登录)。",
+        "env": "目标服务容器: trace-real-lamp-cloud-lamp-oauth-server (日志在此, 端口 9216)。"
+               "数据库: trace-real-mysql, 库名 lamp_none。库中已预置员工 employeeId=1452186486492364800 关联 TENANT_ADMIN 角色及应用 applicationId=2 的资源。"
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 lamp-oauth-server 发送 GET /anyone/visible/resource?employeeId=1452186486492364800&applicationId=2 请求即可触发目标日志。",
+        "hint_level": "hint",
+        "container": "trace-real-lamp-cloud-lamp-oauth-server",
+        "log_match": "top.tangyh.lamp.oauth.biz.ResourceBiz    : level=",
+    },
+    "lamp_oauth_visible_router_vben5": {
+        "sink": "ResourceBiz.forEachTreeByVben5 中的 "
+                "log.debug(\"level={}, label={}\", level, item.getName()) "
+                "(L256, 源码 lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/biz/ResourceBiz.java)。"
+                "触发条件: 查询 VBEN5 规范的可见路由树 (GET /anyone/visible/resource?type=LAMP_WEB_PRO_VBEN5) 时, 遍历构建路由树时触发该日志。",
+        "api": "GET http://localhost:9216/anyone/visible/resource?employeeId=1452186486492364800&applicationId=2&type=LAMP_WEB_PRO_VBEN5 (免登录)。",
+        "env": "目标服务容器: trace-real-lamp-cloud-lamp-oauth-server (日志在此, 端口 9216)。"
+               "数据库: trace-real-mysql, 库名 lamp_none。库中已预置员工 employeeId=1452186486492364800 关联 TENANT_ADMIN 角色及应用 applicationId=2 的资源。"
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 lamp-oauth-server 发送 GET /anyone/visible/resource?employeeId=1452186486492364800&applicationId=2&type=LAMP_WEB_PRO_VBEN5 请求即可触发目标日志。",
+        "hint_level": "hint",
+        "container": "trace-real-lamp-cloud-lamp-oauth-server",
+        "log_match": "top.tangyh.lamp.oauth.biz.ResourceBiz    : level=",
+    },
+    "lamp_oauth_visible_router_soybean": {
+        "sink": "ResourceBiz.forEachTreeBySoybean 中的 "
+                "log.debug(\"level={}, label={}\", level, item.getName()) "
+                "(L336, 源码 lamp-cloud/lamp-oauth/lamp-oauth-biz/src/main/java/top/tangyh/lamp/oauth/biz/ResourceBiz.java)。"
+                "触发条件: 查询 SOYBEAN 规范的可见路由树 (GET /anyone/visible/resource?type=LAMP_WEB_PRO_SOYBEAN) 时, 遍历构建路由树时触发该日志。",
+        "api": "GET http://localhost:9216/anyone/visible/resource?employeeId=1452186486492364800&applicationId=2&type=LAMP_WEB_PRO_SOYBEAN (免登录)。",
+        "env": "目标服务容器: trace-real-lamp-cloud-lamp-oauth-server (日志在此, 端口 9216)。"
+               "数据库: trace-real-mysql, 库名 lamp_none。库中已预置员工 employeeId=1452186486492364800 关联 TENANT_ADMIN 角色及应用 applicationId=2 的资源。"
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 lamp-oauth-server 发送 GET /anyone/visible/resource?employeeId=1452186486492364800&applicationId=2&type=LAMP_WEB_PRO_SOYBEAN 请求即可触发目标日志。",
+        "hint_level": "hint",
+        "container": "trace-real-lamp-cloud-lamp-oauth-server",
+        "log_match": "top.tangyh.lamp.oauth.biz.ResourceBiz    : level=",
+    },
+    "lamp_oauth_base_role_resource_set": {
+        "sink": "BaseRoleManagerImpl.findResourceIdByEmployeeId 中的 "
+                "log.debug(\"resourceIdSet={}\", resourceIdSet.size()) "
+                "(L91, 源码 lamp-cloud/lamp-base/lamp-base-biz/src/main/java/top/tangyh/lamp/base/manager/system/impl/BaseRoleManagerImpl.java)。"
+                "触发条件: 查询员工可见资源 (GET /anyone/findVisibleResource) 时, 校验非管理员角色并查询该员工在指定应用下的角色关联资源集合大小。",
+        "api": "GET http://localhost:9216/anyone/findVisibleResource?employeeId=1454329823978586112&applicationId=2 (免登录)。",
+        "env": "目标服务容器: trace-real-lamp-cloud-lamp-oauth-server (日志在此, 端口 9216)。"
+               "数据库: trace-real-mysql, 库名 lamp_none。已预置普通员工 employeeId=1454329823978586112 关联非管理员角色 (ORG_ADMIN)。"
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记, 请直接向 lamp-oauth-server 发送 GET /anyone/findVisibleResource?employeeId=1454329823978586112&applicationId=2 请求即可触发目标日志。",
+        "hint_level": "hint",
+        "container": "trace-real-lamp-cloud-lamp-oauth-server",
+        "log_match": "BaseRoleManagerImpl     : resourceIdSet=",
+    },
     # ── apollo (apollo-adminservice, 8080) ──
     "apollo_delete_app": {
         "sink": "AdminService.deleteApp 中的 "
