@@ -10,13 +10,13 @@
 |------|------------|--------|------|
 | yudao | 117 | 42 PASS（pay 21 + mall 16 + system 5）+ 9 静态/环境不可达 | pay/trade(mall) 候选已全部 100% 收敛完成，system 核心候选全部通过 |
 | paascloud | 37 | 0 | 未部署（无 Dockerfile） |
-| lamp-cloud | 15 | 5 PASS（login_success, password_error_locked, refresh_token, user_status, password_error_num） | oauth-server(9216) 核心链路全线打通 |
+| lamp-cloud | 15 | 9 PASS（login_success, password_error_locked, refresh_token, user_status, password_error_num, visible_router_default, visible_router_vben5, visible_router_soybean, base_role_resource_set） | oauth-server(9216) 核心链路全线打通 |
 | pig | 15 | 6 PASS + 1 静态不可达（isExpired 死代码） | 已部署 (9999) |
-| apollo | 11 | 2 PASS（delete_app, delete_app_namespace） | 已部署 (8080) |
+| apollo | 11 | 5 PASS（delete_app, delete_app_namespace, admin_invalid_access_token, app_access_key_auto_provision_failed, biz_config_invalid_override_value） | 已部署 (8080)，adminservice 可达候选已全部 100% 收敛完成 |
 | ruoyi-plus | 10 | 10（含 workflow 6 条） | 已部署 |
 | small-swarm | 7 | 5 PASS + 2 静态/环境不可达 | mall-demo 已全池 7 个收敛清零（5 PASS + 1 死代码 + 1 需ES） |
 | 其他散量 | 13 | 9 PASS + 1 静态不可达 | mogu/novel/ruoyi/zlt/youlai/mall4cloud/piggymetrics/cloud-platform/javams 各 1-2 PASS |
-| **合计** | **225** | **77 PASS + 13 静态/环境不可达** | **全池已收敛 90 个 sink** |
+| **合计** | **225** | **84 PASS + 13 静态/环境不可达** | **全池已收敛 97 个 sink** |
 
 ---
 
@@ -160,6 +160,9 @@
 ### apollo（8080, trace-real-apollo-apollo-adminservice）
 - ✅ `apollo_delete_app` — AdminService L68「is deleting App:」（18 调用/180.6s, v1 PASS; Agent 自主调用 POST /apps 创建应用，随后 DELETE /apps 携带标记触发命中）
 - ✅ `apollo_delete_app_namespace` — AppNamespaceService L188「is deleting AppNamespace, appId:」（9 调用/83.5s, v1 PASS; Agent 自主查库定位已有 AppNamespace，调用 DELETE /apps/{appId}/appnamespaces/{namespaceName} 携带 operator 查询参数与标记成功命中目标日志）
+- ✅ `apollo_admin_invalid_access_token` — AdminServiceAuthenticationFilter L66「Invalid access token:」（8 调用/58.6s, v1 PASS; ServerConfig 启用 admin-service.access.control.enabled，Agent 自主向 /apps 发送携带非法 Authorization 请求头的请求，成功命中目标告警日志）
+- ✅ `apollo_app_access_key_auto_provision_failed` — AppController L79「Failed to auto-provision access key for appId=」（25 调用/403.1s, v3 PASS; 预置 appId='seeded-limit-app' 达 5 条 AccessKey 上限，Agent 发送 POST /apps 创建该应用时触发密钥数量上限异常并被捕获，成功命中目标告警日志）
+- ✅ `apollo_biz_config_invalid_override_value` — BizConfig L315「Invalid override config value:」（7 调用/158.0s, v3 PASS; ServerConfig 预置非法 JSON 格式的 appid.value.length.limit.override，Agent 调用 POST /apps/flagprobe-app/clusters/default/namespaces/application/items 创建配置项触发长度校验与 override 配置解析异常，成功命中目标错误日志）
 
 ### mogu-blog（8080, trace-real-mogublog-mogu-admin）
 - ✅ `mogu_admin_login_password_error` — LoginRestApi L120「管理员密码错误」（28 调用/775.6s, v2 PASS; v1 经历预算超限探索，v2 自主定位管理员账号并传入错误密码与攻击标记触发命中）

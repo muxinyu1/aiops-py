@@ -240,7 +240,7 @@ CRUD 成功与失败分支模式 5/5 全命中。DemoController L48 (createBrand
 
 ---
 
-## 十三、Apollo 实验 (2026-10-14)
+## 十三、Apollo 实验 (2026-10-14 ~ 2026-10-18)
 
 > 服务: apollo-adminservice (8080, 独立镜像 `crpi-8tnv6lve87c20oxm.cn-beijing.personal.cr.aliyuncs.com/llmfuzz/apollo-apollo-adminservice:latest`)
 > 依赖: MySQL `ApolloConfigDB` (表已就绪), `--eureka.client.enabled=false` + `--spring.cloud.zookeeper.enabled=false` 避免外部注册中心连接重试
@@ -250,6 +250,13 @@ CRUD 成功与失败分支模式 5/5 全命中。DemoController L48 (createBrand
 |---|---|---|---|---|
 | apollo_delete_app | AdminService.deleteApp L68「is deleting App:」 | v1 | ✅ PASS | 18/180.6s |
 | apollo_delete_app_namespace | AppNamespaceService.deleteAppNamespace L188「is deleting AppNamespace, appId:」 | v1 | ✅ PASS | 9/83.5s |
+| apollo_admin_invalid_access_token | AdminServiceAuthenticationFilter.doFilter L66「Invalid access token:」 | v1 | ✅ PASS | 8/58.6s (开启 access control，携带非法 Authorization 头请求 /apps 触发告警) |
+| apollo_app_access_key_auto_provision_failed | AppController.create L79「Failed to auto-provision access key for appId=」 | v1 | ❌ FAIL | 40/829.9s (预算超限，尝试自行动态打满密钥) |
+| | | v2 | ❌ FAIL | 25/644.1s (向 appId 注入标记触发正则校验 400) |
+| | | v3 | ✅ PASS | 25/403.1s (预置 5 条密钥上限，POST /apps 触发密钥上限异常捕获) |
+| apollo_biz_config_invalid_override_value | BizConfig.parseOverrideConfig L315「Invalid override config value:」 | v1 | ❌ FAIL | 25/188.5s (预算超限，过度检索 ServerConfig 修改 API) |
+| | | v2 | ❌ FAIL | 25/388.7s (预算超限，尝试寻找修改 ServerConfig 端点) |
+| | | v3 | ✅ PASS | 7/158.0s (ServerConfig 预置非法 JSON override 配置，POST 创建配置项触发长度校验与解析异常) |
 
 ---
 

@@ -1711,6 +1711,44 @@ SINK_TASKS = {
         "container": "trace-real-apollo-apollo-adminservice",
         "log_match": "is deleting AppNamespace, appId:",
     },
+    "apollo_admin_invalid_access_token": {
+        "sink": "AdminServiceAuthenticationFilter.doFilter 中的 "
+                "logger.warn(\"Invalid access token: {} for uri: {}\", token, request.getRequestURI()) "
+                "(L66, 源码 examples/Apollo/apollo-adminservice/src/main/java/com/ctrip/framework/apollo/adminservice/filter/AdminServiceAuthenticationFilter.java)。"
+                "触发条件: 在系统启用 access token 控制时，向接口发送非法的 Authorization Token。",
+        "api": "向 http://localhost:8080/apps 等接口发送请求，请求头中携带未授权或非法的 Authorization 凭据",
+        "env": "目标服务容器: trace-real-apollo-apollo-adminservice (日志在此, 端口 8080)。"
+               "系统启用了 admin-service.access.control.enabled，携带非法 token 请求受保护的接口即可触发该告警日志。",
+        "hint_level": "hint",
+        "container": "trace-real-apollo-apollo-adminservice",
+        "log_match": "Invalid access token:",
+    },
+    "apollo_app_access_key_auto_provision_failed": {
+        "sink": "AppController.create 中的 "
+                "logger.warn(\"Failed to auto-provision access key for appId={}\", entity.getAppId(), ex) "
+                "(L79, 源码 examples/Apollo/apollo-adminservice/src/main/java/com/ctrip/framework/apollo/adminservice/controller/AppController.java)。"
+                "触发条件: 在开启 apollo.access-key.auto-provision.enabled 时，为已有达到上限数量(>=5)的 AccessKey 的 appId 创建应用，或触发 accessKeyService.create 异常。",
+        "api": "POST http://localhost:8080/apps (请求头: Authorization: valid-token-123, Content-Type: application/json; 请求体 JSON: {\"appId\": \"seeded-limit-app\", \"name\": \"Seeded App\", \"orgId\": \"TEST\", \"orgName\": \"TEST\", \"ownerName\": \"apollo\", \"ownerEmail\": \"apollo@test.com\", \"dataChangeCreatedBy\": \"apollo\"})",
+        "env": "目标服务容器: trace-real-apollo-apollo-adminservice (日志在此, 端口 8080)。"
+               "数据库: trace-real-mysql, 库名 ApolloConfigDB, 表 accesskey 中已为 appId='seeded-limit-app' 预置了 5 条密钥记录，但 app 表尚未创建该应用。"
+               "本任务判定采用 log_match, 无需注入 <<SINK_REACHED>> 标记 (appId 字段有合法字符正则校验), 请直接以 appId='seeded-limit-app' 发送上述 POST /apps 请求即可触发密钥数量超过上限 (>=5) 异常并打印告警日志。",
+        "hint_level": "hint",
+        "container": "trace-real-apollo-apollo-adminservice",
+        "log_match": "Failed to auto-provision access key for appId=",
+    },
+    "apollo_biz_config_invalid_override_value": {
+        "sink": "BizConfig.parseOverrideConfig 中的 "
+                "logger.error(\"Invalid override config value: {}\", configValue, e) "
+                "(L315, 源码 examples/Apollo/apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/config/BizConfig.java)。"
+                "触发条件: 创建或更新 Item 触发校验配置项长度时，系统尝试解析 ServerConfig 中的 override 配置失败输出错误日志。",
+        "api": "POST http://localhost:8080/apps/flagprobe-app/clusters/default/namespaces/application/items (headers: {\"Authorization\": \"valid-token-123\", \"Content-Type\": \"application/json\"}; body: {\"namespaceId\": 6, \"key\": \"fuzz.item.key.102\", \"value\": \"test_val\", \"comment\": \"test\", \"dataChangeCreatedBy\": \"apollo\", \"dataChangeLastModifiedBy\": \"apollo\"})",
+        "env": "目标服务容器: trace-real-apollo-apollo-adminservice (端口 8080)。"
+               "前置状态已完全就绪: 数据库 ApolloConfigDB.ServerConfig 中已由环境预置了非法的 appid.value.length.limit.override 配置，且服务已加载。"
+               "注意: 本任务判定采用 log_match, 无需修改 ServerConfig, 也无需注入 <<SINK_REACHED>> 标记。请直接调用 send_http 发送上述 POST 请求创建配置项，即可立刻触发长度校验并命中目标日志！",
+        "hint_level": "hint",
+        "container": "trace-real-apollo-apollo-adminservice",
+        "log_match": "Invalid override config value:",
+    },
     # ── mogu-blog (mogu-admin, 8080) ──
     "mogu_admin_login_password_error": {
         "sink": "LoginRestApi.login 中的 "
