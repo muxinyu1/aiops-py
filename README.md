@@ -2,7 +2,7 @@
 
 基于 LLM Agent 的 Java 微服务安全测试框架：通过灰盒偏差反馈 fuzz（源码 + 数据库状态 + 日志）自主完成日志注入 sink 的前置条件构造并触发。
 
-**累计 16 个真实业务 sink 验证通过**（ruoyi-plus 10 + pig 5 + yudao pay/mall 幂等域 5 + small-swarm 3，部分为概念家族合并计数），另有「静态不可达家族」（5 处）作为阴性对照。完整数据见 [docs/RESULTS-SUMMARY.md](docs/RESULTS-SUMMARY.md)。
+**累计 100+ 个真实业务 sink 验证通过**（yudao 55 + ruoyi-plus 10 + lamp-cloud 9 + pig 6 + small-swarm 5 + apollo 5 + 散量微服务 10，累计 103 个验证目标/107 个 reached 结果文件），另有多处「静态不可达死代码」作为阴性对照。完整数据见 [docs/RESULTS-SUMMARY.md](docs/RESULTS-SUMMARY.md) 与 [timeline.md](timeline.md)。
 
 > ⚠️ **交接文档**：本 README 面向接手的新 Agent/开发者。当前进度、环境状态与 TODO 见文末「交接：进度与 TODO」章节。
 
@@ -16,8 +16,8 @@
 ├── static_analysis.py     # 静态分析管线主入口
 ├── data/                  # 实验数据 (sink_llm_classify.json 2230 条分类 / api_table_map / callgraph)
 ├── sinks/                 # 各项目 sink 清单 JSON
-├── docs/RESULTS-SUMMARY.md  # ⭐ 实验结果汇总 (九章, 含 harness 修复公平性说明)
-├── logs/agent_runs/       # ⭐ 每次 Agent 运行的完整结果 JSON (29 个 reached=True)
+├── docs/RESULTS-SUMMARY.md  # ⭐ 实验结果汇总 (二十八章, 含 harness 修复公平性说明)
+├── logs/agent_runs/       # ⭐ 每次 Agent 运行的完整结果 JSON (107 个 reached=True)
 ├── scripts/
 │   ├── analysis/          # 静态分析辅助 (api_discovery / codeql / joern 适配器等)
 │   ├── ops/               # 镜像构建脚本 (build_and_push_all_traced.sh)
@@ -60,72 +60,81 @@ python3 sink_agent.py --sink small_swarm_brand_create --hint-level none
 
 ## 交接：进度与 TODO
 
-### 已完成（截至 2026-10-13, HEAD=8116d1a3）
+### 已完成（截至 2026-10-19, HEAD=cb3cb26d）
 
-**实验成果（29 个 reached=True 结果文件）**
+**实验成果（100+ 个业务 sink 验证通过，107 个 reached=True 结果文件）**
 
-| 项目 | 域 | PASS 数 | 备注 |
-|------|-----|--------|------|
-| ruoyi-plus | 菜单/工作流 10 概念 | 10 | 含黑盒对照 |
-| pig | 文件/短信/密码/token 5 | 5 | 含 AES 协议逆向 |
-| yudao pay | 幂等域 3 | 3 | demo-order L126 / wallet-recharge L131 / demo-withdraw L143 |
-| yudao mall | 幂等域 2 | 2 | brokerage-withdraw L248 / trade-order L292 |
-| small-swarm | CRUD 域 3 | 3 | brand create/update/delete (mall-demo, 9215) |
+| 项目 | 域 / 核心机制 | PASS 数 | 备注 |
+|------|--------------|--------|------|
+| yudao pay | 订单/退款/充值/提现/转账/钱包 状态机与幂等 | 34 | 含状态同步、金额与商户号校验、跨表异常分支全部收敛 |
+| yudao mall | 订单支付/分销转账/售后退款 校验 | 16 | 含跨服务 Feign 数据不一致多维校验 |
+| yudao system | 菜单拓扑孤儿/模板状态/数据权限/操作日志 | 5 | 修复 trace-agent 与数据权限环境打通 |
+| ruoyi-plus | 菜单/工作流 10 概念 | 10 | 含 workflow 状态机、多租户绕过与黑盒对照 |
+| lamp-cloud | OAuth 登录/锁定/Token刷新/路由树构建/权限 | 9 | 解决 SpringUtils 上下文注入与 ip2region 依赖 |
+| pig | 文件/短信/密码/token/API Key 锁定 | 6 | 含 AES 协议逆向与验证码解码 |
+| small-swarm | 品牌 CRUD 成功与失败分支 (mall-demo 9215) | 5 | 全池可达候选清零 |
+| apollo | 应用/命名空间删除/Token鉴权/密钥上限/配置覆写 | 5 | adminservice (8080) 可达候选 100% 收敛 |
+| mogu-blog | 管理员登录密码错误 / @AuthorityVerify 鉴权 | 2 | 独立镜像 (8080) |
+| novel-cloud | JWT 解析校验失败异常捕获 | 1 | 拦截器触发告警日志 (8080) |
+| RuoYi-Cloud | 认证模块非法 Token 拦截 | 1 | ruoyi-auth (8080) |
+| zlt-uaa | 短信验证码未失效校验 | 1 | Redis 缓存状态联动 (8080) |
+| youlai-mall | 订单提交参数校验与记录 | 1 | mall-oms (8803) |
+| mall4cloud | Base64 刷新令牌解密异常处理 | 1 | mall4cloud-auth (8080) |
+| PiggyMetrics | OAuth2 保护端点用户信息拉取异常 | 1 | account-service (8080) |
+| Cloud-Platform | 身份认证请求用户名审计 | 1 | ace-admin (8080) |
+| java-microservice | VIP大额APP端多层风控条件判断 | 1 | 嵌套条件分支命中 (8080) |
+| **合计** | **17 个业务微服务系统** | **100+** | **累计 103 验证概念目标，107 个 reached 文件** |
 
 **关键发现（论文素材）**
 
-- **幂等/重复回调日志模式 5/5 全命中**（pay 3 + mall 2）——db_state 池中最高价值模式
-- **静态不可达家族**：「找不到对应的支付客户端」L75/L97/L119/L227/L246 五处，`validPayChannel` 先抛异常使 `if(payClient==null)` 成为死代码——静态可达性预过滤价值的实证
-- v2→v4 三连跑构成 harness 可信度验证链（误报修复→错服务→阴性对照）
+- **幂等/重复回调日志模式全命中**（pay 3 + mall 2）——db_state 池中最高价值模式。
+- **静态不可达死代码实证**：累计证明 19 处死代码/环境受限分支（如 yudao pay「找不到支付客户端」8 处防御性死代码、mall payTransfer NPE、pig `isExpired` 硬编码真、SpringBlade 空对象序列化等），展现静态可达性分析在消除盲目 fuzz 上的关键价值。
+- **多租户与数据隔离绕过**：Agent 在 ruoyi-workflow 中通过修改租户字段创造逻辑孤儿突破业务删除拦截；在 yudao system 中自主阅读源码分析数据范围枚举，构造越权数据范围触发审计日志。
+- **环境自适应推理**：黑盒对照验证了 Agent 拥有自主探明微服务拓扑的能力，环境提示提升了效率（2.4× 成本优化）而非能力开关。
 
 **基础设施**
 
-- 26 个追踪镜像全部构建（`scripts/ops/build_and_push_all_traced.sh` 清单 18 + 后补 8，含 mall-demo）
-- 已部署目标：ruoyi-plus(9201/9205)、yudao trade(9212)/pay(9213)/system(9214)、pig(9999 宿主机)、mall-demo(9215)、lamp-oauth(9216, 已启动)
+- 26 个追踪镜像全部构建（`scripts/ops/build_and_push_all_traced.sh` 清单 18 + 后补 8，含 mall-demo、lamp-oauth 等）。
+- 已部署并打通目标：ruoyi-plus(9201/9205)、yudao trade(9212)/pay(9213)/system(9214)、pig(9999 宿主机)、mall-demo(9215)、lamp-oauth(9216)、apollo-adminservice(8080)。
 
 ### 未完成 TODO（按优先级）
 
-1. **lamp-cloud 域（15 个候选，环境刚就绪）**
-   - lamp-oauth-server 已启动（9216）；登录入口 `POST /anyTenant/login`
-   - 登录链路已打通到"密码校验"环节：`Authorization` 头传**纯 base64** `lamp_web_pro:lamp_web_pro_secret`（lamp 自定义，无 Basic 前缀）；superAdmin 密码已用 SQL 重置为 123456
-   - **当前卡点**：`BaseEmployeeMapper.listEmployeeByUserId` 报 `Invalid bound statement`——mapper XML 在 `lamp-base-biz-5.10.0.jar` 内 `mapper_base/` 目录存在，但 mybatis-plus `mapper-locations` 配置来自 nacos `mysql.yml`（**nacos 里没有该文件**）。修复方向：compose 补 `--mybatis-plus.mapper-locations=classpath*:mapper_*/**/*.xml`
-   - 候选目标：`AbstractTokenGranter` L425（登录成功日志，最易）、`PasswordTokenGranter` L122（密码输错锁定分支，需 DB 造 `password_error_num`）、`ResourceBiz` L205/L256、`DefResourceServiceImpl` L196、`AbstractFileChunkStrategy` L146
-2. **yudao system 域（9 个候选，阻塞中）**
-   - 阻塞：`get-permission-info` 500 —— `WebFrameworkUtils.getLoginUserType` L115 NPE（静态 `properties==null`）
-   - 已排除：类重复 / 构造赋值异常 / trace-agent 干扰（无 agent 对照仍 NPE）/ lazy-init / feign url 配置 / 排除 security+tenant（引发 mzt-biz-log 连锁失败已回滚）
-   - 环境修复已完成：`SPRING_CLOUD_DISCOVERY_ENABLED=false`（common-real.env）是 nacos 自注册失败真根因——env_file 静默覆盖命令行参数，已用 compose `environment:` 覆盖为 true，自注册成功
-   - 待查：`YudaoWebAutoConfiguration` 的 `webFrameworkUtils` bean 为何未创建（conditions report 显示 `#restTemplate matched`）；可对比 trade 的 starter-web 版本差异
-3. **mall-search 域**：EsProduct recommend 候选需 Elasticsearch，未部署
-4. **paascloud（37 个候选，最大单块）**：连 Dockerfile 都没有，需从零写
-5. **gulimall（3 个）/ mall4cloud / passjava**：镜像已构建，compose 未建
-6. **静态可达性预筛脚本**：识别 null-after-throw 死代码模式（pay 家族教训产品化），预期剔除 10-20% 候选
-7. **论文收尾**：`docs/RESULTS-SUMMARY.md` 补 lamp/small-swarm 章节；图 2-8 用 `scripts/make_figures.py` 更新
+1. **paascloud（37 个候选，当前核心攻坚项）**
+   - MySQL 8 驱动兼容性已修复（pom.xml `mysql.version` 更新为 8.0.28，commit cb3cb26d）。
+   - 下一步：编写独立微服务 Dockerfile 与 compose 配置（优先 `paascloud-provider-uac`），导入数据库初始表结构并启动 fuzz。
+2. **论文图表生成与收尾**
+   - 使用 `scripts/make_figures.py` 更新图 2-8，基于 `logs/agent_runs/*.json` 完整数据重绘成本与分类分布图。
+3. **外部受限候选标记**
+   - mall-search 候选需 Elasticsearch（未部署）。
+   - yudao Coupon L204 需 promotion-server Feign 依赖。
 
 ### 环境速查
 
 | 服务 | 容器 | 端口 | 说明 |
 |------|------|------|------|
-| MySQL | trace-real-mysql | 3306 | 库: ruoyi-vue-pro / pig / mall / lamp_none / ry-workflow |
+| MySQL | trace-real-mysql | 3306 | 库: ruoyi-vue-pro / pig / mall / lamp_none / ry-workflow / ApolloConfigDB |
 | Redis | trace-real-redis | 6379 | 密码 password（yudao）/ db5（pig） |
 | Nacos | trace-real-nacos | 8848 | nacos/nacos |
-| yudao trade | trace-real-yudao-cloud-trade-server | 9212 | mall 域 sink |
-| yudao pay | trace-real-yudao-cloud-pay-server | 9213 | pay 域 sink |
-| yudao system | trace-real-yudao-cloud-...-system-server | 9214 | 阻塞中（TODO 2） |
-| mall-demo | trace-real-mall-swarm-mall-demo | 9215 | small-swarm 域 |
-| lamp-oauth | trace-real-lamp-cloud-lamp-oauth-server | 9216 | TODO 1（JVM 加 -Xmx1200m 防 OOM crash；jacoco agent 在 jdk17 会 premain 失败 SIGSEGV，已移除） |
-| pig-boot | 宿主机进程 | 9999 | 日志 /tmp/pigboot.log |
+| yudao trade | trace-real-yudao-cloud-trade-server | 9212 | mall 域 sink（16 PASS，全收敛） |
+| yudao pay | trace-real-yudao-cloud-pay-server | 9213 | pay 域 sink（34 PASS，全收敛） |
+| yudao system | trace-real-yudao-cloud-...-system-server | 9214 | system 域 sink（5 PASS，全收敛） |
+| mall-demo | trace-real-mall-swarm-mall-demo | 9215 | small-swarm 域（5 PASS，全收敛） |
+| lamp-oauth | trace-real-lamp-cloud-lamp-oauth-server | 9216 | lamp-cloud 域（9 PASS，全收敛） |
+| apollo | trace-real-apollo-apollo-adminservice | 8080 | apollo 域（5 PASS，全收敛） |
+| pig-boot | 宿主机进程 | 9999 | 日志 /tmp/pigboot.log（6 PASS，全收敛） |
 
-### 已知坑速查（详见 docs/RESULTS-SUMMARY.md 第九章）
+### 已知坑速查（详见 docs/RESULTS-SUMMARY.md）
 
-- yudao 主 SQL **不含** pay/mall 建表；建表技巧：MyBatis 报错信息会给完整 SELECT 列清单，照抄补列即可
-- `common-real.env` 的 `SPRING_CLOUD_DISCOVERY_ENABLED=false` 会覆盖所有命令行参数——单项目需 discovery 时必须在 compose `environment:` 段覆盖
-- mapper XML 缺失报 `Invalid bound statement` → 先查 nacos 对应 dataId 是否存在（lamp 的 mysql.yml 缺失）
-- LLM 端点偶发断连，重跑即可；整轮 API 异常的运行=基础设施未执行，不计结果
-- 目标服务日志看不到预期 sink 行 → 先查日志级别（mall-demo 的 controller 是 LOGGER.debug，需 `--logging.level.com.macro.mall=debug`）
+- yudao 主 SQL **不含** pay/mall 建表；建表技巧：MyBatis 报错信息会给完整 SELECT 列清单，照抄补列即可。
+- `common-real.env` 的 `SPRING_CLOUD_DISCOVERY_ENABLED=false` 会覆盖所有命令行参数——单项目需 discovery 时必须在 compose `environment:` 段覆盖。
+- mapper XML 缺失报 `Invalid bound statement` → 补 `--mybatis-plus.mapper-locations`。
+- LLM 端点偶发断连，重跑即可；整轮 API 异常的运行=基础设施未执行，不计结果。
+- 目标服务日志看不到预期 sink 行 → 先查日志级别（mall-demo 的 controller 是 LOGGER.debug，需 `--logging.level.com.macro.mall=debug`；lamp 需 `--logging.level.top.tangyh=debug`）。
 
 ## 关键文档
 
-- [docs/RESULTS-SUMMARY.md](docs/RESULTS-SUMMARY.md) — 实验结果汇总表（九章）
+- [docs/RESULTS-SUMMARY.md](docs/RESULTS-SUMMARY.md) — 实验结果汇总表（二十八章）
 - [timeline.md](timeline.md) — 两周排期与已验证 sink 台账
 - [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) — 目录结构详解
 - [DESIGN.md](DESIGN.md) / [ALGORITHM.md](ALGORITHM.md) — 设计与算法
+

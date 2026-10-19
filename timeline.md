@@ -4,19 +4,19 @@
 >
 > 吞吐测算：单 sink 平均 ~7 分钟 Agent 运行（含 1.3 次重试系数）+ 环境预置，日均 2-3 小时运行量可覆盖 ~20 个/天，总量可行。瓶颈在**服务部署**与**不可达预筛**，不在跑数。
 
-## 当前进度基线（2026-10-13 更新）
+## 当前进度基线（2026-10-19 更新）
 
 | 项目 | db_state 池 | 已验证 | 状态 |
 |------|------------|--------|------|
-| yudao | 117 | 42 PASS（pay 21 + mall 16 + system 5）+ 9 静态/环境不可达 | pay/trade(mall) 候选已全部 100% 收敛完成，system 核心候选全部通过 |
-| paascloud | 37 | 0 | 未部署（无 Dockerfile） |
-| lamp-cloud | 15 | 9 PASS（login_success, password_error_locked, refresh_token, user_status, password_error_num, visible_router_default, visible_router_vben5, visible_router_soybean, base_role_resource_set） | oauth-server(9216) 核心链路全线打通 |
+| yudao | 117 | 55 PASS（pay 34 + mall 16 + system 5）+ 15 静态/环境不可达 | pay/trade(mall) 候选已全部 100% 收敛完成，system 核心候选全部通过，其余死代码/微信/未部署依赖已证明不可达 |
+| paascloud | 37 | 0 | 未部署（MySQL 8 驱动依赖已修复，待编写 Dockerfile 部署） |
+| lamp-cloud | 15 | 9 PASS（login_success, password_error_locked, refresh_token, user_status, password_error_num, visible_router_default, visible_router_vben5, visible_router_soybean, base_role_resource_set） | oauth-server(9216) 核心链路与可见路由树全线打通 |
 | pig | 15 | 6 PASS + 1 静态不可达（isExpired 死代码） | 已部署 (9999) |
 | apollo | 11 | 5 PASS（delete_app, delete_app_namespace, admin_invalid_access_token, app_access_key_auto_provision_failed, biz_config_invalid_override_value） | 已部署 (8080)，adminservice 可达候选已全部 100% 收敛完成 |
-| ruoyi-plus | 10 | 10（含 workflow 6 条） | 已部署 |
-| small-swarm | 7 | 5 PASS + 2 静态/环境不可达 | mall-demo 已全池 7 个收敛清零（5 PASS + 1 死代码 + 1 需ES） |
-| 其他散量 | 13 | 9 PASS + 1 静态不可达 | mogu/novel/ruoyi/zlt/youlai/mall4cloud/piggymetrics/cloud-platform/javams 各 1-2 PASS |
-| **合计** | **225** | **84 PASS + 13 静态/环境不可达** | **全池已收敛 97 个 sink** |
+| ruoyi-plus | 10 | 10 PASS（含 workflow 6 条） | 已部署 (9201/9205) |
+| small-swarm | 7 | 5 PASS + 2 静态/环境不可达 | mall-demo (9215) 已全池 7 个收敛清零（5 PASS + 1 死代码 + 1 需ES） |
+| 其他散量 | 13 | 10 PASS + 1 静态不可达 | mogu(2)/novel(1)/ruoyi-cloud(1)/zlt(1)/youlai(1)/mall4cloud(1)/piggymetrics(1)/cloud-platform(1)/javams(1) 各 1-2 PASS；SpringBlade 1 静态死代码 |
+| **合计** | **225** | **100 PASS + 19 静态/环境/死代码不可达** | **全池已收敛 119 个 sink（累计 103 验证概念目标，107 个 reached 结果文件）** |
 
 ---
 

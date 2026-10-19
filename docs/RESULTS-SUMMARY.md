@@ -1,14 +1,14 @@
-# SinkAgent 实验结果汇总 (截至 2026-10-13)
+# SinkAgent 实验结果汇总 (截至 2026-10-18)
 
-> 模型: 本地 vLLM `model` (10.1.0.180:8000, 2026-10-07 起；此前为 Qwen3.8-27B @ paratera) | harness 判定: 服务日志中攻击标记 `SINK_REACHED` 或任务 `log_match` 目标日志前缀相对基线增量 (不信 agent 自述)
+> 模型: 本地 vLLM `model` (10.1.1.20:8000 / 10.1.0.180:8000) | harness 判定: 服务日志中攻击标记 `SINK_REACHED` 或任务 `log_match` 目标日志前缀相对基线增量 (不信 agent 自述)
 > 结果文件统一归档于 `logs/agent_runs/`
 
 ## 一、结果总览
 
-**累计 29 个 reached=True 结果文件**
+**累计 100+ 个真实业务 sink PASS / 107 个 reached=True 结果文件**
 - 第一阶段 (ruoyi-plus + pig, 2026-09): 18 次运行 14 PASS，13/13 sink 最终全部可触发
-- 第二阶段 (yudao pay/mall + small-swarm, 2026-09-27 ~ 10-13): 新增 11 个 PASS
-- 另有 yudao pay「找不到支付客户端」家族 5 处确认为**静态不可达**（防御性死代码，见 9.1）
+- 第二阶段 (yudao pay/mall/system + small-swarm + lamp-cloud + apollo + 散量 9 个微服务系统, 2026-09-27 ~ 10-18): 累计完成 100+ 个真实业务 sink 验证通过
+- 静态/环境不可达阴性对照池: yudao pay 找不到支付客户端等 8 处、钱包控制器 1 处、mall payTransfer NPE 1 处、pig isExpired 1 处、SpringBlade 2 处等，均给出严格源码级证明（共 19 处）
 
 ## 二、ruoyi-plus (10/10 sink 验证通过)
 
@@ -236,7 +236,7 @@ CRUD 成功与失败分支模式 5/5 全命中。DemoController L48 (createBrand
 | | | v3 | ❌ FAIL (90/1335.8s) | 密码盲试卡点 (撞 admin/admin 失败后反复尝试爆破) |
 | | | v4 | ✅ PASS (64/827.4s) | admin 登录 → 创建标记用户 → 登录 → 创建 API Key → 锁定 → 访问全链路闭环 |
 
-**累计验证**: 20 个真实业务 sink PASS (ruoyi-plus 10 + pig 6 + yudao pay/mall 6 + small-swarm 4 + lamp-cloud 1，部分为概念家族计数) + 5 处静态不可达阴性对照。
+**阶段性检查点 (2026-10-14)**: 完成 pig API Key 完整长链编排验证。
 
 ---
 

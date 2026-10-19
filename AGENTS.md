@@ -58,52 +58,58 @@ LLM：vLLM `http://10.1.1.20:8000/v1`（`.env`）。单次调用 30-60s；偶发
 
 | 服务 | 容器 | 端口 | 库/凭证 |
 |------|------|------|---------|
-| MySQL | trace-real-mysql | 3306 | root/123456；库：ruoyi-vue-pro、pig、mall、lamp_none、ry-workflow |
+| MySQL | trace-real-mysql | 3306 | root/123456；库：ruoyi-vue-pro、pig、mall、lamp_none、ry-workflow、ApolloConfigDB |
 | Redis | trace-real-redis | 6379 | password=password（yudao）/ pig 用 db5 |
 | Nacos | trace-real-nacos | 8848 | nacos/nacos |
-| yudao trade | trace-real-yudao-cloud-trade-server | 9212 | mall 域 sink |
-| yudao pay | trace-real-yudao-cloud-pay-server | 9213 | pay 域 sink |
-| yudao system | trace-real-yudao-cloud-…-system-server | 9214 | **阻塞**（见 §5.2） |
-| mall-demo | trace-real-mall-swarm-mall-demo | 9215 | small-swarm 域 |
-| lamp-oauth | trace-real-lamp-cloud-lamp-oauth-server | 9216 | **卡点**（见 §5.1） |
-| pig-boot | 宿主机进程 | 9999 | 日志读文件 /tmp/pigboot.log |
+| yudao trade | trace-real-yudao-cloud-trade-server | 9212 | mall 域 sink（16/16 全部 PASS） |
+| yudao pay | trace-real-yudao-cloud-pay-server | 9213 | pay 域 sink（34/34 全部 PASS） |
+| yudao system | trace-real-yudao-cloud-…-system-server | 9214 | system 域 sink（5 核心通过，全域收敛） |
+| mall-demo | trace-real-mall-swarm-mall-demo | 9215 | small-swarm 域（5/5 全部 PASS） |
+| lamp-oauth | trace-real-lamp-cloud-lamp-oauth-server | 9216 | lamp-cloud 域（9/9 全部 PASS） |
+| apollo | trace-real-apollo-apollo-adminservice | 8080 | apollo 域（5/5 全部 PASS） |
+| pig-boot | 宿主机进程 | 9999 | 日志读文件 /tmp/pigboot.log（6/6 全部 PASS） |
 
 宿主机 13G 内存基本占满——启动新服务前先停不用的容器；给新 JVM 加 `-Xms512m -Xmx1200m -XX:MaxMetaspaceSize=256m`。
 
 ## 4. 任务清单与判定方式
 
-`python3 sink_agent.py --list` 是唯一权威来源。已 PASS 的 16 个 sink 台账在 `timeline.md` 和 `docs/RESULTS-SUMMARY.md` 第九章。
+`python3 sink_agent.py --list` 是唯一权威来源。已 PASS 的 100+ 个 sink 台账在 `timeline.md` 和 `docs/RESULTS-SUMMARY.md`。
 
 给新任务加 `log_match` 的规则：
 - 日志参数是**数值/对象**（marker 放不进去）→ 必须用 `log_match`（目标日志前缀，如 `"[updateOrderPaid][order("`）
 - 日志参数是**可控字符串** → 可用默认 marker 判定
 - 前缀要足够特异，别让通用请求日志（如 `ApiAccessLogInterceptor` 的 preHandle）匹配上——v2 误报教训
 
-## 5. 当前阻塞点（接手后先看这里）
+## 5. 当前攻坚前沿与阻塞点（接手后先看这里）
 
-### 5.1 lamp-cloud（15 候选，环境就绪 90%）
+### 5.1 阻塞点攻克记录（已闭环解决）
 
-- 登录入口 `POST http://localhost:9216/anyTenant/login`
-- `Authorization` 头要传**纯 base64** `lamp_web_pro:lamp_web_pro_secret`（lamp 自定义，**没有** "Basic " 前缀；带前缀会报 `Illegal base64 character 20`）
-- superAdmin 密码已 SQL 重置为 123456（sha256(pwd+salt)）
-- **当前卡点**：`BaseEmployeeMapper.listEmployeeByUserId` → `Invalid bound statement`。XML 在 `lamp-base-biz-5.10.0.jar` 的 `mapper_base/` 里存在，但 mybatis-plus `mapper-locations` 来自 nacos `mysql.yml`——**nacos 里没有这个文件**（已验证，nacos 只有 mogu 的 6 个配置）
-- **修复方向**：compose.real.yaml 给 lamp 加 `--mybatis-plus.mapper-locations=classpath*:mapper_*/**/*.xml` 后重启
-- 通了之后候选按易到难：`AbstractTokenGranter` L425（登录成功日志）→ `PasswordTokenGranter` L122（密码输错锁定，需 UPDATE def_user 造 `password_error_num`）→ `ResourceBiz` L205/L256 → `DefResourceServiceImpl` L196 → `AbstractFileChunkStrategy` L146
-- 首个任务用 `log_match: "登录成功"` 之类前缀
+- **lamp-cloud（9 PASS，全域收敛）**：
+  - compose 补 `--mybatis-plus.mapper-locations=classpath*:mapper_*/**/*.xml,classpath*:mapper_**/**/*Mapper.xml` 解决 Mapper XML 缺失。
+  - trace-agent 增强注入 `SpringUtils.applicationContext` 并在 compose 挂载 `ip2region_v4.xdb` 解决登录后事件 NPE 与 Bean 初始化失败。
+  - 启动参数补 `--logging.level.top.tangyh=debug` 打通路由树 debug 日志输出。
+- **yudao system（5 PASS，全域收敛）**：
+  - compose `environment:` 覆盖 `SPRING_CLOUD_DISCOVERY_ENABLED=true` 解决 nacos 实例注册。
+  - 修复 `sink_agent.py` 中 `tool_query_db` 针对 `deleted` 字段的词界正则误判拦截 bug。
+- **yudao pay / mall（50 PASS，全域收敛）**：
+  - 补齐 `pay_notify_task` 与 `pay_wallet` 表结构，打通订单同步、钱包扣减与充值退款全链路。
+  - 证明 15 处死代码/微信受限不可达分支。
+- **apollo adminservice（5 PASS，全域收敛）**：
+  - 补齐 `ApolloConfigDB` 表结构，参数禁用外部注册中心连接重试，完成密钥上限与 override 解析覆写全部验证。
 
-### 5.2 yudao system（9 候选，阻塞）
+### 5.2 当前主要攻坚前沿：paascloud（37 候选）
 
-- 现象：`GET :9214/admin-api/system/auth/get-permission-info` → 500，`WebFrameworkUtils.getLoginUserType` L115 NPE（静态 `properties==null`）
-- **已排除**（不要重走）：类重复定义 / 构造函数赋值（javap 验证过 putstatic）/ trace-agent 干扰（无 agent 对照仍 NPE）/ lazy-init / feign url 配置 / 排除 security+tenant（引发 mzt-biz-log `functionService` 连锁失败，已回滚）
-- **已修复**：`SPRING_CLOUD_DISCOVERY_ENABLED=false`（common-real.env）静默覆盖命令行参数是 nacos 自注册失败真根因，已用 compose `environment:` 覆盖为 true，自注册已成功（nacos dev 命名空间可见实例）
-- **下一步**：查 `YudaoWebAutoConfiguration` 的 `webFrameworkUtils` bean 为何未创建（`#restTemplate` bean matched 但静态字段仍 null——这矛盾指向 bean 创建顺序或另一个 classloader）；或对比 trade 的 starter-web 版本（trade 是 2026.05 非 jdk8 后缀，system 是 `2026.05-jdk8-SNAPSHOT`）
-- 登录本身已通（POST /admin-api/system/auth/login → 200），system 域 9 个候选多数卡在 perm-info
+- **状态**：MySQL 8 兼容性已修复（pom.xml 更新 mysql.version 为 8.0.28，commit cb3cb26d）。
+- **待执行**：
+  1. 编写独立微服务 Dockerfile 与 compose 配置（优先 `paascloud-provider-uac` 用户认证中心）。
+  2. 导入 `data/paascloud` SQL 数据库初始化脚本。
+  3. 启动部署并验证登录端点与可达 sink。
 
-### 5.3 其他
+### 5.3 外部受限项（已记录，无需重复探查）
 
-- paascloud（37 候选）：无 Dockerfile，从零写（参考 `examples/paascloud-master/` 结构与 mall-admin Dockerfile 模板）
-- mall-search 的 recommend 候选需要 Elasticsearch，未部署
-- yudao Coupon L204 需要 promotion-server（Feign 依赖），镜像未构建
+- mall-search 的 recommend 候选需要 Elasticsearch，未部署。
+- yudao Coupon L204 需要 promotion-server（Feign 依赖），镜像未构建。
+- 微信/短信等外部鉴权 SDK 分支（如 yudao `SocialClientApiImpl L90`）因无真实商户凭证在入口处拦截。
 
 ## 6. 高频坑（血泪清单）
 
